@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { GoogleGenAI } from '@google/genai';
 import { CriteriaSelector } from './components/CriteriaSelector';
 import { QuestionList } from './components/QuestionList';
@@ -12,8 +12,26 @@ import { Footer } from './components/Footer';
 import type { Criteria, GeneratedQuestion } from './types';
 import { generatePrompt } from './services/geminiService';
 import { simulateExam } from './services/examSimulationService';
+import { auth, isConfigured } from './firebaseConfig';
+import { onAuthStateChanged, User, signOut } from 'firebase/auth';
+import { LoginScreen } from './components/LoginScreen';
+
+// Mock User for Demo Mode
+const DEMO_USER = {
+  uid: 'demo-user-123',
+  displayName: 'Khách (Demo)',
+  email: 'guest@biogen.ai',
+  photoURL: null,
+  emailVerified: true,
+  isAnonymous: true,
+} as unknown as User;
 
 const App: React.FC = () => {
+  // Auth State
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+
+  // App State
   const [generatedQuestions, setGeneratedQuestions] = useState<GeneratedQuestion[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +41,37 @@ const App: React.FC = () => {
   
   // Lifted state: Manage Quiz Mode at App level to control Layout
   const [isQuizMode, setIsQuizMode] = useState<boolean>(false);
+
+  // Listen for Auth Changes
+  useEffect(() => {
+    if (isConfigured && auth) {
+      const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        setUser(currentUser);
+        setIsAuthLoading(false);
+      });
+      return () => unsubscribe();
+    } else {
+      // If no firebase config, stop loading immediately
+      // User remains null, LoginScreen will handle the Demo login option
+      setIsAuthLoading(false);
+    }
+  }, []);
+
+  const handleDemoLogin = () => {
+    setUser(DEMO_USER);
+  };
+
+  const handleLogout = async () => {
+    if (isConfigured && auth) {
+      try {
+        await signOut(auth);
+      } catch (err) {
+        console.error("Logout error", err);
+      }
+    }
+    // Always clear local state
+    setUser(null);
+  };
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
@@ -110,10 +159,27 @@ const App: React.FC = () => {
       }
   }, []);
 
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+         <LoadingSpinner />
+      </div>
+    );
+  }
+
+  // Shield: Return Login Screen if no user
+  if (!user) {
+    return <LoginScreen onDemoLogin={handleDemoLogin} />;
+  }
 
   return (
     <div className={`min-h-screen font-sans text-slate-800 dark:text-slate-100 transition-colors duration-300 ${isDarkMode ? 'bg-slate-950' : 'bg-slate-50'} flex flex-col`}>
-      <Header isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
+      <Header 
+        isDarkMode={isDarkMode} 
+        toggleTheme={toggleTheme} 
+        user={user} 
+        onLogout={handleLogout}
+      />
       
       <main className="container mx-auto p-4 md:p-8 flex-grow">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8 h-full">

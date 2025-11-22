@@ -1,9 +1,12 @@
 
 import React from 'react';
+import { User } from 'firebase/auth';
 
 interface HeaderProps {
   isDarkMode: boolean;
   toggleTheme: () => void;
+  user?: User | null;
+  onLogout: () => void;
 }
 
 const BrainIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
@@ -39,7 +42,15 @@ const MoonIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   </svg>
 );
 
-export const Header: React.FC<HeaderProps> = ({ isDarkMode, toggleTheme }) => {
+const LogoutIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
+);
+
+export const Header: React.FC<HeaderProps> = ({ isDarkMode, toggleTheme, user, onLogout }) => {
   return (
     <header className="bg-white dark:bg-slate-900 shadow-md sticky top-0 z-50 transition-colors duration-300">
       <div className="container mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
@@ -55,13 +66,41 @@ export const Header: React.FC<HeaderProps> = ({ isDarkMode, toggleTheme }) => {
           </div>
         </div>
         
-        <button
-          onClick={toggleTheme}
-          className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-sky-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
-          aria-label="Toggle Dark Mode"
-        >
-          {isDarkMode ? <SunIcon /> : <MoonIcon />}
-        </button>
+        <div className="flex items-center gap-4">
+            {user && (
+                <div className="hidden md:flex items-center gap-3 mr-2 pl-4 border-l border-slate-200 dark:border-slate-700">
+                    <div className="text-right">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Xin chào,</p>
+                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200 max-w-[150px] truncate">{user.displayName || "Người dùng"}</p>
+                    </div>
+                    {user.photoURL ? (
+                        <img src={user.photoURL} alt="Avatar" className="w-9 h-9 rounded-full border-2 border-slate-200 dark:border-slate-700" />
+                    ) : (
+                         <div className="w-9 h-9 rounded-full bg-sky-100 dark:bg-sky-900 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold">
+                            {user.email?.charAt(0).toUpperCase() || "U"}
+                         </div>
+                    )}
+                </div>
+            )}
+
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-sky-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              aria-label="Toggle Dark Mode"
+            >
+              {isDarkMode ? <SunIcon /> : <MoonIcon />}
+            </button>
+
+            {user && (
+                 <button
+                    onClick={onLogout}
+                    className="p-2 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    title="Đăng xuất"
+                 >
+                    <LogoutIcon />
+                 </button>
+            )}
+        </div>
       </div>
     </header>
   );
