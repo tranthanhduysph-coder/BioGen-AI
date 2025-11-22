@@ -13,8 +13,9 @@ interface ScoreDetail {
   correctCount: number;
   totalSubParts: number;
   correctSubParts: number;
-  score: number;
-  maxScore: number;
+  score: number; // Normalized score (out of 10)
+  rawScore: number; // Actual weighted points earned
+  maxRawScore: number; // Maximum possible weighted points
 }
 
 const normalize = (str: string) => str.trim().toLowerCase().replace(/[.,;]/g, '');
@@ -75,26 +76,31 @@ export const QuizMode: React.FC<QuizModeProps> = ({ questions, onExit }) => {
   };
 
   const calculateScore = (): ScoreDetail => {
-    let score = 0;
-    let correctCount = 0;
-    let totalSubParts = 0;
-    let correctSubParts = 0;
-    let calculatedMaxScore = 0;
+    let rawScore = 0;
+    let maxRawScore = 0;
+    
+    let correctCount = 0; // For MC & Short Answer
+    let totalSubParts = 0; // For True/False
+    let correctSubParts = 0; // For True/False
 
     questions.forEach((q, idx) => {
       const uAns = userAnswers[idx];
       
       if (q.type === QuestionType.MultipleChoice) {
-        calculatedMaxScore += 0.25;
+        const weight = 0.25;
+        maxRawScore += weight;
+        
         const correctLetter = q.answer.split('.')[0].trim().toUpperCase(); 
         const userLetter = uAns ? uAns.split('.')[0].trim().toUpperCase() : "";
         
         if (userLetter === correctLetter) {
-          score += 0.25;
+          rawScore += weight;
           correctCount++;
         }
       } else if (q.type === QuestionType.ShortResponse) {
-        calculatedMaxScore += 0.25;
+        const weight = 0.25;
+        maxRawScore += weight;
+
         const cleanUser = normalize(uAns || "");
         const cleanCorrect = normalize(q.answer);
         
@@ -102,11 +108,13 @@ export const QuizMode: React.FC<QuizModeProps> = ({ questions, onExit }) => {
         const correctNum = parseFloat(cleanCorrect);
 
         if (cleanUser === cleanCorrect || (!isNaN(userNum) && !isNaN(correctNum) && userNum === correctNum)) {
-          score += 0.25;
+          rawScore += weight;
           correctCount++;
         }
       } else if (q.type === QuestionType.TrueFalse) {
-        calculatedMaxScore += 1.0;
+        const weight = 1.0;
+        maxRawScore += weight;
+
         const correctMap: Record<number, string> = {};
         const parts = ['a', 'b', 'c', 'd'];
         
@@ -118,6 +126,7 @@ export const QuizMode: React.FC<QuizModeProps> = ({ questions, onExit }) => {
                 if (val.startsWith('đ') || val === 'true') correctMap[pIdx] = 'Đúng';
                 else correctMap[pIdx] = 'Sai';
             } else {
+                // Fallback for simple formatted answers
                 const simpleSplit = q.answer.split(/[,;]/).map(s => s.trim());
                 if (simpleSplit[pIdx]) {
                      const s = simpleSplit[pIdx].toLowerCase();
@@ -137,20 +146,26 @@ export const QuizMode: React.FC<QuizModeProps> = ({ questions, onExit }) => {
             }
         });
 
-        if (qCorrectSub === 1) score += 0.1;
-        else if (qCorrectSub === 2) score += 0.25;
-        else if (qCorrectSub === 3) score += 0.5;
-        else if (qCorrectSub === 4) score += 1.0;
+        // 2025 Grading Logic for True/False
+        if (qCorrectSub === 1) rawScore += 0.1;
+        else if (qCorrectSub === 2) rawScore += 0.25;
+        else if (qCorrectSub === 3) rawScore += 0.5;
+        else if (qCorrectSub === 4) rawScore += 1.0;
       }
     });
+
+    // Normalize to Scale 10
+    // If maxRawScore is 0 (empty quiz), avoid NaN
+    const normalizedScore = maxRawScore > 0 ? (rawScore / maxRawScore) * 10 : 0;
 
     return {
         totalQuestions: questions.length,
         correctCount,
         totalSubParts,
         correctSubParts,
-        score: parseFloat(score.toFixed(2)),
-        maxScore: parseFloat(calculatedMaxScore.toFixed(2))
+        score: parseFloat(normalizedScore.toFixed(2)), // Out of 10
+        rawScore: parseFloat(rawScore.toFixed(2)),
+        maxRawScore: parseFloat(maxRawScore.toFixed(2))
     };
   };
 
@@ -199,7 +214,10 @@ export const QuizMode: React.FC<QuizModeProps> = ({ questions, onExit }) => {
             <div className="flex items-center gap-3">
                 <div className="text-right mr-2">
                     <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Điểm số</p>
-                    <p className="text-2xl font-extrabold text-emerald-600 leading-none">{results?.score}</p>
+                    <div className="flex items-baseline gap-1">
+                        <span className="text-2xl font-extrabold text-emerald-600 leading-none">{results?.score}</span>
+                        <span className="text-xs font-bold text-slate-400">/10</span>
+                    </div>
                 </div>
                 <button 
                     onClick={handlePrint}
@@ -220,7 +238,7 @@ export const QuizMode: React.FC<QuizModeProps> = ({ questions, onExit }) => {
             <h1 className="text-2xl font-bold uppercase mb-2">Kết quả bài thi trắc nghiệm</h1>
             <div className="flex justify-center gap-8 text-sm">
                 <p>Ngày thi: {new Date().toLocaleDateString('vi-VN')}</p>
-                <p>Điểm số: <span className="font-bold text-xl">{results?.score}/{results?.maxScore}</span></p>
+                <p>Điểm số: <span className="font-bold text-xl">{results?.score}/10</span></p>
             </div>
         </div>
 
@@ -231,7 +249,7 @@ export const QuizMode: React.FC<QuizModeProps> = ({ questions, onExit }) => {
                     <div className="p-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-emerald-100 dark:border-slate-700">
                         <span className="block text-xs text-emerald-600/80 dark:text-emerald-400/80 uppercase font-bold tracking-wide mb-1">Điểm Tổng</span>
                         <span className="block text-3xl font-black text-emerald-600 dark:text-emerald-400">{results?.score}</span>
-                        <span className="text-xs text-slate-400">trên thang {results?.maxScore}</span>
+                        <span className="text-xs text-slate-400">Thang điểm 10</span>
                     </div>
                      <div className="p-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-emerald-100 dark:border-slate-700">
                         <span className="block text-xs text-slate-500 uppercase font-bold tracking-wide mb-1">Số câu đúng</span>
