@@ -1,22 +1,21 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// This configuration tells Vite to exclude specific libraries from the final bundle.
-// Instead, the application will use the CDN links defined in the importmap in index.html.
-export default defineConfig({
-  plugins: [react()],
-  build: {
-    rollupOptions: {
-      external: [
-        'react',
-        'react-dom',
-        '@google/genai',
-        'firebase/app',
-        'firebase/auth',
-        'firebase/firestore',
-        'docx',
-        'file-saver'
-      ]
+export default defineConfig(({ mode }) => {
+  // Load env file based on `mode` in the current working directory.
+  const env = loadEnv(mode, process.cwd(), '');
+
+  return {
+    plugins: [react()],
+    define: {
+      // Inject environment variables with a fallback to empty string to avoid "undefined" syntax errors
+      'process.env.API_KEY': JSON.stringify(env.API_KEY || ""),
+      'process.env.FIREBASE_API_KEY': JSON.stringify(env.FIREBASE_API_KEY || ""),
+      'process.env.FIREBASE_AUTH_DOMAIN': JSON.stringify(env.FIREBASE_AUTH_DOMAIN || ""),
+      'process.env.FIREBASE_PROJECT_ID': JSON.stringify(env.FIREBASE_PROJECT_ID || ""),
+      'process.env.FIREBASE_STORAGE_BUCKET': JSON.stringify(env.FIREBASE_STORAGE_BUCKET || ""),
+      'process.env.FIREBASE_MESSAGING_SENDER_ID': JSON.stringify(env.FIREBASE_MESSAGING_SENDER_ID || ""),
+      'process.env.FIREBASE_APP_ID': JSON.stringify(env.FIREBASE_APP_ID || "")
     }
-  }
+  };
 });

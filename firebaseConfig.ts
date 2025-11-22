@@ -14,13 +14,13 @@ const getEnv = (key: string) => {
 
 // Note: These keys are public in client-side code. Security rules in Firebase Console protect the data.
 const firebaseConfig = {
-  apiKey: "AIzaSyA64ZRAvLUdqIKXehia503faU_DL8y29vk",
-  authDomain: "biology-generation.firebaseapp.com",
-  projectId: "biology-generation",
-  storageBucket: "biology-generation.firebasestorage.app",
-  messagingSenderId: "595702168698",
-  appId: "1:595702168698:web:723c47940e4318ba91cfc3",
-  measurementId: "G-C09W1V3DZL"
+  apiKey: "AIzaSyBmXj8niUi1QfbWg0g0Uvr_N4EkiepVaVE",
+  authDomain: "biogen-ai.firebaseapp.com",
+  projectId: "biogen-ai",
+  storageBucket: "biogen-ai.firebasestorage.app",
+  messagingSenderId: "661545702014",
+  appId: "1:661545702014:web:985bb029a949a6640a3e2f",
+  measurementId: "G-3W542HE1RT"
 };
 
 let app;
