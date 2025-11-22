@@ -2,12 +2,15 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
+  // Load env file based on `mode` in the current working directory.
   const env = loadEnv(mode, process.cwd(), '');
 
   return {
     plugins: [react()],
+    // Thêm base '/' để đảm bảo routing hoạt động đúng trên Render
+    base: '/',
     define: {
-      // Inject environment variables safely
+      // Inject environment variables with a fallback to empty string to avoid "undefined" syntax errors
       'process.env.API_KEY': JSON.stringify(env.API_KEY || ""),
       'process.env.FIREBASE_API_KEY': JSON.stringify(env.FIREBASE_API_KEY || ""),
       'process.env.FIREBASE_AUTH_DOMAIN': JSON.stringify(env.FIREBASE_AUTH_DOMAIN || ""),
@@ -17,21 +20,14 @@ export default defineConfig(({ mode }) => {
       'process.env.FIREBASE_APP_ID': JSON.stringify(env.FIREBASE_APP_ID || "")
     },
     build: {
-      rollupOptions: {
-        // CRITICAL: This tells Vite "Do not look for these files in node_modules, they are in index.html"
-        external: [
-          'react',
-          'react-dom',
-          'react-dom/client',
-          'react/jsx-runtime',
-          '@google/genai',
-          'firebase/app',
-          'firebase/auth',
-          'firebase/firestore',
-          'docx',
-          'file-saver'
-        ]
-      }
+        // Đảm bảo không có mục external ở đây để Vite tự động bundle tất cả
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    vendor: ['react', 'react-dom', 'firebase/app', 'firebase/auth', 'firebase/firestore']
+                }
+            }
+        }
     }
   };
 });
