@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Biology Question Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            sky: {
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+            }
+          },
+          animation: {
+            'bounce-slow': 'bounce 3s infinite',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.5s ease-out forwards;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .dark ::-webkit-scrollbar-thumb {
+      background: #475569;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    
+    /* --- PRINT STYLES FOR PDF EXPORT --- */
+    @media print {
+      @page {
+        margin: 1.5cm;
+        size: A4;
+      }
+
+      /* Global Reset */
+      html, body {
+        height: auto !important;
+        min-height: auto !important;
+        overflow: visible !important;
+        width: 100% !important;
+        background: white !important;
+        color: black !important;
+      }
+
+      /* Hide UI Shell & Interactive Elements */
+      header, footer, .no-print, button, .fixed, .sticky {
+        display: none !important;
+      }
+
+      /* Reset React Root & Main Layout */
+      #root, main, .container, .grid {
+        display: block !important;
+        width: 100% !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        position: static !important;
+      }
+
+      /* Hide Sidebar */
+      .grid > div:first-child { display: none !important; }
+      
+      /* Expand Main Content Column */
+      .grid > div:last-child { 
+        width: 100% !important;
+        display: block !important;
+      }
+
+      /* Reset Card Containers */
+      .bg-white, .dark\:bg-slate-900, .quiz-mode-container {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        height: auto !important;
+        overflow: visible !important;
+        width: 100% !important;
+        display: block !important;
+      }
+
+      /* Unwind Scrollable Areas (Critical for multi-page PDFs) */
+      .overflow-y-auto, .custom-scrollbar {
+        height: auto !important;
+        overflow: visible !important;
+        max-height: none !important;
+        display: block !important;
+      }
+
+      /* FORCE BLACK TEXT (Fixes Dark Mode printing white text on white paper) */
+      body * {
+        color: #000 !important;
+        text-shadow: none !important;
+      }
+
+      /* Question Block Styling */
+      .question-block {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        border: 1px solid #ddd !important;
+        margin-bottom: 20px !important;
+        padding: 15px !important;
+        background-color: #fff !important;
+        box-shadow: none !important;
+      }
+
+      /* Input Visibility Fixes */
+      input[type="radio"], input[type="checkbox"] {
+        appearance: auto !important;
+        -webkit-appearance: auto !important;
+        border: 1px solid #000 !important;
+        opacity: 1 !important;
+        display: inline-block !important;
+      }
+      
+      /* Hide purely decorative elements */
+      .absolute.w-1.h-full { display: none !important; }
+      
+      /* Show elements intended for print only */
+      .print-only { display: block !important; }
+      
+      /* Ensure tables print nicely */
+      table { width: 100% !important; border-collapse: collapse !important; }
+      th, td { border: 1px solid #ccc !important; }
+    }
+  </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "docx": "https://esm.sh/docx@8.5.0",
+    "file-saver": "https://esm.sh/file-saver@2.0.5"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

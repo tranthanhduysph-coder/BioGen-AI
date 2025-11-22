@@ -1,0 +1,5 @@
+{
+  "name": "AI Biology Question Generator",
+  "description": "An intelligent web application that uses the Gemini API to generate biology quiz questions based on specific Vietnamese educational standards and learning objectives. Select a chapter, difficulty, and competency to create new questions.",
+  "requestFramePermissions": []
+}
