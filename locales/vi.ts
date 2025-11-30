@@ -11,14 +11,32 @@ export const vi = {
       hello: "Xin chào",
       language: "Ngôn ngữ"
     },
+    // ... (Keep auth & welcome existing translations)
     auth: {
       title: "BioGen AI",
       subtitle: "Đăng nhập để lưu trữ dữ liệu",
       login_tab: "Đăng nhập",
       register_tab: "Đăng ký",
+      fullname: "Họ và tên",
+      email: "Email",
+      password: "Mật khẩu",
+      login_btn: "Đăng nhập",
+      register_btn: "Đăng ký",
+      processing: "Đang xử lý...",
+      or_google: "Hoặc tiếp tục với",
+      no_firebase: "Chưa kết nối Firebase",
+      no_firebase_msg: "Chưa có cấu hình API Key. Dùng chế độ Demo.",
       demo_mode: "Vào chế độ Demo",
       quick_experience: "Chỉ muốn trải nghiệm nhanh?",
-      use_guest: "Dùng chế độ khách"
+      use_guest: "Dùng chế độ khách",
+      errors: {
+        invalid_email: "Email không hợp lệ.",
+        user_not_found: "Không tìm thấy tài khoản.",
+        wrong_password: "Sai mật khẩu.",
+        email_in_use: "Email đã được sử dụng.",
+        weak_password: "Mật khẩu quá yếu.",
+        invalid_api_key: "Lỗi cấu hình API Key."
+      }
     },
     welcome: {
       title: "Chào mừng bạn đến với BioGen AI",
@@ -47,11 +65,88 @@ export const vi = {
       generate_btn: "Tạo {{count}} câu hỏi (Thủ công)",
       processing: "Đang xử lý..."
     },
+    // --- NEW CONSTANT TRANSLATIONS ---
+    constants: {
+        chapters: {
+            grade10_intro: "Lớp 10 - Giới thiệu & Các cấp độ tổ chức sống",
+            grade10_chemical: "Lớp 10 - Thành phần hóa học của tế bào",
+            grade10_structure: "Lớp 10 - Cấu trúc tế bào",
+            grade10_transport: "Lớp 10 - Trao đổi chất qua màng & Truyền tin",
+            grade10_metabolism: "Lớp 10 - Chuyển hóa vật chất & Năng lượng",
+            grade10_cycle: "Lớp 10 - Chu kỳ tế bào & Phân bào",
+            grade10_microbiology: "Lớp 10 - Vi sinh vật: Sinh trưởng & Sinh sản",
+            grade10_virus: "Lớp 10 - Virus và ứng dụng",
+            grade11_water: "Lớp 11 - Trao đổi nước & khoáng ở thực vật",
+            grade11_photosynthesis: "Lớp 11 - Quang hợp ở thực vật",
+            grade11_respiration: "Lớp 11 - Hô hấp ở thực vật",
+            grade11_nutrition: "Lớp 11 - Dinh dưỡng & Tiêu hóa ở động vật",
+            grade11_gas: "Lớp 11 - Hô hấp & Trao đổi khí ở động vật",
+            grade11_circulation: "Lớp 11 - Tuần hoàn & Hệ tim mạch",
+            grade11_immune: "Lớp 11 - Miễn dịch ở động vật",
+            grade11_excretion: "Lớp 11 - Bài tiết & Cân bằng nội môi",
+            grade11_plant_sensing: "Lớp 11 - Cảm ứng ở thực vật",
+            grade11_animal_sensing: "Lớp 11 - Cảm ứng ở động vật",
+            grade11_growth: "Lớp 11 - Sinh trưởng & Phát triển",
+            grade11_reproduction: "Lớp 11 - Sinh sản ở sinh vật",
+            grade12_molecular: "Lớp 12 - Di truyền phân tử",
+            grade12_regulation: "Lớp 12 - Điều hòa biểu hiện gene",
+            grade12_chromosomal: "Lớp 12 - Di truyền nhiễm sắc thể",
+            grade12_extranuclear: "Lớp 12 - Di truyền ngoài nhân",
+            grade12_mendel: "Lớp 12 - Quy luật di truyền (Mendel, Morgan)",
+            grade12_sex_linked: "Lớp 12 - Di truyền liên kết giới tính",
+            grade12_population: "Lớp 12 - Di truyền quần thể",
+            grade12_human: "Lớp 12 - Di truyền học người",
+            grade12_evolution: "Lớp 12 - Tiến hóa (Bằng chứng & Cơ chế)",
+            grade12_origin: "Lớp 12 - Sự phát sinh sự sống & Sinh thái học",
+            grade12_community: "Lớp 12 - Quần xã & Hệ sinh thái",
+            grade12_biosphere: "Lớp 12 - Sinh quyển & Bảo vệ môi trường"
+        },
+        difficulties: {
+            diff_recall: "Nhận biết",
+            diff_understand: "Thông hiểu",
+            diff_apply: "Vận dụng",
+            diff_analyze: "Vận dụng cao"
+        },
+        competencies: {
+            comp_nt1: "NT1: Nhận biết, kể tên, phát biểu khái niệm.",
+            comp_nt2: "NT2: Trình bày đặc điểm, vai trò, cơ chế.",
+            comp_nt3: "NT3: Phân loại đối tượng, hiện tượng.",
+            comp_nt4: "NT4: Phân tích đặc điểm, cấu trúc, quá trình.",
+            comp_nt5: "NT5: So sánh, lựa chọn đối tượng.",
+            comp_nt6: "NT6: Giải thích mối quan hệ (Nguyên nhân-Kết quả).",
+            comp_nt7: "NT7: Tư duy phản biện, nhận ra điểm sai.",
+            comp_nt8: "NT8: Sử dụng thuật ngữ, kết nối thông tin.",
+            comp_th1: "TH1: Đề xuất vấn đề nghiên cứu.",
+            comp_th2: "TH2: Đưa ra phán đoán, giả thuyết.",
+            comp_th3: "TH3: Lập kế hoạch thực hiện.",
+            comp_th4: "TH4: Thực hiện kế hoạch (thí nghiệm).",
+            comp_th5: "TH5: Viết báo cáo và thảo luận.",
+            comp_vd1: "VD1: Giải thích, đánh giá thực tiễn.",
+            comp_vd2: "VD2: Hành vi, thái độ bảo vệ môi trường."
+        },
+        settings: {
+            setting_theory: "Lý thuyết hàn lâm",
+            setting_experiment: "Phân tích thí nghiệm",
+            setting_calculation: "Bài tập tính toán",
+            setting_realworld: "Tình huống thực tiễn",
+            setting_data: "Phân tích biểu đồ/Sơ đồ"
+        },
+        types: {
+            type_mixed: "Tất cả / Ngẫu nhiên",
+            type_mcq: "Trắc nghiệm nhiều lựa chọn (Part I)",
+            type_tf: "Trắc nghiệm Đúng/Sai (Part II)",
+            type_short: "Trắc nghiệm Trả lời ngắn (Part III)"
+        }
+    },
     results: {
       title: "Đề thi đã tạo",
       count_suffix: "câu",
       start_quiz: "Làm bài thi",
       export_docx: "Tải DOCX",
+      share: "Chia sẻ",
+      share_success: "Đã sao chép nội dung!",
+      share_title: "ĐỀ THI SINH HỌC",
+      error_export: "Lỗi xuất file",
       no_data: "Chưa có dữ liệu",
       no_data_desc: "Hãy thêm cấu hình vào danh sách và nhấn \"Tạo\" để bắt đầu."
     },
@@ -60,8 +155,10 @@ export const vi = {
       title_result: "Kết Quả Bài Thi",
       exit: "Thoát",
       submit: "Nộp Bài",
+      save: "Lưu Kết Quả",
+      saved_success: "Đã lưu!",
       score: "Điểm số",
-      save_pdf: "Lưu PDF",
+      save_pdf: "In / Lưu PDF",
       saving: "Đang lưu...",
       header_print: "Kết quả bài thi trắc nghiệm",
       date: "Ngày thi",
@@ -99,13 +196,10 @@ export const vi = {
       list_title: "Chi tiết các lần thi",
       empty: "Chưa có dữ liệu bài thi nào."
     },
-    loading: {
-      title: "AI đang suy nghĩ...",
-      subtitle: "Đang phân tích dữ liệu và tạo câu hỏi"
-    },
-    error: {
-      title: "Đã xảy ra lỗi",
-      reload: "Tải lại trang"
-    }
+    // ... (Keep footer/disclaimer etc)
+    footer: { dev_by: "Phát triển bởi", email: "Email", ai_notice: "Trang web này sử dụng AI tạo sinh.", disclaimer_link: "Xem Cảnh báo & Miễn trừ trách nhiệm", copyright: "© 2025 BioGen Exam System" },
+    disclaimer: { title: "Cảnh báo", content_1: "Thông tin AI tạo ra chỉ để tham khảo.", content_2: "Không chịu trách nhiệm về sai sót.", content_3: "Người dùng tự kiểm tra.", btn_close: "Đã hiểu" },
+    loading: { title: "AI đang suy nghĩ...", subtitle: "Đang phân tích dữ liệu và tạo câu hỏi" },
+    error: { title: "Đã xảy ra lỗi", reload: "Tải lại trang" }
   }
 };
