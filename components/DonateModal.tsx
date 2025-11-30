@@ -72,4 +72,13 @@ export const DonateModal: React.FC<DonateModalProps> = ({ isOpen, onClose }) => 
                 
                 <button 
                     onClick={onClose}
-                    className="w-full py-2.5 text-slate-500 dark:text-slate-400 font-medium hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors
+                    className="w-full py-2.5 text-slate-500 dark:text-slate-400 font-medium hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+                >
+                    Để sau
+                </button>
+            </div>
+        </div>
+      </div>
+    </div>
+  );
+};
