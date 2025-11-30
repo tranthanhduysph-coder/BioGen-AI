@@ -17,6 +17,7 @@ import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { LoginScreen } from './components/LoginScreen';
 import { useTranslation } from 'react-i18next';
 
+// Mock User for Demo Mode
 const DEMO_USER = {
   uid: 'demo-user-123',
   displayName: 'Khách (Demo)',
@@ -74,7 +75,6 @@ const App: React.FC = () => {
     document.documentElement.classList.toggle('dark');
   };
 
-  // Static Generation Handler
   const handleGenerate = useCallback(async (criteriaList: Criteria[]) => {
     if (criteriaList.length === 0) return;
 
@@ -86,12 +86,13 @@ const App: React.FC = () => {
 
     try {
       if (!process.env.API_KEY) {
-        throw new Error("API_KEY not found in .env file.");
+        throw new Error("API_KEY environment variable not set.");
       }
+      // STATIC MODE: Initialize SDK directly
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
       const promises = criteriaList.map(async (criteria) => {
-        // PASS CURRENT LANGUAGE
+        // Pass language to prompt generation
         const prompt = generatePrompt(criteria, i18n.language);
         
         const response = await ai.models.generateContent({
@@ -122,13 +123,12 @@ const App: React.FC = () => {
 
     } catch (err: any) {
       console.error("Error generating questions:", err);
-      setError(i18n.language === 'en' ? "Failed to generate questions." : `Lỗi khi tạo câu hỏi: ${err.message || "Kiểm tra kết nối."}`);
+      setError(i18n.language === 'en' ? "Failed to generate questions. Please check API Key or connection." : `Lỗi khi tạo câu hỏi: ${err.message || "Vui lòng thử lại sau."}`);
     } finally {
       setIsLoading(false);
     }
   }, [i18n.language]);
 
-  // Static Simulation Handler
   const handleSimulateExam = useCallback(async (userPrompt: string = "") => {
       setIsLoading(true);
       setError(null);
@@ -138,12 +138,13 @@ const App: React.FC = () => {
 
       try {
         if (!process.env.API_KEY) {
-            throw new Error("API_KEY not found.");
+            throw new Error("API_KEY environment variable not set.");
         }
         
         // Pass language instruction as a prompt hack since the service handles logic internally
         const langInstruction = i18n.language === 'en' ? " (Generate output completely in English)" : "";
 
+        // Direct call to simulation service with API Key
         const allQuestions = await simulateExam(process.env.API_KEY, userPrompt + langInstruction);
         
         if (allQuestions.length === 0) throw new Error("Không tạo được đề thi.");
