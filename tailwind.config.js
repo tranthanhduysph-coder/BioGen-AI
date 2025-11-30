@@ -3,6 +3,7 @@ export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
+    "./components/**/*.{js,ts,jsx,tsx}" // Add if you have components outside src (unlikely but safe)
   ],
   darkMode: 'class',
   theme: {
