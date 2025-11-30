@@ -11,11 +11,11 @@ export const DonateModal: React.FC<DonateModalProps> = ({ isOpen, onClose }) => 
   const [confirmStep, setConfirmStep] = useState(false);
 
   // CẤU HÌNH THÔNG TIN TÀI KHOẢN
-  const BANK_ID = "TCB"; 
+  const BANK_ID = "Techcombank"; 
   const ACCOUNT_NO = "84907276901"; 
   const ACCOUNT_NAME = "TRAN THANH DUY"; 
   const MIN_AMOUNT = 20000;
-  const QR_URL = `https://img.vietqr.io/image/${TCB}-${84907276901}-compact2.png?amount=${20000}&addInfo=Ung ho BioGen AI`;
+  const QR_URL = `https://img.vietqr.io/image/${Techcombank}-${84907276901}-compact2.png?amount=${20000}&addInfo=Ung ho BioGen AI`;
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
