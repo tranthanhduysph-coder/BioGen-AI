@@ -23,17 +23,18 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose, use
       setIsLoading(true);
       getExamHistory(user)
         .then(setHistory)
-        .catch(err => console.error("Load history failed", err))
+        .catch(err => console.error("History load error", err))
         .finally(() => setIsLoading(false));
     }
   }, [isOpen, user]);
 
   const handleSelectExam = (exam: ExamResult) => {
-      if (!exam.questionsData || exam.questionsData.length === 0) {
-          alert("Bài thi này không có dữ liệu chi tiết để xem lại (Do được tạo từ phiên bản cũ).");
-          return;
+      // SAFEGUARD: Chỉ cho phép xem lại nếu có dữ liệu câu hỏi
+      if (exam.questionsData && exam.questionsData.length > 0) {
+          setSelectedExam(exam);
+      } else {
+          alert("Bài thi này không có dữ liệu chi tiết để xem lại (Dữ liệu cũ).");
       }
-      setSelectedExam(exam);
   };
 
   // Render Review Mode
@@ -78,16 +79,6 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose, use
   const maxScore = totalExams > 0 
     ? Math.max(...history.map(h => h.score)) 
     : 0;
-  
-  // Chart Data
-  const chartData = history.slice(0, 10).reverse();
-  const chartHeight = 60;
-  const chartWidth = 200;
-  const points = chartData.map((h, i) => {
-      const x = (i / (Math.max(chartData.length - 1, 1))) * chartWidth;
-      const y = chartHeight - (h.score / 10) * chartHeight;
-      return `${x},${y}`;
-  }).join(' ');
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
@@ -107,8 +98,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose, use
              <div className="p-12 flex justify-center"><LoadingSpinner /></div>
         ) : (
             <div className="flex-grow overflow-y-auto custom-scrollbar p-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                    {/* Stats Cards - Keep as is */}
+                <div className="grid grid-cols-3 gap-4 mb-8">
                     <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800/50 text-center">
                         <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-1">{t('history.exams_count')}</p>
                         <p className="text-3xl font-black text-blue-800 dark:text-blue-200">{totalExams}</p>
@@ -117,14 +107,9 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose, use
                         <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1">{t('history.avg_score')}</p>
                         <p className="text-3xl font-black text-emerald-800 dark:text-emerald-200">{avgScore}</p>
                     </div>
-                    <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-xl border border-purple-200 dark:border-purple-800/50 relative overflow-hidden text-center">
+                    <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-xl border border-purple-200 dark:border-purple-800/50 text-center">
                         <p className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider mb-1">{t('history.max_score')}</p>
                         <p className="text-3xl font-black text-purple-800 dark:text-purple-200">{maxScore}</p>
-                        {chartData.length > 1 && (
-                            <svg className="absolute bottom-0 right-0 opacity-30 w-24 h-12 text-purple-600" viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
-                                <polyline fill="none" stroke="currentColor" strokeWidth="4" points={points} />
-                            </svg>
-                        )}
                     </div>
                 </div>
 
@@ -133,7 +118,9 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose, use
                 </h3>
                 
                 {history.length === 0 ? (
-                    <div className="text-center py-10 text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">{t('history.empty')}</div>
+                    <div className="text-center py-10 text-slate-400 dark:text-slate-500 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
+                        {t('history.empty')}
+                    </div>
                 ) : (
                     <div className="space-y-3">
                         {history.map((item, idx) => (
@@ -141,6 +128,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose, use
                                 key={item.id || idx} 
                                 onClick={() => handleSelectExam(item)}
                                 className={`flex items-center justify-between p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl transition-all ${item.questionsData ? 'cursor-pointer hover:shadow-md hover:border-sky-300 dark:hover:border-sky-700 hover:bg-sky-50 dark:hover:bg-sky-900/10' : 'opacity-70 cursor-not-allowed bg-slate-50'}`}
+                                title={item.questionsData ? "Nhấn để xem lại bài thi" : "Không có dữ liệu chi tiết"}
                             >
                                 <div className="flex-1 mr-4">
                                     <div className="flex items-center gap-2 mb-1">
