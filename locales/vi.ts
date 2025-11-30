@@ -13,6 +13,7 @@ export const vi = {
     auth: {
       title: "BioGen AI",
       subtitle: "Đăng nhập để lưu trữ dữ liệu",
+      // ... (keep existing auth translations)
       login_tab: "Đăng nhập",
       register_tab: "Đăng ký mới",
       fullname: "Họ và tên",
@@ -28,6 +29,7 @@ export const vi = {
       quick_experience: "Chỉ muốn trải nghiệm nhanh?",
       use_guest: "Dùng chế độ khách",
       errors: {
+        // ... keep existing errors
         invalid_email: "Email không đúng định dạng.",
         user_disabled: "Tài khoản này đã bị vô hiệu hóa.",
         user_not_found: "Không tìm thấy tài khoản. Vui lòng đăng ký trước.",
@@ -46,7 +48,7 @@ export const vi = {
     },
     welcome: {
       title: "Chào mừng bạn đến với BioGen AI",
-      desc: "Công cụ hỗ trợ giáo viên và học sinh tạo đề trắc nghiệm Sinh học tự động.",
+      desc: "Công cụ hỗ trợ giáo viên và học sinh tạo đề trắc nghiệm Sinh học tự động chuyên sâu.",
       instruction: "Hãy chọn Chương, Mức độ, và Năng lực ở bảng bên trái để bắt đầu."
     },
     criteria: {
@@ -57,6 +59,7 @@ export const vi = {
       quick_exam_btn: "Tạo đề thi mẫu 2025 ngay",
       generating: "Đang tạo đề...",
       manual_opt: "Hoặc tùy chỉnh thủ công",
+      // ... keep existing
       label_chapter: "Chương / Chủ đề",
       label_context: "Bối cảnh",
       label_type: "Loại câu hỏi",
@@ -75,13 +78,8 @@ export const vi = {
       title: "Đề thi đã tạo",
       count_suffix: "câu",
       start_quiz: "Làm bài thi",
-      export_docx: "Tải DOCX",
       no_data: "Chưa có dữ liệu",
-      no_data_desc: "Hãy thêm cấu hình vào danh sách và nhấn \"Tạo\" để bắt đầu.",
-      share: "Chia sẻ",
-      share_success: "Đã sao chép nội dung đề thi vào bộ nhớ tạm!",
-      share_title: "ĐỀ THI SINH HỌC (BioGen AI)",
-      error_export: "Lỗi xuất file. Vui lòng thử lại."
+      no_data_desc: "Hãy thêm cấu hình vào danh sách và nhấn \"Tạo\" để bắt đầu."
     },
     quiz: {
       title_working: "Đang Làm Bài...",
@@ -136,9 +134,9 @@ export const vi = {
     },
     disclaimer: {
       title: "Cảnh báo & Miễn trừ Trách nhiệm",
-      content_1: "Nền tảng này sử dụng mô hình ngôn ngữ lớn (AI) để cung cấp các gợi ý và phản hồi. Các thông tin do AI tạo ra chỉ mang tính chất tham khảo, hỗ trợ học tập và không thể thay thế cho kiến thức chuyên môn, sự phán đoán của giảng viên hoặc các hướng dẫn học thuật chính thức.",
-      content_2: "Người biên soạn không chịu trách nhiệm về bất kỳ sự sai lệch, thiếu sót, hoặc hậu quả nào phát sinh từ việc sử dụng các thông tin do AI cung cấp.",
-      content_3: "Người dùng có trách nhiệm tự kiểm tra, đối chiếu và chịu trách nhiệm cuối cùng cho sản phẩm học thuật của mình.",
+      content_1: "Nền tảng này sử dụng mô hình ngôn ngữ lớn (AI) để cung cấp các gợi ý và phản hồi...",
+      content_2: "Người biên soạn không chịu trách nhiệm về bất kỳ sự sai lệch...",
+      content_3: "Người dùng có trách nhiệm tự kiểm tra...",
       btn_close: "Đã hiểu"
     },
     loading: {
