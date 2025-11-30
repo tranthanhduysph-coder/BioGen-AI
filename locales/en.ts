@@ -1,4 +1,3 @@
-
 export const en = {
   translation: {
     app: {
@@ -28,7 +27,15 @@ export const en = {
       no_firebase_msg: "API Key missing. Using Demo Mode.",
       demo_mode: "Enter Demo Mode",
       quick_experience: "Just want a quick look?",
-      use_guest: "Use Guest Mode"
+      use_guest: "Use Guest Mode",
+      errors: {
+        invalid_email: "Invalid email format.",
+        user_not_found: "User not found.",
+        wrong_password: "Incorrect password.",
+        email_in_use: "Email already in use.",
+        weak_password: "Password too weak.",
+        invalid_api_key: "Invalid API Key."
+      }
     },
     welcome: {
       title: "Welcome to BioGen AI",
