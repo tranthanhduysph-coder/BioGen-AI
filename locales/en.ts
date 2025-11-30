@@ -1,0 +1,153 @@
+export const en = {
+  translation: {
+    app: {
+      name: "BioGen AI",
+      subtitle: "Intelligent Biology Question Generator",
+    },
+    header: {
+      history: "History",
+      theme: "Theme",
+      logout: "Sign Out",
+      hello: "Hi"
+    },
+    auth: {
+      title: "BioGen AI",
+      subtitle: "Sign in to save your data",
+      login_tab: "Sign In",
+      register_tab: "Register",
+      fullname: "Full Name",
+      email: "Email",
+      password: "Password",
+      login_btn: "Sign In",
+      register_btn: "Create Account",
+      processing: "Processing...",
+      or_google: "Or continue with",
+      no_firebase: "Firebase Not Connected",
+      no_firebase_msg: "API Key missing. Please check config or use Demo Mode.",
+      demo_mode: "Enter Demo Mode",
+      quick_experience: "Just want a quick look?",
+      use_guest: "Use Guest Mode",
+      errors: {
+        invalid_email: "Invalid email format.",
+        user_disabled: "User account disabled.",
+        user_not_found: "User not found. Please register.",
+        wrong_password: "Incorrect password.",
+        email_in_use: "Email already in use.",
+        weak_password: "Password too weak (min 6 chars).",
+        invalid_credential: "Invalid credentials.",
+        operation_not_allowed: "Sign-in method not enabled.",
+        network_error: "Network error. Check internet connection.",
+        popup_closed: "Popup closed by user.",
+        unauthorized_domain: "Domain not authorized for Google Login.",
+        invalid_api_key: "Invalid API Key.",
+        missing_fields: "Please enter email and password.",
+        missing_name: "Please enter your display name."
+      }
+    },
+    welcome: {
+      title: "Welcome to BioGen AI",
+      desc: "An automated Biology quiz generation tool for teachers and students.",
+      instruction: "Select Chapter, Difficulty, and Competency on the left to begin."
+    },
+    criteria: {
+      title: "Configuration",
+      quick_exam_title: "Auto Exam (Fast)",
+      quick_exam_desc: "Randomly generate a full exam following the 2025 structure (18 MCQ, 4 T/F, 6 Short Ans) with a random matrix.",
+      quick_exam_placeholder: "Ex: Focus on Genetics, avoid Grade 10 topics...",
+      quick_exam_btn: "Generate 2025 Sample Exam",
+      generating: "Generating...",
+      manual_opt: "Or Custom Manual Config",
+      label_chapter: "Chapter / Topic",
+      label_context: "Context",
+      label_type: "Question Type",
+      label_difficulty: "Difficulty",
+      label_quantity: "Quantity (1-40)",
+      label_competency: "Core Competency",
+      label_extra: "Extra Requirements",
+      placeholder_extra: "Ex: Focus on pedigree analysis problems...",
+      add_queue: "Add to Queue",
+      queue_title: "Queue",
+      clear_all: "Clear All",
+      generate_btn: "Generate {{count}} Questions",
+      processing: "Processing..."
+    },
+    results: {
+      title: "Generated Questions",
+      count_suffix: "Qs",
+      start_quiz: "Start Quiz",
+      export_docx: "Download DOCX",
+      no_data: "No Data",
+      no_data_desc: "Add items to the queue and click 'Generate' to start.",
+      share: "Share",
+      share_success: "Exam content copied to clipboard!",
+      share_title: "BIOLOGY EXAM (BioGen AI)",
+      error_export: "Export failed. Please try again."
+    },
+    quiz: {
+      title_working: "Quiz in Progress...",
+      title_result: "Quiz Results",
+      exit: "Exit",
+      submit: "Submit",
+      score: "Score",
+      save_pdf: "Save PDF",
+      saving: "Saving...",
+      header_print: "Quiz Result",
+      date: "Date",
+      summary_title: "Exam Summary",
+      total_score: "Total Score",
+      scale_10: "Scale of 10",
+      correct_qs: "Correct Questions",
+      mcq_short: "MCQ & Short Response",
+      correct_sub: "Correct Items",
+      in_tf: "In True/False Section",
+      q_label: "Question",
+      your_answer: "Your Choice:",
+      your_input: "Your Input:",
+      correct_answer: "Correct Answer:",
+      explanation: "Detailed Explanation:",
+      explanation_short: "Explanation:",
+      no_explanation: "No detail explanation provided.",
+      col_proposition: "Statement",
+      col_choice: "Your Choice",
+      col_key: "Key",
+      placeholder_short: "Enter number...",
+      label_short_yours: "Your Answer",
+      text_short_empty: "Enter numeric answer (max 4 chars)",
+      hide_ans: "Hide Answer",
+      show_ans: "Show Answer & Explanation",
+      copy_tooltip: "Copy Question"
+    },
+    history: {
+      title: "Learning History",
+      subtitle: "Statistics of recent exams",
+      loading: "Loading...",
+      exams_count: "Exams Taken",
+      avg_score: "Average Score",
+      max_score: "Highest Score",
+      list_title: "Exam Details",
+      empty: "No exam history found."
+    },
+    footer: {
+      dev_by: "Developed by",
+      email: "Email",
+      ai_notice: "This site uses Generative AI.",
+      disclaimer_link: "View Disclaimer",
+      copyright: "© 2025 BioGen Exam System"
+    },
+    disclaimer: {
+      title: "Disclaimer",
+      content_1: "This platform uses Large Language Models (AI) to provide suggestions and feedback. Information generated by AI is for reference only and does not replace professional knowledge or official academic guidelines.",
+      content_2: "The developer is not responsible for any inaccuracies, omissions, or consequences arising from the use of AI-generated information.",
+      content_3: "Users are responsible for verifying information and bear final responsibility for their academic work.",
+      btn_close: "Understood"
+    },
+    loading: {
+      title: "AI is thinking...",
+      subtitle: "Analyzing data and generating questions"
+    },
+    error: {
+      title: "An error occurred",
+      reload: "Reload Page"
+    }
+  }
+};
