@@ -44,6 +44,7 @@ const App: React.FC = () => {
   const [showHistory, setShowHistory] = useState<boolean>(false);
   const [showDonate, setShowDonate] = useState<boolean>(false);
   const [isLimitReached, setIsLimitReached] = useState<boolean>(false);
+  
   const [isQuizMode, setIsQuizMode] = useState<boolean>(false);
   const [usageCount, setUsageCount] = useState<number>(0);
 
@@ -63,10 +64,14 @@ const App: React.FC = () => {
   }, []);
 
   const handleDemoLogin = () => setUser(DEMO_USER);
+  
   const handleLogout = async () => {
-    if (isConfigured && auth) { try { await signOut(auth); } catch (err) { console.error(err); } }
+    if (isConfigured && auth) {
+      try { await signOut(auth); } catch (err) { console.error(err); }
+    }
     setUser(null);
   };
+
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
     document.documentElement.classList.toggle('dark');
@@ -84,10 +89,17 @@ const App: React.FC = () => {
 
   const handleGenerate = useCallback(async (criteriaList: Criteria[]) => {
     if (criteriaList.length === 0) return;
-    setIsLoading(true); setError(null); setHasGenerated(true); setGeneratedQuestions([]); setIsQuizMode(false);
+    setIsLoading(true);
+    setError(null);
+    setHasGenerated(true);
+    setGeneratedQuestions([]); 
+    setIsQuizMode(false);
+
     try {
       if (!process.env.API_KEY) throw new Error("API_KEY missing.");
+      
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      
       const promises = criteriaList.map(async (criteria) => {
         const prompt = generatePrompt(criteria, i18n.language);
         const response = await ai.models.generateContent({
@@ -95,102 +107,116 @@ const App: React.FC = () => {
           contents: prompt,
           config: { responseMimeType: "application/json" },
         });
+
         const jsonText = response.text?.replace(/```json|```/g, '').trim();
         if (!jsonText) return [];
         const questions = JSON.parse(jsonText) as GeneratedQuestion[];
         if (!Array.isArray(questions)) return [];
         return questions.map(q => ({ ...q, criteria }));
       });
+
       const results = await Promise.all(promises);
       const allQuestions = results.flat();
       if (allQuestions.length === 0) throw new Error(t('results.no_data'));
+      
       setGeneratedQuestions(allQuestions);
       incrementUsage();
+
     } catch (err: any) {
       console.error("Error:", err);
       setError(err.message || t('error.title'));
-    } finally { setIsLoading(false); }
+    } finally {
+      setIsLoading(false);
+    }
   }, [i18n.language, t, usageCount]);
 
   const handleSimulateExam = useCallback(async (userPrompt: string = "") => {
-      setIsLoading(true); setError(null); setHasGenerated(true); setGeneratedQuestions([]); setIsQuizMode(false);
+      setIsLoading(true);
+      setError(null);
+      setHasGenerated(true);
+      setGeneratedQuestions([]);
+      setIsQuizMode(false);
+
       try {
         if (!process.env.API_KEY) throw new Error("API_KEY missing.");
+        
         const langInstruction = i18n.language === 'en' ? " (English)" : "";
         const allQuestions = await simulateExam(process.env.API_KEY, userPrompt + langInstruction);
+        
         if (allQuestions.length === 0) throw new Error("Simulation failed.");
+        
         setGeneratedQuestions(allQuestions);
         incrementUsage();
+
       } catch (err: any) {
           console.error("Simulation Error:", err);
           setError(err.message || "Error simulating exam.");
-      } finally { setIsLoading(false); }
+      } finally {
+          setIsLoading(false);
+      }
   }, [i18n.language, t, usageCount]);
 
   if (isAuthLoading) return <LoadingSpinner />;
   if (!user) return <LoginScreen onDemoLogin={handleDemoLogin} />;
 
   return (
-    <div className={`h-screen w-full font-sans text-slate-800 dark:text-slate-100 transition-colors duration-300 ${isDarkMode ? 'bg-slate-950' : 'bg-slate-100'} flex flex-col overflow-hidden`}>
+    <div className={`min-h-screen w-full font-sans text-slate-800 dark:text-slate-100 transition-colors duration-300 ${isDarkMode ? 'bg-slate-950' : 'bg-slate-100'} flex flex-col`}>
       
-      {/* HEADER (Fixed) */}
-      <div className="flex-none z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm">
-        <Header 
-            isDarkMode={isDarkMode} 
-            toggleTheme={toggleTheme} 
-            user={user} 
-            onLogout={handleLogout}
-            onShowHistory={() => setShowHistory(true)}
-        />
-      </div>
+      {/* HEADER */}
+      <Header 
+          isDarkMode={isDarkMode} 
+          toggleTheme={toggleTheme} 
+          user={user} 
+          onLogout={handleLogout}
+          onShowHistory={() => setShowHistory(true)}
+      />
 
-      {/* BANNER (Fixed) */}
+      {/* BANNER AD */}
       {!isQuizMode && (
-          <div className="flex-none px-4 pt-2 pb-0 z-40">
+          <div className="container mx-auto px-4 pt-4">
              <BannerAd onDonateClick={() => setShowDonate(true)} />
           </div>
       )}
 
-      {/* MAIN WORKSPACE */}
-      {/* Mobile: flex-col (stacked), Desktop (lg): flex-row (side-by-side) */}
-      <main className="flex-1 flex flex-col lg:flex-row overflow-hidden px-4 pb-4 gap-4 relative z-10">
-        
-        {/* SIDEBAR: Config */}
-        {!isQuizMode && (
-            <aside className="flex-none w-full lg:w-[380px] xl:w-[420px] flex flex-col h-auto lg:h-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden z-30 mb-4 lg:mb-0 order-1 lg:order-1 max-h-[40vh] lg:max-h-full">
-                <CriteriaSelector 
-                    onGenerate={handleGenerate} 
-                    isLoading={isLoading} 
-                    onSimulate={handleSimulateExam} 
-                />
-            </aside>
-        )}
-
-        {/* MAIN OUTPUT: Results */}
-        <div className={`${isQuizMode ? 'w-full' : 'flex-1'} flex flex-col h-full min-w-0 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden relative z-20 order-2 lg:order-2`}>
-            <div className="absolute inset-0 overflow-y-auto custom-scrollbar flex flex-col">
-                 {isLoading ? (
-                    <LoadingSpinner />
-                ) : error ? (
-                    <ErrorMessage message={error} />
-                ) : hasGenerated ? (
-                    <QuestionList 
-                        questions={generatedQuestions} 
-                        isQuizMode={isQuizMode}
-                        setQuizMode={setIsQuizMode}
-                        user={user}
+      {/* MAIN CONTENT */}
+      <main className="container mx-auto p-4 md:p-6 flex-grow">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            {/* SIDEBAR */}
+            {!isQuizMode && (
+                <div className="lg:col-span-4">
+                    <CriteriaSelector 
+                        onGenerate={handleGenerate} 
+                        isLoading={isLoading} 
+                        onSimulate={handleSimulateExam} 
                     />
-                ) : (
-                    <WelcomeScreen />
-                )}
+                </div>
+            )}
+            
+            {/* OUTPUT PANEL */}
+            <div className={`${isQuizMode ? 'lg:col-span-12' : 'lg:col-span-8'}`}>
+                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 p-1 md:p-6 min-h-[70vh] flex flex-col relative">
+                     {isLoading ? (
+                        <LoadingSpinner />
+                    ) : error ? (
+                        <ErrorMessage message={error} />
+                    ) : hasGenerated ? (
+                        <QuestionList 
+                            questions={generatedQuestions} 
+                            isQuizMode={isQuizMode}
+                            setQuizMode={setIsQuizMode}
+                            user={user}
+                        />
+                    ) : (
+                        <WelcomeScreen />
+                    )}
+                </div>
             </div>
         </div>
       </main>
 
       {/* FOOTER */}
-      <div className="flex-none z-40">
-         <Footer onOpenDisclaimer={() => setShowDisclaimer(true)} />
-      </div>
+      <Footer onOpenDisclaimer={() => setShowDisclaimer(true)} />
 
       {/* MODALS */}
       <DisclaimerModal isOpen={showDisclaimer} onClose={() => setShowDisclaimer(false)} />
