@@ -2,37 +2,96 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Global Reset */
 html, body, #root {
   height: 100%;
   width: 100%;
-  overflow: hidden; /* Prevent scrolling on body */
-}
-
-/* Hide sidebar on small screens when needed - Handled by React logic but add utility */
-@media (max-width: 768px) {
-    .mobile-hidden { display: none; }
+  margin: 0;
+  padding: 0;
+  @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans text-base antialiased;
 }
 
 /* Custom Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { @apply bg-slate-300 dark:bg-slate-700 rounded-full; }
-::-webkit-scrollbar-thumb:hover { @apply bg-slate-400 dark:bg-slate-600; }
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 dark:bg-slate-700 rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-400 dark:bg-slate-600;
+}
 
 /* Animations */
-@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-.animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
-@keyframes bounce-slow { 0%, 100% { transform: translateY(-5%); } 50% { transform: translateY(5%); } }
-.animate-bounce-slow { animation: bounce-slow 3s infinite ease-in-out; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(-5%); }
+  50% { transform: translateY(5%); }
+}
+.animate-bounce-slow {
+  animation: bounce-slow 3s infinite ease-in-out;
+}
 
 /* Print Styles */
 @media print {
-  @page { margin: 2cm; size: A4; }
-  body, html, #root { height: auto !important; overflow: visible !important; background: white !important; }
-  header, footer, .no-print, button, .fixed, .sticky, ::-webkit-scrollbar { display: none !important; }
-  main, .container, .grid { display: block !important; width: 100% !important; height: auto !important; overflow: visible !important; }
-  aside { display: none !important; }
-  .bg-white, .dark\:bg-slate-900 { background: transparent !important; color: black !important; border: none !important; box-shadow: none !important; }
-  .question-block { break-inside: avoid; border: 1px solid #ddd !important; margin-bottom: 20px !important; padding: 10px !important; }
+  @page {
+    margin: 1.5cm;
+    size: A4;
+  }
+  
+  body, html, #root {
+    height: auto !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+
+  header, footer, .no-print, button, .fixed, .sticky, ::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  main, .container, .grid, aside {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  aside { display: none !important; } /* Hide Sidebar when printing */
+  
+  .grid > div:last-child { 
+    width: 100% !important;
+    display: block !important;
+    height: auto !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  .bg-white, .dark\:bg-slate-900 {
+    background: transparent !important;
+    color: black !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .question-block {
+    break-inside: avoid;
+    border-bottom: 1px solid #eee !important;
+    margin-bottom: 20px !important;
+    padding-bottom: 20px !important;
+  }
+
   .print-only { display: block !important; }
 }
