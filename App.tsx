@@ -131,10 +131,11 @@ const App: React.FC = () => {
   if (!user) return <LoginScreen onDemoLogin={handleDemoLogin} />;
 
   return (
-    <div className={`h-screen w-full font-sans text-slate-800 dark:text-slate-100 transition-colors duration-300 ${isDarkMode ? 'bg-slate-950' : 'bg-slate-100'} flex flex-col overflow-hidden`}>
+    // MAIN CONTAINER: Full Screen, Flex Column
+    <div className={`h-screen w-screen font-sans text-slate-800 dark:text-slate-100 transition-colors duration-300 ${isDarkMode ? 'bg-slate-950' : 'bg-slate-100'} flex flex-col overflow-hidden`}>
       
       {/* 1. HEADER (Fixed) */}
-      <div className="flex-none z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="flex-none z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
         <Header 
             isDarkMode={isDarkMode} 
             toggleTheme={toggleTheme} 
@@ -144,19 +145,19 @@ const App: React.FC = () => {
         />
       </div>
 
-      {/* 2. BANNER AD (Fixed Height) */}
+      {/* 2. BANNER AD (Fixed Height, Above workspace) */}
       {!isQuizMode && (
-          <div className="flex-none px-4 pt-4 pb-2">
+          <div className="flex-none px-4 pt-4 pb-2 z-40">
              <BannerAd />
           </div>
       )}
 
-      {/* 3. MAIN WORKSPACE (Flex Row) */}
-      <main className="flex-1 flex overflow-hidden px-4 pb-4 gap-4">
+      {/* 3. WORKSPACE (Flex Row, Takes remaining height) */}
+      <div className="flex-1 flex overflow-hidden px-4 pb-4 gap-4 relative">
         
-        {/* LEFT COLUMN: CONFIGURATION (Sidebar) */}
+        {/* LEFT SIDEBAR: Configuration */}
         {!isQuizMode && (
-            <aside className="w-full md:w-[380px] lg:w-[420px] flex-none flex flex-col h-full overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <aside className="w-[350px] xl:w-[400px] flex-none flex flex-col h-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden z-30">
                 <CriteriaSelector 
                     onGenerate={handleGenerate} 
                     isLoading={isLoading} 
@@ -165,8 +166,10 @@ const App: React.FC = () => {
             </aside>
         )}
 
-        {/* RIGHT COLUMN: OUTPUT / RESULT (Expands) */}
-        <div className="flex-1 flex flex-col h-full overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative">
+        {/* RIGHT MAIN CONTENT: Output / Results / Quiz */}
+        {/* flex-1 ensures it takes remaining width. min-w-0 prevents overflow issues in flexbox */}
+        <main className="flex-1 flex flex-col h-full min-w-0 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden relative z-20">
+            {/* This inner container handles scrolling for content */}
             <div className="absolute inset-0 overflow-hidden flex flex-col">
                  {isLoading ? (
                     <LoadingSpinner />
@@ -183,12 +186,12 @@ const App: React.FC = () => {
                     <WelcomeScreen />
                 )}
             </div>
-        </div>
+        </main>
 
-      </main>
+      </div>
 
       {/* 4. FOOTER (Fixed Bottom) */}
-      <div className="flex-none z-40">
+      <div className="flex-none z-50">
          <Footer onOpenDisclaimer={() => setShowDisclaimer(true)} />
       </div>
 
