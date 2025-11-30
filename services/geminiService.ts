@@ -4,94 +4,84 @@ import { EXAMPLE_QUESTIONS } from '../constants';
 export const generatePrompt = (criteria: Criteria, lang: string = 'vi'): string => {
   const isEnglish = lang === 'en';
 
-  // --- 1. ROLE & TASK (Language Specific) ---
+  // --- 1. ĐỊNH NGHĨA VAI TRÒ & NHIỆM VỤ ---
   const role = isEnglish
-    ? "You are a distinguished Professor of Biology and an expert in Educational Assessment."
-    : "Bạn là Giáo sư Sinh học đầu ngành và chuyên gia kiểm tra đánh giá giáo dục.";
+    ? "You are a strict Biology Exam Generator adhering to the Vietnam Ministry of Education (MOET) 2025 format."
+    : "Bạn là hệ thống tạo đề thi Sinh học nghiêm ngặt tuân theo cấu trúc định dạng 2025 của Bộ GD&ĐT Việt Nam.";
 
-  const task = isEnglish
-    ? `Your task is to generate ${criteria.questionCount} high-quality, academic-standard biology questions in **ENGLISH**.`
-    : `Nhiệm vụ của bạn là soạn thảo ${criteria.questionCount} câu hỏi sinh học chất lượng cao, chuẩn học thuật bằng **TIẾNG VIỆT**.`;
-
-  // --- 2. QUESTION TYPE INSTRUCTION ---
+  // --- 2. XÁC ĐỊNH LOẠI CÂU HỎI (CRITICAL) ---
+  // Phân tích chuỗi input để xác định chính xác loại câu hỏi
+  let targetType = "MIXED";
   let typeInstruction = "";
-  if (criteria.questionType.includes("Trắc nghiệm nhiều lựa chọn") || criteria.questionType.includes("Part I")) {
+  
+  if (criteria.questionType.includes("Part I") || criteria.questionType.includes("nhiều lựa chọn")) {
+      targetType = "MCQ";
       typeInstruction = isEnglish 
-        ? "STRICTLY generate 'Multiple choices' questions (4 options A,B,C,D)."
-        : "CHỈ TẠO các câu hỏi 'Multiple choices' (4 lựa chọn A,B,C,D).";
-  } else if (criteria.questionType.includes("Trắc nghiệm Đúng/Sai") || criteria.questionType.includes("Part II")) {
+        ? "MANDATORY: Generate ONLY 'Multiple choices' questions. Format: Question stem + 4 distinct options (A, B, C, D). ONE correct answer."
+        : "BẮT BUỘC: Chỉ tạo câu hỏi 'Trắc nghiệm nhiều lựa chọn'. Cấu trúc: Câu hỏi + 4 phương án (A, B, C, D). Chỉ 1 phương án đúng.";
+  } else if (criteria.questionType.includes("Part II") || criteria.questionType.includes("Đúng/Sai")) {
+      targetType = "TF";
       typeInstruction = isEnglish
-        ? "STRICTLY generate 'True/ False' questions (Cluster of 4 statements a,b,c,d)."
-        : "CHỈ TẠO các câu hỏi 'True/ False' (Chùm 4 ý a,b,c,d).";
-  } else if (criteria.questionType.includes("Trả lời ngắn") || criteria.questionType.includes("Part III")) {
+        ? "MANDATORY: Generate ONLY 'True/ False' cluster questions. Format: A context paragraph (stem) followed by exactly 4 statements (a, b, c, d). Answer key must indicate True/False for EACH statement."
+        : "BẮT BUỘC: Chỉ tạo câu hỏi 'Trắc nghiệm Đúng/Sai theo chùm'. Cấu trúc: Một đoạn dẫn (ngữ cảnh/thí nghiệm) theo sau là đúng 4 mệnh đề (a, b, c, d). Đáp án phải chỉ rõ Đúng/Sai cho từng mệnh đề.";
+  } else if (criteria.questionType.includes("Part III") || criteria.questionType.includes("Trả lời ngắn")) {
+      targetType = "SHORT";
       typeInstruction = isEnglish
-        ? "STRICTLY generate 'Short response' questions (Numeric answer only)."
-        : "CHỈ TẠO các câu hỏi 'Short response' (Điền số).";
+        ? "MANDATORY: Generate ONLY 'Short response' questions. The answer MUST be a specific number (integer or decimal). No multiple choice options."
+        : "BẮT BUỘC: Chỉ tạo câu hỏi 'Trả lời ngắn'. Đáp án PHẢI là một con số cụ thể (nguyên hoặc thập phân). Không được có các phương án lựa chọn.";
   } else {
       typeInstruction = isEnglish
-        ? "Generate a balanced mix of: Multiple choices, True/ False, and Short response questions."
-        : "Tạo hỗn hợp cân bằng các loại: Multiple choices, True/ False, và Short response.";
+        ? "Generate a balanced mix of 3 types: Multiple choices, True/ False (Cluster), and Short response."
+        : "Tạo hỗn hợp 3 loại: Trắc nghiệm nhiều lựa chọn, Đúng/Sai (Chùm), và Trả lời ngắn.";
   }
 
-  // --- 3. QUALITY & DEPTH (BIOMETRIC STANDARD) ---
-  const qualityInstruction = isEnglish
-    ? `
-    *** QUALITY STANDARDS (BIOMETRIC AI) ***
-    1.  **Deep Context**: Do not ask simple definitions. Questions MUST be based on biological mechanisms, experimental data analysis, or complex scenarios.
-    2.  **Detailed Explanation**: The 'explanation' field must be comprehensive. Explain the underlying biological principle, why the correct answer is right, and critically why distractors are wrong.
-    3.  **True/False Structure**: The 'question' field MUST contain a "Stem" (a paragraph describing an experiment, a diagram context, or a clinical case) BEFORE listing the 4 statements.
-    4.  **Short Response**: Ensure the answer is a specific number derived from calculation or precise biological facts (e.g., "46", "0.25").
-    `
-    : `
-    *** TIÊU CHUẨN CHẤT LƯỢNG (BIOMETRIC AI) ***
-    1.  **Chiều sâu ngữ cảnh**: Tuyệt đối không hỏi định nghĩa đơn giản. Câu hỏi PHẢI dựa trên cơ chế sinh học sâu, phân tích dữ liệu thí nghiệm, hoặc tình huống thực tế phức tạp.
-    2.  **Giải thích chi tiết**: Trường 'explanation' phải cực kỳ chi tiết (như sách giáo khoa chuyên sâu). Giải thích cơ chế, tại sao đúng, và phân tích tại sao các phương án nhiễu lại sai.
-    3.  **Cấu trúc Đúng/Sai**: Trường 'question' BẮT BUỘC phải có một đoạn văn dẫn (mô tả thí nghiệm, sơ đồ, hoặc bệnh án) trước khi đưa ra 4 nhận định.
-    4.  **Trả lời ngắn**: Đáp án phải là một con số cụ thể từ tính toán hoặc dữ kiện chính xác (VD: "24", "0.125").
-    `;
-
-  // --- 4. OUTPUT FORMAT ---
-  const jsonFormat = isEnglish
-  ? `
-    OUTPUT FORMAT (Valid JSON Array):
-    [
-      {
-        "question": "Question stem with context...",
-        "type": "Multiple choices" | "True/ False" | "Short response",
-        "options": ["A. ...", "B. ..."] OR ["a) ...", "b) ..."],
-        "answer": "Correct key (e.g. 'A. ...' or 'a) True, b) False...')",
-        "explanation": "In-depth scientific explanation..."
-      }
-    ]
-  `
-  : `
-    ĐỊNH DẠNG ĐẦU RA (Mảng JSON hợp lệ):
-    [
-      {
-        "question": "Nội dung câu hỏi và ngữ cảnh...",
-        "type": "Multiple choices" | "True/ False" | "Short response",
-        "options": ["A. ...", "B. ..."] HOẶC ["a) ...", "b) ..."],
-        "answer": "Đáp án đúng (VD: 'A. ...' hoặc 'a) Đ, b) S...')",
-        "explanation": "Giải thích khoa học chi tiết..."
-      }
-    ]
+  // --- 3. ĐỊNH DẠNG JSON (STRICT SCHEMA) ---
+  // Ép kiểu JSON trả về để code React render đúng
+  const jsonFormat = `
+  IMPORTANT: Return ONLY a raw JSON Array. No Markdown. No code blocks.
+  
+  REQUIRED JSON STRUCTURE:
+  [
+    {
+      "type": "${targetType === 'MCQ' ? 'Multiple choices' : targetType === 'TF' ? 'True/ False' : targetType === 'SHORT' ? 'Short response' : 'One of the valid types'}",
+      "question": "The main question text (or the context paragraph for True/False)",
+      "options": [
+         // FOR MCQ: ["A. Option 1", "B. Option 2", "C. Option 3", "D. Option 4"]
+         // FOR True/False: ["a) Statement 1", "b) Statement 2", "c) Statement 3", "d) Statement 4"]
+         // FOR Short Response: [] (Empty array)
+      ],
+      "answer": "The correct key (e.g., 'B' or 'a) S, b) Đ, c) S, d) Đ' or '120')",
+      "explanation": "Detailed explanation..."
+    }
+  ]
   `;
+
+  // --- 4. NỘI DUNG CHI TIẾT (BIOMETRIC AI STYLE) ---
+  const contentDepth = isEnglish
+    ? `CONTENT QUALITY:
+       - Context: "${criteria.setting}" (Ensure questions match this setting: Theory, Experiment, or Calculation).
+       - Competency: "${criteria.competency}" (Ensure questions test this specific skill).
+       - Difficulty: "${criteria.difficulty}".
+       - For True/False: The Stem MUST describe an experiment, a dataset, or a biological mechanism. Do not just list random facts.
+       - For Short Response: Ensure the question requires calculation or precise recall of a number (e.g., "How many ATP...", "Probability is...").`
+    : `CHẤT LƯỢNG NỘI DUNG:
+       - Bối cảnh: "${criteria.setting}" (Lý thuyết, Thí nghiệm, hoặc Tính toán).
+       - Năng lực: "${criteria.competency}".
+       - Độ khó: "${criteria.difficulty}".
+       - Với câu Đúng/Sai: Phần dẫn (question) PHẢI mô tả một thí nghiệm, bảng số liệu, hoặc cơ chế sinh học. KHÔNG liệt kê kiến thức rời rạc.
+       - Với câu Trả lời ngắn: Câu hỏi phải yêu cầu tính toán hoặc con số chính xác (VD: "Có bao nhiêu ATP...", "Tỷ lệ là...").`;
 
   return `
 ${role}
-${task}
 
-CONFIGURATION:
-- Topic: "${criteria.chapter}"
-- Context/Setting: "${criteria.setting}"
-- Difficulty: "${criteria.difficulty}"
-- Competency: "${criteria.competency}"
-${criteria.customPrompt ? `- Specific Requirement: "${criteria.customPrompt}"` : ''}
+TASK:
+${isEnglish ? `Generate ${criteria.questionCount} questions on topic: "${criteria.chapter}"` : `Tạo ${criteria.questionCount} câu hỏi về chủ đề: "${criteria.chapter}"`}
+${criteria.customPrompt ? `Extra Requirement: ${criteria.customPrompt}` : ""}
 
+INSTRUCTIONS:
 ${typeInstruction}
-${qualityInstruction}
-${jsonFormat}
+${contentDepth}
 
-Ensure the output is pure JSON. No markdown formatting.
+${jsonFormat}
 `;
 };
