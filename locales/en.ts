@@ -16,30 +16,13 @@ export const en = {
       subtitle: "Sign in to save your data",
       login_tab: "Sign In",
       register_tab: "Register",
-      fullname: "Full Name",
-      email: "Email",
-      password: "Password",
-      login_btn: "Sign In",
-      register_btn: "Register",
-      processing: "Processing...",
-      or_google: "Or continue with",
-      no_firebase: "Firebase Not Connected",
-      no_firebase_msg: "API Key missing. Using Demo Mode.",
       demo_mode: "Enter Demo Mode",
       quick_experience: "Just want a quick look?",
-      use_guest: "Use Guest Mode",
-      errors: {
-        invalid_email: "Invalid email format.",
-        user_not_found: "User not found.",
-        wrong_password: "Incorrect password.",
-        email_in_use: "Email already in use.",
-        weak_password: "Password too weak.",
-        invalid_api_key: "Invalid API Key."
-      }
+      use_guest: "Use Guest Mode"
     },
     welcome: {
       title: "Welcome to BioGen AI",
-      desc: "An automated Biology quiz generation tool.",
+      desc: "An automated Biology quiz generation tool (2025 Format).",
       instruction: "Select Chapter, Difficulty, and Competency on the left to begin."
     },
     criteria: {
@@ -69,10 +52,6 @@ export const en = {
       count_suffix: "Qs",
       start_quiz: "Start Quiz",
       export_docx: "Download DOCX",
-      share: "Share",
-      share_success: "Copied!",
-      share_title: "BIOLOGY EXAM",
-      error_export: "Export failed",
       no_data: "No Data",
       no_data_desc: "Add items to the queue and click 'Generate' to start."
     },
@@ -119,20 +98,6 @@ export const en = {
       max_score: "Highest Score",
       list_title: "Exam Details",
       empty: "No exam history found."
-    },
-    footer: {
-      dev_by: "Developed by",
-      email: "Email",
-      ai_notice: "This site uses Generative AI.",
-      disclaimer_link: "View Disclaimer",
-      copyright: "© 2025 BioGen Exam System"
-    },
-    disclaimer: {
-      title: "Disclaimer",
-      content_1: "This platform uses AI to provide suggestions...",
-      content_2: "The developer is not responsible...",
-      content_3: "Users are responsible for verifying...",
-      btn_close: "Understood"
     },
     loading: {
       title: "AI is thinking...",
