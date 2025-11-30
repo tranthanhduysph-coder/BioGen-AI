@@ -1,3 +1,4 @@
+
 export const CRITERIA_DATA = {
   chapters: [
     "Thành phần hóa học của tế bào",
@@ -57,27 +58,6 @@ export const QUESTION_TYPES = [
   "Trắc nghiệm Trả lời ngắn (Part III)"
 ];
 
-export const EXAM_BLUEPRINT_2025 = [
-    {
-        partName: "PHẦN I",
-        questionType: "Trắc nghiệm nhiều lựa chọn (Part I)",
-        count: 18, 
-        distribution: ["Nhận biết", "Nhận biết", "Nhận biết", "Nhận biết", "Nhận biết", "Thông hiểu", "Thông hiểu", "Thông hiểu", "Thông hiểu", "Thông hiểu", "Thông hiểu", "Thông hiểu", "Vận dụng", "Vận dụng", "Vận dụng", "Vận dụng", "Vận dụng cao", "Vận dụng cao"]
-    },
-    {
-        partName: "PHẦN II",
-        questionType: "Trắc nghiệm Đúng/Sai (Part II)",
-        count: 4,
-        distribution: ["Thông hiểu", "Vận dụng", "Vận dụng", "Vận dụng cao"] 
-    },
-    {
-        partName: "PHẦN III",
-        questionType: "Trắc nghiệm Trả lời ngắn (Part III)",
-        count: 6,
-        distribution: ["Thông hiểu", "Thông hiểu", "Vận dụng", "Vận dụng", "Vận dụng cao", "Vận dụng cao"]
-    }
-];
-
 export const EXAMPLE_QUESTIONS = [
   {
     "question": "Bào quan nào sau đây là nơi tổng hợp protein?",
@@ -87,22 +67,22 @@ export const EXAMPLE_QUESTIONS = [
     "explanation": "Ribosome là bào quan không có màng bao bọc, làm nhiệm vụ tổng hợp protein cho tế bào."
   },
   {
-    "question": "Cho các phát biểu sau về quá trình quang hợp ở thực vật C3:",
+    "question": "Một nhóm nghiên cứu thực hiện thí nghiệm đánh giá hiệu quả của vaccine. Dựa vào biểu đồ kết quả (giả định), hãy đánh giá các phát biểu sau:",
     "type": "True/ False",
     "options": [
-      "a) Chất nhận CO2 đầu tiên là Ribulose-1,5-bisphosphate (RuBP).",
-      "b) Sản phẩm ổn định đầu tiên là hợp chất 3 cacbon (APG).",
-      "c) Quá trình này chỉ xảy ra vào ban đêm.",
-      "d) Oxi được giải phóng từ pha tối."
+      "a) Vaccine X kích thích sinh kháng thể mạnh hơn vaccine Y.",
+      "b) Cả hai loại vaccine đều tạo ra đáp ứng miễn dịch.",
+      "c) Vaccine Y có hiệu quả bảo vệ 100%.",
+      "d) Chỉ số kháng thể là tiêu chí duy nhất."
     ],
     "answer": "a) Đúng, b) Đúng, c) Sai, d) Sai",
-    "explanation": "c) Sai vì quang hợp cần ánh sáng (pha sáng) và ATP/NADPH (pha tối) thường diễn ra ban ngày. d) Sai vì O2 sinh ra từ quang phân li nước ở pha sáng."
+    "explanation": "Giải thích chi tiết cho từng ý đúng sai..."
   },
   {
-    "question": "Một phân tử DNA có 3000 nucleotide, trong đó Adenine chiếm 20%. Tính số liên kết Hydrogen của gen này.",
+    "question": "Một phân tử DNA có 3000 nucleotide, trong đó A chiếm 20%. Tính số liên kết Hydrogen.",
     "type": "Short response",
     "options": [],
     "answer": "3900",
-    "explanation": "A = T = 20% * 3000 = 600. G = X = 30% * 3000 = 900. H = 2A + 3G = 2*600 + 3*900 = 1200 + 2700 = 3900."
+    "explanation": "A=T=600, G=X=900. H=2A+3G = 1200+2700=3900."
   }
 ];
