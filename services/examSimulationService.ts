@@ -34,15 +34,38 @@ const getCompetencyForDifficulty = (difficulty: string): string => {
     return pool[Math.floor(Math.random() * pool.length)];
 };
 
-// Helper to safely parse JSON
+// Helper to safely parse JSON and fix common truncation errors
 const safeJsonParse = (text: string): any[] => {
     try {
-        // Remove markdown if present
-        const cleanText = text.replace(/```json|```/g, '').trim();
+        // Remove markdown code blocks if present
+        let cleanText = text.replace(/```json|```/g, '').trim();
+        
+        // Try parsing directly
         return JSON.parse(cleanText);
     } catch (e) {
-        console.error("JSON Parse Error:", e);
-        return [];
+        console.warn("JSON Parse Warning: Attempting to fix truncated JSON...");
+        // Simple fix: try appending closing brackets if missing
+        // This is a heuristic and might not work for all cases, but helps with simple truncation
+        let cleanText = text.replace(/```json|```/g, '').trim();
+        if (cleanText.endsWith("}")) { 
+             cleanText += "]"; // Missing array close
+        } else if (cleanText.endsWith("]")) {
+             // Looks okay, maybe internal error
+        } else {
+             // Try to close object and array
+             // Find last valid object closure
+             const lastBrace = cleanText.lastIndexOf("}");
+             if (lastBrace !== -1) {
+                 cleanText = cleanText.substring(0, lastBrace + 1) + "]";
+             }
+        }
+
+        try {
+             return JSON.parse(cleanText);
+        } catch (e2) {
+             console.error("JSON Parse Fatal Error:", e2);
+             return [];
+        }
     }
 };
 
@@ -53,9 +76,7 @@ export const simulateExam = async (apiKey: string, userPrompt: string = ""): Pro
   const batchRequests: Criteria[] = [];
   const { matchedChapter, matchedSetting } = inferContextFromPrompt(userPrompt);
 
-  // --- CẤU TRÚC ĐỀ 2025 (28 Câu) ---
-
-  // Part I: 18 câu (Chia 3 batch x 6 câu)
+  // Part I
   for (let i = 0; i < 3; i++) {
     const chapterStr = matchedChapter || "Tổng hợp kiến thức Sinh học THPT (Lớp 10, 11, 12)";
     const difficultyStr = i === 0 ? "Nhận biết" : (i === 1 ? "Thông hiểu" : "Vận dụng");
@@ -75,8 +96,7 @@ export const simulateExam = async (apiKey: string, userPrompt: string = ""): Pro
         : `${userPrompt} Chọn chủ đề ngẫu nhiên.`
     });
   }
-  
-  // Part II: 4 câu (Chia 4 batch x 1 câu chùm)
+  // Part II
   for (let i = 0; i < 4; i++) {
      const randomSetting = matchedSetting || SETTINGS[Math.floor(Math.random() * SETTINGS.length)];
      const randomChapter = matchedChapter || CRITERIA_DATA.chapters[Math.floor(Math.random() * CRITERIA_DATA.chapters.length)];
@@ -92,8 +112,7 @@ export const simulateExam = async (apiKey: string, userPrompt: string = ""): Pro
       customPrompt: `${userPrompt} Tạo câu hỏi chùm True/False chuyên sâu về ${randomChapter}.`
     });
   }
-  
-  // Part III: 6 câu (Chia 2 batch x 3 câu)
+  // Part III
   for (let i = 0; i < 2; i++) {
      const chapterStr = matchedChapter || "Tổng hợp (Di truyền, Sinh thái, Chuyển hóa năng lượng)";
      const calcCompetencies = CRITERIA_DATA.competencies.filter(c => c.startsWith("NT4") || c.startsWith("NT6") || c.startsWith("VD"));
@@ -109,11 +128,9 @@ export const simulateExam = async (apiKey: string, userPrompt: string = ""): Pro
     });
   }
 
-  // Detect language intent
   const isEnglish = userPrompt.includes("Generate output completely in English");
   const lang = isEnglish ? 'en' : 'vi';
 
-  // Execute requests
   const promises = batchRequests.map(async (criteria, index) => {
     await new Promise(r => setTimeout(r, index * 300));
 
@@ -126,12 +143,12 @@ export const simulateExam = async (apiKey: string, userPrompt: string = ""): Pro
             config: { responseMimeType: "application/json" },
         });
 
-        // Safe Parsing
+        // Use safe parser
         const questions = safeJsonParse(response.text || "");
         
         if (!Array.isArray(questions) || questions.length === 0) {
-             console.warn(`Batch ${index} returned empty or invalid JSON.`);
-             return []; 
+             console.warn(`Batch ${index} failed to parse or is empty.`);
+             return [];
         }
 
         return questions.map(q => ({ 
@@ -148,7 +165,6 @@ export const simulateExam = async (apiKey: string, userPrompt: string = ""): Pro
   const results = await Promise.all(promises);
   const allQuestions = results.flat();
 
-  // Sort output to maintain structure: Part I -> Part II -> Part III
   return allQuestions.sort((a, b) => {
      const getOrder = (q: GeneratedQuestion) => {
          if (q.type === "Multiple choices") return 1;
