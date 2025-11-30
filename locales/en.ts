@@ -11,18 +11,36 @@ export const en = {
       hello: "Hi",
       language: "Language"
     },
+    // ... Auth & Welcome match vi.ts structure
     auth: {
       title: "BioGen AI",
       subtitle: "Sign in to save your data",
       login_tab: "Sign In",
       register_tab: "Register",
+      fullname: "Full Name",
+      email: "Email",
+      password: "Password",
+      login_btn: "Sign In",
+      register_btn: "Register",
+      processing: "Processing...",
+      or_google: "Or continue with",
+      no_firebase: "Firebase Not Connected",
+      no_firebase_msg: "API Key missing. Using Demo Mode.",
       demo_mode: "Enter Demo Mode",
       quick_experience: "Just want a quick look?",
-      use_guest: "Use Guest Mode"
+      use_guest: "Use Guest Mode",
+      errors: {
+        invalid_email: "Invalid email format.",
+        user_not_found: "User not found.",
+        wrong_password: "Incorrect password.",
+        email_in_use: "Email already in use.",
+        weak_password: "Password too weak.",
+        invalid_api_key: "Invalid API Key."
+      }
     },
     welcome: {
       title: "Welcome to BioGen AI",
-      desc: "An automated Biology quiz generation tool (2025 Format).",
+      desc: "An automated Biology quiz generation tool.",
       instruction: "Select Chapter, Difficulty, and Competency on the left to begin."
     },
     criteria: {
@@ -47,11 +65,88 @@ export const en = {
       generate_btn: "Generate {{count}} Questions",
       processing: "Processing..."
     },
+    // --- TRANSLATED CONSTANTS ---
+    constants: {
+        chapters: {
+            grade10_intro: "Grade 10 - Intro & Organization Levels",
+            grade10_chemical: "Grade 10 - Chemical Composition",
+            grade10_structure: "Grade 10 - Cell Structure",
+            grade10_transport: "Grade 10 - Membrane Transport",
+            grade10_metabolism: "Grade 10 - Metabolism & Energy",
+            grade10_cycle: "Grade 10 - Cell Cycle & Division",
+            grade10_microbiology: "Grade 10 - Microbiology",
+            grade10_virus: "Grade 10 - Viruses",
+            grade11_water: "Grade 11 - Plant Water & Mineral Exchange",
+            grade11_photosynthesis: "Grade 11 - Photosynthesis",
+            grade11_respiration: "Grade 11 - Plant Respiration",
+            grade11_nutrition: "Grade 11 - Animal Nutrition",
+            grade11_gas: "Grade 11 - Animal Respiration",
+            grade11_circulation: "Grade 11 - Circulation",
+            grade11_immune: "Grade 11 - Immunity",
+            grade11_excretion: "Grade 11 - Excretion & Homeostasis",
+            grade11_plant_sensing: "Grade 11 - Plant Sensing",
+            grade11_animal_sensing: "Grade 11 - Animal Sensing",
+            grade11_growth: "Grade 11 - Growth & Development",
+            grade11_reproduction: "Grade 11 - Reproduction",
+            grade12_molecular: "Grade 12 - Molecular Genetics",
+            grade12_regulation: "Grade 12 - Gene Regulation",
+            grade12_chromosomal: "Grade 12 - Chromosomal Genetics",
+            grade12_extranuclear: "Grade 12 - Extranuclear Genetics",
+            grade12_mendel: "Grade 12 - Mendelian Genetics",
+            grade12_sex_linked: "Grade 12 - Sex-linked Genetics",
+            grade12_population: "Grade 12 - Population Genetics",
+            grade12_human: "Grade 12 - Human Genetics",
+            grade12_evolution: "Grade 12 - Evolution",
+            grade12_origin: "Grade 12 - Origin of Life & Ecology",
+            grade12_community: "Grade 12 - Community & Ecosystem",
+            grade12_biosphere: "Grade 12 - Biosphere & Conservation"
+        },
+        difficulties: {
+            diff_recall: "Recall (Knowledge)",
+            diff_understand: "Understand",
+            diff_apply: "Apply",
+            diff_analyze: "Analyze/Evaluate"
+        },
+        competencies: {
+            comp_nt1: "NT1: Identify, list, state concepts.",
+            comp_nt2: "NT2: Describe characteristics, roles, mechanisms.",
+            comp_nt3: "NT3: Classify objects, phenomena.",
+            comp_nt4: "NT4: Analyze features, structures, processes.",
+            comp_nt5: "NT5: Compare, select based on criteria.",
+            comp_nt6: "NT6: Explain relationships (Cause-Effect).",
+            comp_nt7: "NT7: Critical thinking, identify errors.",
+            comp_nt8: "NT8: Use terminology, connect logic.",
+            comp_th1: "TH1: Propose research problems.",
+            comp_th2: "TH2: Formulate hypotheses.",
+            comp_th3: "TH3: Plan implementation.",
+            comp_th4: "TH4: Execute plan (experiment).",
+            comp_th5: "TH5: Report and discuss.",
+            comp_vd1: "VD1: Explain practical phenomena.",
+            comp_vd2: "VD2: Environmental protection behavior."
+        },
+        settings: {
+            setting_theory: "Academic Theory",
+            setting_experiment: "Experimental Analysis",
+            setting_calculation: "Calculation",
+            setting_realworld: "Real-world Scenario",
+            setting_data: "Data/Chart Analysis"
+        },
+        types: {
+            type_mixed: "Mixed / Random",
+            type_mcq: "Multiple Choice (Part I)",
+            type_tf: "True/False (Part II)",
+            type_short: "Short Response (Part III)"
+        }
+    },
     results: {
       title: "Generated Questions",
       count_suffix: "Qs",
       start_quiz: "Start Quiz",
       export_docx: "Download DOCX",
+      share: "Share",
+      share_success: "Copied!",
+      share_title: "BIOLOGY EXAM",
+      error_export: "Export failed",
       no_data: "No Data",
       no_data_desc: "Add items to the queue and click 'Generate' to start."
     },
@@ -60,8 +155,10 @@ export const en = {
       title_result: "Quiz Results",
       exit: "Exit",
       submit: "Submit",
+      save: "Save Result",
+      saved_success: "Saved!",
       score: "Score",
-      save_pdf: "Save PDF",
+      save_pdf: "Print / Save PDF",
       saving: "Saving...",
       header_print: "Quiz Result",
       date: "Date",
@@ -99,13 +196,10 @@ export const en = {
       list_title: "Exam Details",
       empty: "No exam history found."
     },
-    loading: {
-      title: "AI is thinking...",
-      subtitle: "Analyzing data and generating questions"
-    },
-    error: {
-      title: "An error occurred",
-      reload: "Reload Page"
-    }
+    // ... (Keep footer/disclaimer/loading/error)
+    footer: { dev_by: "Developed by", email: "Email", ai_notice: "This site uses Generative AI.", disclaimer_link: "View Disclaimer", copyright: "© 2025 BioGen Exam System" },
+    disclaimer: { title: "Disclaimer", content_1: "Info for reference only.", content_2: "Not responsible for errors.", content_3: "User verifies content.", btn_close: "Understood" },
+    loading: { title: "AI is thinking...", subtitle: "Analyzing data and generating questions" },
+    error: { title: "An error occurred", reload: "Reload Page" }
   }
 };
