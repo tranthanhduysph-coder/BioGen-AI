@@ -8,20 +8,21 @@ html, body {
   width: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden; /* Ngăn cuộn toàn trang */
-  @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans;
+  overflow: hidden; /* Prevent body scroll */
+  @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans text-base antialiased;
 }
 
 #root {
   height: 100%;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
-/* Custom Scrollbar - Thẩm mỹ hơn, tránh giật layout */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
@@ -50,10 +51,16 @@ html, body {
   animation: bounce-slow 3s infinite ease-in-out;
 }
 
-/* Print Styles - Giữ nguyên logic in ấn */
+/* Utility for mobile full height fix */
+.h-screen-dynamic {
+  height: 100vh; /* Fallback */
+  height: 100dvh; /* Dynamic Viewport Height for Mobile Browsers */
+}
+
+/* Print Styles */
 @media print {
   @page {
-    margin: 2cm;
+    margin: 1.5cm;
     size: A4;
   }
   
@@ -67,7 +74,6 @@ html, body {
     display: none !important;
   }
 
-  /* Reset layout grid for print */
   main, .container, .grid {
     display: block !important;
     width: 100% !important;
@@ -87,21 +93,18 @@ html, body {
     box-shadow: none !important;
   }
   
-  /* Nội dung bên trong khi in */
   .bg-white, .dark\:bg-slate-900 {
     background: transparent !important;
     color: black !important;
     border: none !important;
     box-shadow: none !important;
-    height: auto !important;
-    overflow: visible !important;
   }
 
   .question-block {
     break-inside: avoid;
-    border: 1px solid #ddd !important;
+    border-bottom: 1px solid #eee !important;
     margin-bottom: 20px !important;
-    padding: 10px !important;
+    padding-bottom: 20px !important;
   }
 
   .print-only { display: block !important; }
