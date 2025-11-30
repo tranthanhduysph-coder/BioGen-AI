@@ -10,6 +10,7 @@ interface HeaderProps {
   onShowHistory: () => void;
 }
 
+// ... Icons (BrainIcon, SunIcon, MoonIcon, LogoutIcon) giữ nguyên ...
 const BrainIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <path d="M12 5a3.5 3.5 0 0 0-3.5 3.5c0 2.25 1 4.31 2.5 5.5"/>
@@ -56,7 +57,6 @@ export const Header: React.FC<HeaderProps> = ({ isDarkMode, toggleTheme, user, o
 
   const toggleLanguage = () => {
     const newLang = i18n.language === 'vi' ? 'en' : 'vi';
-    console.log("Switching language to:", newLang); // Debug log
     i18n.changeLanguage(newLang);
   };
 
@@ -68,31 +68,35 @@ export const Header: React.FC<HeaderProps> = ({ isDarkMode, toggleTheme, user, o
             <BrainIcon className="text-white h-7 w-7" />
           </div>
           <div>
-            {/* Using translation key */}
+            {/* Fix: Dùng fallback text để tránh hiển thị key khi load chậm */}
             <h1 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-white tracking-tight leading-none">
-              {t('app.name', "BioGen AI")} 
+              {t('app.name') || "BioGen AI"}
             </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium hidden md:block">{t('app.subtitle', "Hệ thống tạo câu hỏi trắc nghiệm thông minh")}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium hidden md:block">
+                {t('app.subtitle') || "Hệ thống tạo câu hỏi trắc nghiệm thông minh"}
+            </p>
           </div>
         </div>
         
         <div className="flex items-center gap-2 md:gap-3">
             {user && (
                 <>
+                     {/* History Button */}
                      <button
                         onClick={onShowHistory}
                         className="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700"
-                        title={t('header.history', "Lịch sử")}
+                        title={t('header.history')}
                      >
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-                        <span className="hidden md:inline">{t('header.history', "Lịch sử")}</span>
+                        <span className="hidden md:inline">{t('header.history')}</span>
                      </button>
                     
                     <div className="hidden md:block h-8 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
 
+                    {/* User Info */}
                     <div className="hidden lg:flex items-center gap-3 mr-1">
                         <div className="text-right">
-                            <p className="text-xs text-slate-500 dark:text-slate-400">{t('header.hello', "Xin chào")},</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">{t('header.hello')},</p>
                             <p className="text-sm font-bold text-slate-700 dark:text-slate-200 max-w-[120px] truncate">{user.displayName || "User"}</p>
                         </div>
                         {user.photoURL ? (
@@ -106,6 +110,7 @@ export const Header: React.FC<HeaderProps> = ({ isDarkMode, toggleTheme, user, o
                 </>
             )}
 
+            {/* LANGUAGE TOGGLE BUTTON */}
             <button
               onClick={toggleLanguage}
               className="flex items-center justify-center w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-extrabold text-xs border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-800 transition-all shadow-sm"
@@ -114,19 +119,21 @@ export const Header: React.FC<HeaderProps> = ({ isDarkMode, toggleTheme, user, o
               {i18n.language === 'vi' ? 'EN' : 'VI'}
             </button>
 
+            {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
               className="p-2.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-sky-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200 focus:outline-none border border-slate-200 dark:border-slate-700"
-              aria-label="Giao diện"
+              aria-label={t('header.theme')}
             >
               {isDarkMode ? <SunIcon /> : <MoonIcon />}
             </button>
 
+            {/* Logout */}
             {user && (
                  <button
                     onClick={onLogout}
                     className="p-2.5 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all duration-200 focus:outline-none border border-red-100 dark:border-red-900/50"
-                    title={t('header.logout', "Đăng xuất")}
+                    title={t('header.logout')}
                  >
                     <LogoutIcon />
                  </button>
