@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { User } from 'firebase/auth';
 import { useTranslation } from 'react-i18next';
@@ -77,7 +78,7 @@ export const Header: React.FC<HeaderProps> = ({ isDarkMode, toggleTheme, user, o
         <div className="flex items-center gap-2 md:gap-3">
             {user && (
                 <>
-                     {/* History Button */}
+                     {/* HISTORY BUTTON */}
                      <button
                         onClick={onShowHistory}
                         className="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700"
@@ -89,7 +90,7 @@ export const Header: React.FC<HeaderProps> = ({ isDarkMode, toggleTheme, user, o
                     
                     <div className="hidden md:block h-8 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
 
-                    {/* User Info */}
+                    {/* USER INFO */}
                     <div className="hidden lg:flex items-center gap-3 mr-1">
                         <div className="text-right">
                             <p className="text-xs text-slate-500 dark:text-slate-400">{t('header.hello')},</p>
@@ -106,7 +107,7 @@ export const Header: React.FC<HeaderProps> = ({ isDarkMode, toggleTheme, user, o
                 </>
             )}
 
-            {/* Language Toggle */}
+            {/* LANGUAGE TOGGLE BUTTON */}
             <button
               onClick={toggleLanguage}
               className="flex items-center justify-center w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-extrabold text-xs border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-800 transition-all shadow-sm"
@@ -115,7 +116,7 @@ export const Header: React.FC<HeaderProps> = ({ isDarkMode, toggleTheme, user, o
               {i18n.language === 'vi' ? 'EN' : 'VI'}
             </button>
 
-            {/* Theme Toggle */}
+            {/* THEME TOGGLE */}
             <button
               onClick={toggleTheme}
               className="p-2.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-sky-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200 focus:outline-none border border-slate-200 dark:border-slate-700"
@@ -124,7 +125,7 @@ export const Header: React.FC<HeaderProps> = ({ isDarkMode, toggleTheme, user, o
               {isDarkMode ? <SunIcon /> : <MoonIcon />}
             </button>
 
-            {/* Logout */}
+            {/* LOGOUT */}
             {user && (
                  <button
                     onClick={onLogout}
