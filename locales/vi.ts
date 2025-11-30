@@ -1,4 +1,3 @@
-
 export const vi = {
   translation: {
     app: {
@@ -28,7 +27,15 @@ export const vi = {
       no_firebase_msg: "Chưa có cấu hình API Key. Dùng chế độ Demo.",
       demo_mode: "Vào chế độ Demo",
       quick_experience: "Chỉ muốn trải nghiệm nhanh?",
-      use_guest: "Dùng chế độ khách"
+      use_guest: "Dùng chế độ khách",
+      errors: {
+        invalid_email: "Email không hợp lệ.",
+        user_not_found: "Không tìm thấy tài khoản.",
+        wrong_password: "Sai mật khẩu.",
+        email_in_use: "Email đã được sử dụng.",
+        weak_password: "Mật khẩu quá yếu.",
+        invalid_api_key: "Lỗi cấu hình API Key."
+      }
     },
     welcome: {
       title: "Chào mừng bạn đến với BioGen AI",
