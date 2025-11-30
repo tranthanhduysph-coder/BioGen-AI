@@ -133,8 +133,8 @@ const App: React.FC = () => {
   return (
     <div className={`h-screen w-full font-sans text-slate-800 dark:text-slate-100 transition-colors duration-300 ${isDarkMode ? 'bg-slate-950' : 'bg-slate-100'} flex flex-col overflow-hidden`}>
       
-      {/* 1. HEADER (Fixed Top) */}
-      <div className="flex-none z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+      {/* 1. HEADER (Fixed) */}
+      <div className="flex-none z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm">
         <Header 
             isDarkMode={isDarkMode} 
             toggleTheme={toggleTheme} 
@@ -144,12 +144,19 @@ const App: React.FC = () => {
         />
       </div>
 
-      {/* 2. MAIN WORKSPACE (Flex Row) */}
-      <div className="flex-1 flex overflow-hidden">
+      {/* 2. BANNER AD (Fixed Height) */}
+      {!isQuizMode && (
+          <div className="flex-none px-4 pt-4 pb-2">
+             <BannerAd />
+          </div>
+      )}
+
+      {/* 3. MAIN WORKSPACE (Flex Row) */}
+      <main className="flex-1 flex overflow-hidden px-4 pb-4 gap-4">
         
-        {/* SIDEBAR: Criteria Selector (Fixed width ~350px) */}
+        {/* LEFT COLUMN: CONFIGURATION (Sidebar) */}
         {!isQuizMode && (
-            <aside className="w-full md:w-[350px] lg:w-[380px] flex-none bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col z-40">
+            <aside className="w-full md:w-[380px] lg:w-[420px] flex-none flex flex-col h-full overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
                 <CriteriaSelector 
                     onGenerate={handleGenerate} 
                     isLoading={isLoading} 
@@ -158,35 +165,32 @@ const App: React.FC = () => {
             </aside>
         )}
 
-        {/* MAIN CONTENT: Question List (Flex Grow) */}
-        <main className="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 relative">
-            {/* Banner Ad */}
-            {!isQuizMode && <div className="px-6 mt-4"><BannerAd /></div>}
-            
-            <div className="flex-1 overflow-hidden p-4 md:p-6">
-                <div className="h-full w-full bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col relative overflow-hidden">
-                    {isLoading ? (
-                        <LoadingSpinner />
-                    ) : error ? (
-                        <ErrorMessage message={error} />
-                    ) : hasGenerated ? (
-                        <QuestionList 
-                            questions={generatedQuestions} 
-                            isQuizMode={isQuizMode}
-                            setQuizMode={setIsQuizMode}
-                            user={user}
-                        />
-                    ) : (
-                        <WelcomeScreen />
-                    )}
-                </div>
+        {/* RIGHT COLUMN: OUTPUT / RESULT (Expands) */}
+        <div className="flex-1 flex flex-col h-full overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative">
+            <div className="absolute inset-0 overflow-hidden flex flex-col">
+                 {isLoading ? (
+                    <LoadingSpinner />
+                ) : error ? (
+                    <ErrorMessage message={error} />
+                ) : hasGenerated ? (
+                    <QuestionList 
+                        questions={generatedQuestions} 
+                        isQuizMode={isQuizMode}
+                        setQuizMode={setIsQuizMode}
+                        user={user}
+                    />
+                ) : (
+                    <WelcomeScreen />
+                )}
             </div>
-        </main>
+        </div>
 
+      </main>
+
+      {/* 4. FOOTER (Fixed Bottom) */}
+      <div className="flex-none z-40">
+         <Footer onOpenDisclaimer={() => setShowDisclaimer(true)} />
       </div>
-
-      {/* 3. FOOTER (Fixed Bottom, Slim) */}
-      <Footer onOpenDisclaimer={() => setShowDisclaimer(true)} />
 
       {/* Modals */}
       <DisclaimerModal isOpen={showDisclaimer} onClose={() => setShowDisclaimer(false)} />
