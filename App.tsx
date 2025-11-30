@@ -40,6 +40,9 @@ const App: React.FC = () => {
   const [showDisclaimer, setShowDisclaimer] = useState<boolean>(false);
   const [showHistory, setShowHistory] = useState<boolean>(false);
   const [isQuizMode, setIsQuizMode] = useState<boolean>(false);
+  
+  // Mobile Tab State (Config vs Result)
+  const [activeMobileTab, setActiveMobileTab] = useState<'config' | 'result'>('config');
 
   useEffect(() => {
     if (isConfigured && auth) {
@@ -74,6 +77,7 @@ const App: React.FC = () => {
     setHasGenerated(true);
     setGeneratedQuestions([]); 
     setIsQuizMode(false);
+    setActiveMobileTab('result'); // Auto switch to result on mobile
 
     try {
       if (!process.env.API_KEY) throw new Error("API_KEY missing.");
@@ -113,6 +117,8 @@ const App: React.FC = () => {
       setHasGenerated(true);
       setGeneratedQuestions([]);
       setIsQuizMode(false);
+      setActiveMobileTab('result'); // Auto switch
+
       try {
         if (!process.env.API_KEY) throw new Error("API_KEY missing.");
         const langInstruction = i18n.language === 'en' ? " (English)" : "";
@@ -131,11 +137,10 @@ const App: React.FC = () => {
   if (!user) return <LoginScreen onDemoLogin={handleDemoLogin} />;
 
   return (
-    // MAIN CONTAINER: Full Screen, Flex Column
-    <div className={`h-screen w-screen font-sans text-slate-800 dark:text-slate-100 transition-colors duration-300 ${isDarkMode ? 'bg-slate-950' : 'bg-slate-100'} flex flex-col overflow-hidden`}>
+    <div className={`h-screen-dynamic w-full font-sans text-slate-800 dark:text-slate-100 transition-colors duration-300 ${isDarkMode ? 'bg-slate-950' : 'bg-slate-100'} flex flex-col overflow-hidden`}>
       
-      {/* 1. HEADER (Fixed) */}
-      <div className="flex-none z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+      {/* 1. HEADER (Fixed Top) */}
+      <div className="flex-none z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm">
         <Header 
             isDarkMode={isDarkMode} 
             toggleTheme={toggleTheme} 
@@ -145,19 +150,24 @@ const App: React.FC = () => {
         />
       </div>
 
-      {/* 2. BANNER AD (Fixed Height, Above workspace) */}
+      {/* 2. BANNER AD (Visible if not in Quiz Mode) */}
       {!isQuizMode && (
-          <div className="flex-none px-4 pt-4 pb-2 z-40">
+          <div className="flex-none px-4 pt-2 pb-0 z-40 hidden md:block">
              <BannerAd />
           </div>
       )}
 
-      {/* 3. WORKSPACE (Flex Row, Takes remaining height) */}
-      <div className="flex-1 flex overflow-hidden px-4 pb-4 gap-4 relative">
+      {/* 3. WORKSPACE (Flex Row) */}
+      <div className="flex-1 flex overflow-hidden relative">
         
-        {/* LEFT SIDEBAR: Configuration */}
+        {/* SIDEBAR: Configuration (Desktop: Always visible / Mobile: Conditional) */}
         {!isQuizMode && (
-            <aside className="w-[350px] xl:w-[400px] flex-none flex flex-col h-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden z-30">
+            <aside className={`
+                ${activeMobileTab === 'config' ? 'flex' : 'hidden'} 
+                md:flex flex-col w-full md:w-[360px] lg:w-[400px] flex-none 
+                bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 
+                z-30 h-full overflow-hidden md:rounded-br-2xl md:shadow-sm
+            `}>
                 <CriteriaSelector 
                     onGenerate={handleGenerate} 
                     isLoading={isLoading} 
@@ -166,32 +176,55 @@ const App: React.FC = () => {
             </aside>
         )}
 
-        {/* RIGHT MAIN CONTENT: Output / Results / Quiz */}
-        {/* flex-1 ensures it takes remaining width. min-w-0 prevents overflow issues in flexbox */}
-        <main className="flex-1 flex flex-col h-full min-w-0 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden relative z-20">
-            {/* This inner container handles scrolling for content */}
-            <div className="absolute inset-0 overflow-hidden flex flex-col">
-                 {isLoading ? (
-                    <LoadingSpinner />
-                ) : error ? (
-                    <ErrorMessage message={error} />
-                ) : hasGenerated ? (
-                    <QuestionList 
-                        questions={generatedQuestions} 
-                        isQuizMode={isQuizMode}
-                        setQuizMode={setIsQuizMode}
-                        user={user}
-                    />
-                ) : (
-                    <WelcomeScreen />
-                )}
+        {/* MAIN CONTENT: Question List (Desktop: Flex-1 / Mobile: Conditional) */}
+        <main className={`
+            ${isQuizMode || activeMobileTab === 'result' ? 'flex' : 'hidden'} 
+            md:flex flex-1 flex-col min-w-0 bg-slate-50 dark:bg-slate-950 relative h-full overflow-hidden
+        `}>
+            <div className="flex-1 p-2 md:p-6 h-full w-full overflow-hidden">
+                <div className="h-full w-full bg-white dark:bg-slate-900 rounded-xl md:rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col relative overflow-hidden">
+                    {isLoading ? (
+                        <LoadingSpinner />
+                    ) : error ? (
+                        <ErrorMessage message={error} />
+                    ) : hasGenerated ? (
+                        <QuestionList 
+                            questions={generatedQuestions} 
+                            isQuizMode={isQuizMode}
+                            setQuizMode={setIsQuizMode}
+                            user={user}
+                        />
+                    ) : (
+                        <WelcomeScreen />
+                    )}
+                </div>
             </div>
         </main>
 
       </div>
 
-      {/* 4. FOOTER (Fixed Bottom) */}
-      <div className="flex-none z-50">
+      {/* 4. MOBILE TAB BAR (Visible only on Mobile & Not Quiz Mode) */}
+      {!isQuizMode && (
+        <div className="md:hidden flex-none bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex justify-around p-2 z-50">
+            <button 
+                onClick={() => setActiveMobileTab('config')}
+                className={`flex flex-col items-center p-2 rounded-lg w-full ${activeMobileTab === 'config' ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20' : 'text-slate-500'}`}
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                <span className="text-[10px] font-bold mt-1">Cấu hình</span>
+            </button>
+            <button 
+                onClick={() => setActiveMobileTab('result')}
+                className={`flex flex-col items-center p-2 rounded-lg w-full ${activeMobileTab === 'result' ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20' : 'text-slate-500'}`}
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                <span className="text-[10px] font-bold mt-1">Đề thi</span>
+            </button>
+        </div>
+      )}
+
+      {/* 5. FOOTER (Desktop Only) */}
+      <div className="hidden md:block flex-none z-40">
          <Footer onOpenDisclaimer={() => setShowDisclaimer(true)} />
       </div>
 
