@@ -3,101 +3,121 @@ import type { GeneratedQuestion, Criteria } from '../types';
 import { generatePrompt } from './geminiService';
 import { CRITERIA_DATA, SETTINGS } from '../constants';
 
+// Keyword mapping to identifying chapters from user prompt
+const CHAPTER_KEYWORDS: Record<string, string> = {
+    "tế bào": "grade10_structure",
+    "cell": "grade10_structure",
+    "vi sinh": "grade10_microbiology",
+    "microbio": "grade10_microbiology",
+    "di truyền": "grade12_molecular",
+    "genetics": "grade12_molecular",
+    "tiến hóa": "grade12_evolution",
+    "evolution": "grade12_evolution",
+    "sinh thái": "grade12_community",
+    "ecology": "grade12_community",
+    "thực vật": "grade11_photosynthesis",
+    "plant": "grade11_photosynthesis",
+    "động vật": "grade11_nutrition",
+    "animal": "grade11_nutrition"
+};
+
 const inferContextFromPrompt = (prompt: string) => {
     const lowerPrompt = prompt.toLowerCase();
     let matchedChapter = "";
     let matchedSetting = "";
-    for (const chapter of CRITERIA_DATA.chapters) {
-        if (lowerPrompt.includes(chapter.toLowerCase())) { matchedChapter = chapter; break; }
-        if (lowerPrompt.includes("tế bào") && chapter.includes("tế bào")) matchedChapter = chapter;
-        if (lowerPrompt.includes("vi sinh") && chapter.includes("Vi sinh")) matchedChapter = chapter;
-        if (lowerPrompt.includes("di truyền") && !matchedChapter && chapter.includes("Di truyền phân tử")) matchedChapter = chapter; 
-        if (lowerPrompt.includes("tiến hóa") && chapter.includes("Tiến hoá")) matchedChapter = chapter;
-        if (lowerPrompt.includes("sinh thái") && chapter.includes("Sinh thái") && !matchedChapter) matchedChapter = chapter;
+
+    // 1. Match Keyword to Chapter Key
+    for (const [keyword, chapterKey] of Object.entries(CHAPTER_KEYWORDS)) {
+        if (lowerPrompt.includes(keyword)) {
+            matchedChapter = chapterKey;
+            break;
+        }
     }
-    for (const setting of SETTINGS) {
-        if (lowerPrompt.includes(setting.toLowerCase())) { matchedSetting = setting; break; }
-    }
+
+    // 2. Default setting if not found
+    matchedSetting = SETTINGS[0]; // Default to theory
+
     return { matchedChapter, matchedSetting };
 };
 
-const getCompetencyForDifficulty = (difficulty: string): string => {
+const getCompetencyForDifficulty = (difficultyKey: string): string => {
     let pool = CRITERIA_DATA.competencies;
-    if (difficulty === "Nhận biết") {
-        pool = pool.filter(c => !c.startsWith("TH4") && !c.startsWith("TH5") && !c.startsWith("VD"));
-    } else if (difficulty === "Vận dụng" || difficulty === "Vận dụng cao") {
-        pool = pool.filter(c => !c.startsWith("NT1"));
-    } else {
-        pool = pool.filter(c => !c.startsWith("NT1"));
+
+    if (difficultyKey === "diff_recall") { // Nhận biết
+        // Filter out High level competencies (TH, VD)
+        pool = pool.filter(c => c.startsWith("comp_nt") && !["comp_nt6", "comp_nt7"].includes(c));
+    } else if (difficultyKey === "diff_analyze") { // Vận dụng cao
+        pool = pool.filter(c => c.startsWith("comp_vd") || c.startsWith("comp_th"));
     }
+    
     if (pool.length === 0) return CRITERIA_DATA.competencies[0];
     return pool[Math.floor(Math.random() * pool.length)];
 };
 
 export const simulateExam = async (apiKey: string, userPrompt: string = ""): Promise<GeneratedQuestion[]> => {
-  // STATIC MODE: Initialize SDK directly with provided key
   const ai = new GoogleGenAI({ apiKey });
-  
   const batchRequests: Criteria[] = [];
   const { matchedChapter, matchedSetting } = inferContextFromPrompt(userPrompt);
 
-  // Part I
+  // Part I: 3 batches (Multiple Choice)
   for (let i = 0; i < 3; i++) {
-    const chapterStr = matchedChapter || "Tổng hợp kiến thức Sinh học THPT (Lớp 10, 11, 12)";
-    const difficultyStr = i === 0 ? "Nhận biết" : (i === 1 ? "Thông hiểu" : "Vận dụng");
-    const randomCompetency = getCompetencyForDifficulty(difficultyStr);
-    let finalDifficulty = difficultyStr;
-    if (randomCompetency.startsWith("NT1")) finalDifficulty = "Nhận biết";
+    // Default chapter key if none matched
+    const chapterKey = matchedChapter || "grade12_molecular"; 
+    
+    const difficultyKey = i === 0 ? "diff_recall" : (i === 1 ? "diff_understand" : "diff_apply");
+    const randomCompetency = getCompetencyForDifficulty(difficultyKey);
 
     batchRequests.push({
-      chapter: chapterStr,
-      difficulty: finalDifficulty, 
+      chapter: chapterKey,
+      difficulty: difficultyKey,
       competency: randomCompetency,
-      setting: matchedSetting || "Lý thuyết & Thực nghiệm",
-      questionType: "Trắc nghiệm nhiều lựa chọn (Part I)",
+      setting: matchedSetting,
+      questionType: "type_mcq",
       questionCount: 6,
       customPrompt: matchedChapter 
-        ? `${userPrompt} Tạo câu hỏi trắc nghiệm tập trung vào ${matchedChapter}.`
-        : `${userPrompt} Chọn chủ đề ngẫu nhiên.`
+        ? `${userPrompt}` 
+        : `${userPrompt} General biology knowledge.`
     });
   }
-  // Part II
+
+  // Part II: 4 batches (True/False)
   for (let i = 0; i < 4; i++) {
-     const randomSetting = matchedSetting || SETTINGS[Math.floor(Math.random() * SETTINGS.length)];
-     const randomChapter = matchedChapter || CRITERIA_DATA.chapters[Math.floor(Math.random() * CRITERIA_DATA.chapters.length)];
-     const deepCompetencies = CRITERIA_DATA.competencies.filter(c => !c.startsWith("NT1") && !c.startsWith("NT2"));
-     const randomCompetency = deepCompetencies[Math.floor(Math.random() * deepCompetencies.length)] || "NT4: Phân tích...";
+     const chapterKey = matchedChapter || CRITERIA_DATA.chapters[Math.floor(Math.random() * CRITERIA_DATA.chapters.length)];
+     const difficultyKey = "diff_analyze";
+     const randomCompetency = "comp_nt6"; // Analysis
+
      batchRequests.push({
-      chapter: randomChapter,
-      difficulty: "Vận dụng - Vận dụng cao",
+      chapter: chapterKey,
+      difficulty: difficultyKey,
       competency: randomCompetency,
-      setting: randomSetting,
-      questionType: "Trắc nghiệm Đúng/Sai (Part II)",
+      setting: matchedSetting,
+      questionType: "type_tf",
       questionCount: 1,
-      customPrompt: `${userPrompt} Tạo câu hỏi chùm True/False chuyên sâu về ${randomChapter}.`
+      customPrompt: `${userPrompt}`
     });
   }
-  // Part III
+
+  // Part III: 2 batches (Short Response)
   for (let i = 0; i < 2; i++) {
-     const chapterStr = matchedChapter || "Tổng hợp (Di truyền, Sinh thái, Chuyển hóa năng lượng)";
-     const calcCompetencies = CRITERIA_DATA.competencies.filter(c => c.startsWith("NT4") || c.startsWith("NT6") || c.startsWith("VD"));
-     const randomCompetency = calcCompetencies[Math.floor(Math.random() * calcCompetencies.length)] || "NT6: Giải thích được mối quan hệ...";
+     const chapterKey = matchedChapter || "grade12_population"; // Good for math problems
+     const difficultyKey = "diff_analyze";
+     const randomCompetency = "comp_vd1"; // Application
+
      batchRequests.push({
-      chapter: chapterStr,
-      difficulty: "Vận dụng - Vận dụng cao",
+      chapter: chapterKey,
+      difficulty: difficultyKey,
       competency: randomCompetency,
-      setting: matchedSetting || "Bài tập tính toán",
-      questionType: "Trắc nghiệm Trả lời ngắn (Part III)",
+      setting: "setting_calculation",
+      questionType: "type_short",
       questionCount: 3,
-      customPrompt: `${userPrompt} Câu hỏi tính toán hoặc điền số cụ thể.`
+      customPrompt: `${userPrompt}`
     });
   }
 
   // Detect language intent
-  const isEnglish = userPrompt.includes("Generate output completely in English");
+  const isEnglish = userPrompt.toLowerCase().includes("english");
   const lang = isEnglish ? 'en' : 'vi';
 
-  // Execute requests
   const promises = batchRequests.map(async (criteria, index) => {
     await new Promise(r => setTimeout(r, index * 300));
 
