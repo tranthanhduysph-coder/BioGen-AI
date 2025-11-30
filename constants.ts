@@ -1,27 +1,21 @@
-
 export const CRITERIA_DATA = {
   chapters: [
-    "Thành phần hóa học của tế bào",
-    "Cấu trúc tế bào",
-    "Vận chuyển các chất qua màng sinh chất",
-    "Chuyển hóa vật chất và năng lượng",
-    "Chu kỳ tế bào và phân bào",
-    "Vi sinh vật và Virus",
-    "Trao đổi chất và chuyển hóa năng lượng ở thực vật",
-    "Trao đổi chất và chuyển hóa năng lượng ở động vật",
+    "Sinh học tế bào",
+    "Vi sinh vật",
+    "Sinh học cá thể thực vật",
+    "Dinh dưỡng và tiêu hóa ở động vật",
+    "Bài tiết và cân bằng nội môi",
+    "Vận chuyển các chất trong cơ thể động vật",
+    "Miễn dịch ở động vật",
     "Cảm ứng ở sinh vật",
-    "Sinh trưởng và phát triển",
     "Sinh sản ở sinh vật",
-    "Cơ chế di truyền và biến dị cấp độ phân tử",
-    "Cơ chế di truyền và biến dị cấp độ tế bào",
-    "Quy luật di truyền",
-    "Di truyền học quần thể",
-    "Ứng dụng di truyền học",
-    "Di truyền học người",
-    "Tiến hóa",
-    "Sinh thái học cá thể và quần thể",
-    "Quần xã sinh vật",
-    "Hệ sinh thái, Sinh quyển và Bảo vệ môi trường"
+    "Di truyền phân tử",
+    "Di truyền nhiễm sắc thể",
+    "Di truyền gene ngoài nhân",
+    "Tiến hoá",
+    "Môi trường và Sinh thái học quần thể",
+    "Sinh thái học quần xã",
+    "Sinh thái học phục hồi, bảo tồn và phát triển bền vững"
   ],
   difficulties: [
     "Nhận biết",
@@ -30,16 +24,21 @@ export const CRITERIA_DATA = {
     "Vận dụng cao"
   ],
   competencies: [
-    "NT1: Nhận thức sinh học",
-    "NT2: Tìm hiểu thế giới sống",
-    "NT3: Vận dụng kiến thức, kỹ năng đã học",
-    "TD1: Tư duy hệ thống",
-    "TD2: Tư duy phản biện",
-    "TD3: Giải quyết vấn đề",
-    "TN1: Năng lực thực nghiệm",
-    "TN2: Phân tích dữ liệu",
-    "TT1: Giao tiếp khoa học",
-    "TT2: Trách nhiệm xã hội"
+    "NT1: Nhận biết, kể tên, phát biểu, nêu được các đối tượng, khái niệm.",
+    "NT2: Trình bày được đặc điểm, vai trò, cơ chế bằng hình thức biểu đạt.",
+    "NT3: Phân loại được các đối tượng, hiện tượng sống.",
+    "NT4: Phân tích được đặc điểm đối tượng, sự vật, quá trình.",
+    "NT5: So sánh, lựa chọn được đối tượng, cơ chế dựa theo tiêu chí.",
+    "NT6: Giải thích mối quan hệ (nguyên nhân – kết quả, cấu tạo – chức năng).",
+    "NT7: Nhận ra và chỉnh sửa điểm sai; đưa ra nhận định phê phán.",
+    "NT8: Tìm từ khoá, sử dụng thuật ngữ, kết nối thông tin logic.",
+    "TH1: Đề xuất vấn đề liên quan đến thế giới sống.",
+    "TH2: Đưa ra phán đoán và xây dựng giả thuyết nghiên cứu.",
+    "TH3: Lập kế hoạch thực hiện.",
+    "TH4: Thực hiện kế hoạch (thu thập, xử lí dữ liệu).",
+    "TH5: Viết, trình bày báo cáo và thảo luận.",
+    "VD1: Giải thích thực tiễn, đánh giá hiện tượng thường gặp.",
+    "VD2: Có hành vi, thái độ thích hợp, đề xuất giải pháp bảo vệ môi trường."
   ]
 };
 
