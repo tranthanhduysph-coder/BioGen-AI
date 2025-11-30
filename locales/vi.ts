@@ -16,30 +16,13 @@ export const vi = {
       subtitle: "Đăng nhập để lưu trữ dữ liệu",
       login_tab: "Đăng nhập",
       register_tab: "Đăng ký",
-      fullname: "Họ và tên",
-      email: "Email",
-      password: "Mật khẩu",
-      login_btn: "Đăng nhập",
-      register_btn: "Đăng ký",
-      processing: "Đang xử lý...",
-      or_google: "Hoặc tiếp tục với",
-      no_firebase: "Chưa kết nối Firebase",
-      no_firebase_msg: "Chưa có cấu hình API Key. Dùng chế độ Demo.",
       demo_mode: "Vào chế độ Demo",
       quick_experience: "Chỉ muốn trải nghiệm nhanh?",
-      use_guest: "Dùng chế độ khách",
-      errors: {
-        invalid_email: "Email không hợp lệ.",
-        user_not_found: "Không tìm thấy tài khoản.",
-        wrong_password: "Sai mật khẩu.",
-        email_in_use: "Email đã được sử dụng.",
-        weak_password: "Mật khẩu quá yếu.",
-        invalid_api_key: "Lỗi cấu hình API Key."
-      }
+      use_guest: "Dùng chế độ khách"
     },
     welcome: {
       title: "Chào mừng bạn đến với BioGen AI",
-      desc: "Công cụ hỗ trợ giáo viên và học sinh tạo đề trắc nghiệm Sinh học tự động.",
+      desc: "Công cụ hỗ trợ giáo viên và học sinh tạo đề trắc nghiệm Sinh học tự động chuẩn 2025.",
       instruction: "Hãy chọn Chương, Mức độ, và Năng lực ở bảng bên trái để bắt đầu."
     },
     criteria: {
@@ -69,10 +52,6 @@ export const vi = {
       count_suffix: "câu",
       start_quiz: "Làm bài thi",
       export_docx: "Tải DOCX",
-      share: "Chia sẻ",
-      share_success: "Đã sao chép nội dung!",
-      share_title: "ĐỀ THI SINH HỌC",
-      error_export: "Lỗi xuất file",
       no_data: "Chưa có dữ liệu",
       no_data_desc: "Hãy thêm cấu hình vào danh sách và nhấn \"Tạo\" để bắt đầu."
     },
@@ -105,7 +84,7 @@ export const vi = {
       col_key: "Đáp án",
       placeholder_short: "Nhập số...",
       label_short_yours: "Câu trả lời của bạn",
-      text_short_empty: "Điền đáp án số (tối đa 4 ký tự)",
+      text_short_empty: "Điền đáp án số",
       hide_ans: "Ẩn Đáp Án",
       show_ans: "Xem Đáp Án & Giải Thích",
       copy_tooltip: "Sao chép câu hỏi"
@@ -119,20 +98,6 @@ export const vi = {
       max_score: "Điểm cao nhất",
       list_title: "Chi tiết các lần thi",
       empty: "Chưa có dữ liệu bài thi nào."
-    },
-    footer: {
-      dev_by: "Phát triển bởi",
-      email: "Email",
-      ai_notice: "Trang web này sử dụng AI tạo sinh.",
-      disclaimer_link: "Xem Cảnh báo & Miễn trừ trách nhiệm",
-      copyright: "© 2025 BioGen Exam System"
-    },
-    disclaimer: {
-      title: "Cảnh báo & Miễn trừ Trách nhiệm",
-      content_1: "Thông tin do AI tạo ra chỉ mang tính chất tham khảo.",
-      content_2: "Người biên soạn không chịu trách nhiệm về sai lệch.",
-      content_3: "Người dùng tự chịu trách nhiệm kiểm tra.",
-      btn_close: "Đã hiểu"
     },
     loading: {
       title: "AI đang suy nghĩ...",
