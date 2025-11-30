@@ -1,3 +1,4 @@
+
 export const en = {
   translation: {
     app: {
@@ -12,10 +13,22 @@ export const en = {
       language: "Language"
     },
     auth: {
+      title: "BioGen AI",
+      subtitle: "Sign in to save your data",
       login_tab: "Sign In",
       register_tab: "Register",
-      demo_mode: "Demo Mode",
-      // ...
+      fullname: "Full Name",
+      email: "Email",
+      password: "Password",
+      login_btn: "Sign In",
+      register_btn: "Register",
+      processing: "Processing...",
+      or_google: "Or continue with",
+      no_firebase: "Firebase Not Connected",
+      no_firebase_msg: "API Key missing. Using Demo Mode.",
+      demo_mode: "Enter Demo Mode",
+      quick_experience: "Just want a quick look?",
+      use_guest: "Use Guest Mode"
     },
     welcome: {
       title: "Welcome to BioGen AI",
@@ -106,6 +119,13 @@ export const en = {
       ai_notice: "This site uses Generative AI.",
       disclaimer_link: "View Disclaimer",
       copyright: "© 2025 BioGen Exam System"
+    },
+    disclaimer: {
+      title: "Disclaimer",
+      content_1: "This platform uses AI to provide suggestions...",
+      content_2: "The developer is not responsible...",
+      content_3: "Users are responsible for verifying...",
+      btn_close: "Understood"
     },
     loading: {
       title: "AI is thinking...",
