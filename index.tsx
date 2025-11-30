@@ -1,8 +1,8 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
-import './src/i18n';
-import './src/index.css'; // Import global CSS with Tailwind
+import './i18n';
+import './index.css'; // Import global CSS with Tailwind
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
