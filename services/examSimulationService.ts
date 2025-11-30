@@ -35,7 +35,7 @@ const getCompetencyForDifficulty = (difficulty: string): string => {
 };
 
 export const simulateExam = async (apiKey: string, userPrompt: string = ""): Promise<GeneratedQuestion[]> => {
-  // STATIC MODE: Direct SDK Call
+  // STATIC MODE: Initialize SDK directly
   const ai = new GoogleGenAI({ apiKey });
   
   const batchRequests: Criteria[] = [];
@@ -93,10 +93,11 @@ export const simulateExam = async (apiKey: string, userPrompt: string = ""): Pro
     });
   }
 
-  // Detect Language from prompt hack (passed from App.tsx)
+  // Detect language intent
   const isEnglish = userPrompt.includes("Generate output completely in English");
   const lang = isEnglish ? 'en' : 'vi';
 
+  // Execute requests
   const promises = batchRequests.map(async (criteria, index) => {
     await new Promise(r => setTimeout(r, index * 300));
 
