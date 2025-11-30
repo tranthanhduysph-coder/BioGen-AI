@@ -1,3 +1,4 @@
+
 export const vi = {
   translation: {
     app: {
@@ -12,11 +13,22 @@ export const vi = {
       language: "Ngôn ngữ"
     },
     auth: {
-      // (Giữ nguyên phần Auth nếu không lỗi, tập trung sửa phần hiển thị chính)
+      title: "BioGen AI",
+      subtitle: "Đăng nhập để lưu trữ dữ liệu",
       login_tab: "Đăng nhập",
       register_tab: "Đăng ký",
+      fullname: "Họ và tên",
+      email: "Email",
+      password: "Mật khẩu",
+      login_btn: "Đăng nhập",
+      register_btn: "Đăng ký",
+      processing: "Đang xử lý...",
+      or_google: "Hoặc tiếp tục với",
+      no_firebase: "Chưa kết nối Firebase",
+      no_firebase_msg: "Chưa có cấu hình API Key. Dùng chế độ Demo.",
       demo_mode: "Vào chế độ Demo",
-      // ...
+      quick_experience: "Chỉ muốn trải nghiệm nhanh?",
+      use_guest: "Dùng chế độ khách"
     },
     welcome: {
       title: "Chào mừng bạn đến với BioGen AI",
@@ -107,6 +119,13 @@ export const vi = {
       ai_notice: "Trang web này sử dụng AI tạo sinh.",
       disclaimer_link: "Xem Cảnh báo & Miễn trừ trách nhiệm",
       copyright: "© 2025 BioGen Exam System"
+    },
+    disclaimer: {
+      title: "Cảnh báo & Miễn trừ Trách nhiệm",
+      content_1: "Thông tin do AI tạo ra chỉ mang tính chất tham khảo.",
+      content_2: "Người biên soạn không chịu trách nhiệm về sai lệch.",
+      content_3: "Người dùng tự chịu trách nhiệm kiểm tra.",
+      btn_close: "Đã hiểu"
     },
     loading: {
       title: "AI đang suy nghĩ...",
