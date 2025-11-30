@@ -1,5 +1,4 @@
-// KEYS for translation. The actual text will be in locales/vi.ts and locales/en.ts
-
+// KEYS for translation (UI usage)
 export const CHAPTERS_KEYS = [
     "grade10_intro",
     "grade10_chemical",
@@ -9,7 +8,6 @@ export const CHAPTERS_KEYS = [
     "grade10_cycle",
     "grade10_microbiology",
     "grade10_virus",
-
     "grade11_water",
     "grade11_photosynthesis",
     "grade11_respiration",
@@ -22,7 +20,6 @@ export const CHAPTERS_KEYS = [
     "grade11_animal_sensing",
     "grade11_growth",
     "grade11_reproduction",
-
     "grade12_molecular",
     "grade12_regulation",
     "grade12_chromosomal",
@@ -65,7 +62,19 @@ export const QUESTION_TYPES_KEYS = [
     "type_short"
 ];
 
-// RAG EXAMPLES (Keep hardcoded structure for AI context, but labels update)
+// --- DATA FOR LOGIC SERVICES (Simulation, Parsing) ---
+// This object mimics the structure needed by examSimulationService.ts
+// It maps the Keys back to representational strings or just holds the keys for iteration.
+export const CRITERIA_DATA = {
+  chapters: CHAPTERS_KEYS,
+  difficulties: DIFFICULTIES_KEYS,
+  competencies: COMPETENCIES_KEYS
+};
+
+export const SETTINGS = SETTINGS_KEYS;
+export const QUESTION_TYPES = QUESTION_TYPES_KEYS;
+
+// --- RAG EXAMPLES ---
 export const RAG_EXAMPLES = {
   MCQ: {
     "question": "Bào quan nào sau đây là nơi tổng hợp protein?",
@@ -94,3 +103,5 @@ export const RAG_EXAMPLES = {
     "explanation": "A=600, G=900..."
   }
 };
+
+export const EXAMPLE_QUESTIONS = [RAG_EXAMPLES.MCQ, RAG_EXAMPLES.TF, RAG_EXAMPLES.SHORT];
