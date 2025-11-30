@@ -35,7 +35,7 @@ const getCompetencyForDifficulty = (difficulty: string): string => {
 };
 
 export const simulateExam = async (apiKey: string, userPrompt: string = ""): Promise<GeneratedQuestion[]> => {
-  // STATIC MODE: Initialize SDK directly
+  // STATIC MODE: Initialize SDK directly with provided key
   const ai = new GoogleGenAI({ apiKey });
   
   const batchRequests: Criteria[] = [];
