@@ -5,7 +5,7 @@ export const generatePrompt = (criteria: Criteria, lang: string = 'vi'): string 
   const exampleString = JSON.stringify(EXAMPLE_QUESTIONS, null, 2);
   const isEnglish = lang === 'en';
 
-  // --- 1. CHỈ THỊ LOẠI CÂU HỎI (STRICT MODE) ---
+  // --- 1. CHỈ THỊ LOẠI CÂU HỎI ---
   let typeInstruction = "";
   if (criteria.questionType.includes("Trắc nghiệm nhiều lựa chọn") || criteria.questionType.includes("Part I")) {
       typeInstruction = isEnglish 
@@ -64,6 +64,6 @@ ${typeInstruction}
 
 ${jsonFormat}
 
-IMPORTANT: Ensure the output is valid JSON. Do not include \`\`\`json or \`\`\` tags.
+IMPORTANT: Ensure the output is valid JSON. Do not include \`\`\`json or \`\`\` tags. Keep explanations concise to avoid truncation.
 `;
 };
