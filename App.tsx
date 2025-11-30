@@ -33,7 +33,6 @@ const App: React.FC = () => {
 
   const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
-
   const [generatedQuestions, setGeneratedQuestions] = useState<GeneratedQuestion[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -90,7 +89,6 @@ const App: React.FC = () => {
 
   const handleGenerate = useCallback(async (criteriaList: Criteria[]) => {
     if (criteriaList.length === 0) return;
-
     setIsLoading(true);
     setError(null);
     setHasGenerated(true);
@@ -162,68 +160,66 @@ const App: React.FC = () => {
   if (!user) return <LoginScreen onDemoLogin={handleDemoLogin} />;
 
   return (
-    <div className={`h-screen w-full flex flex-col font-sans text-slate-800 dark:text-slate-100 transition-colors duration-300 ${isDarkMode ? 'bg-slate-950' : 'bg-slate-100'}`}>
+    <div className={`min-h-screen font-sans text-slate-800 dark:text-slate-100 transition-colors duration-300 ${isDarkMode ? 'bg-slate-950' : 'bg-slate-50'} flex flex-col`}>
       
-      {/* Header Fixed */}
-      <div className="flex-none z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm">
-        <Header 
-            isDarkMode={isDarkMode} 
-            toggleTheme={toggleTheme} 
-            user={user} 
-            onLogout={handleLogout}
-            onShowHistory={() => setShowHistory(true)}
-        />
-      </div>
-
+      {/* Header */}
+      <Header 
+          isDarkMode={isDarkMode} 
+          toggleTheme={toggleTheme} 
+          user={user} 
+          onLogout={handleLogout}
+          onShowHistory={() => setShowHistory(true)}
+      />
+      
       {/* Banner Ad */}
       {!isQuizMode && (
-          <div className="flex-none px-4 pt-2 pb-0 z-30 hidden md:block">
+         <div className="container mx-auto px-4 pt-4">
              <BannerAd onDonateClick={() => setShowDonate(true)} />
-          </div>
+         </div>
       )}
 
-      {/* Main Workspace */}
-      <main className="flex-1 flex overflow-hidden px-4 pb-4 gap-4 relative z-10" style={{ minHeight: 0 }}>
-        
-        {/* Sidebar */}
-        {!isQuizMode && (
-            <aside className="w-[350px] xl:w-[400px] flex-none flex flex-col h-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden z-20">
-                <CriteriaSelector 
-                    onGenerate={handleGenerate} 
-                    isLoading={isLoading} 
-                    onSimulate={handleSimulateExam} 
-                />
-            </aside>
-        )}
-
-        {/* Output Content */}
-        <div className="flex-1 flex flex-col h-full min-w-0 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden relative z-10">
-            <div className="absolute inset-0 overflow-y-auto flex flex-col custom-scrollbar">
-                 {isLoading ? (
-                    <LoadingSpinner />
-                ) : error ? (
-                    <ErrorMessage message={error} />
-                ) : hasGenerated ? (
-                    <QuestionList 
-                        questions={generatedQuestions} 
-                        isQuizMode={isQuizMode}
-                        setQuizMode={setIsQuizMode}
-                        user={user}
+      {/* Main Content - Grid Layout */}
+      <main className="container mx-auto p-4 md:p-6 flex-grow">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            {/* Sidebar Configuration */}
+            {!isQuizMode && (
+                <div className="lg:col-span-4">
+                    <CriteriaSelector 
+                        onGenerate={handleGenerate} 
+                        isLoading={isLoading} 
+                        onSimulate={handleSimulateExam} 
                     />
-                ) : (
-                    <WelcomeScreen />
-                )}
+                </div>
+            )}
+            
+            {/* Main Output Panel */}
+            <div className={`${isQuizMode ? 'lg:col-span-12' : 'lg:col-span-8'}`}>
+                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 p-1 md:p-6 min-h-[70vh] flex flex-col relative">
+                     {isLoading ? (
+                        <LoadingSpinner />
+                    ) : error ? (
+                        <ErrorMessage message={error} />
+                    ) : hasGenerated ? (
+                        <QuestionList 
+                            questions={generatedQuestions} 
+                            isQuizMode={isQuizMode}
+                            setQuizMode={setIsQuizMode}
+                            user={user}
+                        />
+                    ) : (
+                        <WelcomeScreen />
+                    )}
+                </div>
             </div>
         </div>
       </main>
 
-      <div className="flex-none z-40">
-         <Footer onOpenDisclaimer={() => setShowDisclaimer(true)} />
-      </div>
+      <Footer onOpenDisclaimer={() => setShowDisclaimer(true)} />
 
+      {/* Modals */}
       <DisclaimerModal isOpen={showDisclaimer} onClose={() => setShowDisclaimer(false)} />
       <HistoryModal isOpen={showHistory} onClose={() => setShowHistory(false)} user={user} />
-      
       <DonateModal 
           isOpen={showDonate} 
           onClose={() => setShowDonate(false)} 
