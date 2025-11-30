@@ -7,7 +7,7 @@ import { WelcomeScreen } from './components/WelcomeScreen';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { ErrorMessage } from './components/ErrorMessage';
 import { DisclaimerModal } from './components/DisclaimerModal';
-import { HistoryModal } from './components/HistoryModal';
+import { HistoryModal } from './components/HistoryModal'; // Import Checked
 import { Footer } from './components/Footer';
 import { BannerAd } from './components/BannerAd';
 import type { Criteria, GeneratedQuestion } from './types';
@@ -18,6 +18,7 @@ import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { LoginScreen } from './components/LoginScreen';
 import { useTranslation } from 'react-i18next';
 
+// Mock User for Demo Mode
 const DEMO_USER = {
   uid: 'demo-user-123',
   displayName: 'Khách (Demo)',
@@ -89,11 +90,9 @@ const App: React.FC = () => {
         throw new Error("API_KEY environment variable not set.");
       }
       
-      // STATIC MODE: Initialize SDK directly
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
       const promises = criteriaList.map(async (criteria) => {
-        // Pass language to prompt generation
         const prompt = generatePrompt(criteria, i18n.language);
         
         const response = await ai.models.generateContent({
@@ -144,7 +143,6 @@ const App: React.FC = () => {
         
         const langInstruction = i18n.language === 'en' ? " (Generate output completely in English)" : "";
 
-        // Direct call to simulation service
         const allQuestions = await simulateExam(process.env.API_KEY, userPrompt + langInstruction);
         
         if (allQuestions.length === 0) throw new Error("Không tạo được đề thi.");
@@ -181,7 +179,6 @@ const App: React.FC = () => {
         onShowHistory={() => setShowHistory(true)}
       />
       
-      {/* Banner Ad Display */}
       {!isQuizMode && <BannerAd />}
       
       <main className="container mx-auto p-4 md:p-8 flex-grow">
