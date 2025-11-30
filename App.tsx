@@ -13,7 +13,7 @@ import { Footer } from './components/Footer';
 import { BannerAd } from './components/BannerAd';
 import type { Criteria, GeneratedQuestion } from './types';
 import { generatePrompt } from './services/geminiService';
-import { simulateExam } from './services/examSimulationService';
+import { simulateExam } from './services/examSimulationService'; // Đã fix logic bên trong service này
 import { auth, isConfigured } from './firebaseConfig';
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { LoginScreen } from './components/LoginScreen';
@@ -33,7 +33,6 @@ const App: React.FC = () => {
 
   const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
-
   const [generatedQuestions, setGeneratedQuestions] = useState<GeneratedQuestion[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +43,7 @@ const App: React.FC = () => {
   const [showDisclaimer, setShowDisclaimer] = useState<boolean>(false);
   const [showHistory, setShowHistory] = useState<boolean>(false);
   const [showDonate, setShowDonate] = useState<boolean>(false);
-  const [isLimitReached, setIsLimitReached] = useState<boolean>(false); // Used for soft limit check
+  const [isLimitReached, setIsLimitReached] = useState<boolean>(false);
   
   const [isQuizMode, setIsQuizMode] = useState<boolean>(false);
   
@@ -80,24 +79,22 @@ const App: React.FC = () => {
     document.documentElement.classList.toggle('dark');
   };
 
-  // --- INCREMENT USAGE & CHECK DONATE ---
+  // --- USAGE LOGIC FIX ---
   const incrementUsage = () => {
       const newCount = usageCount + 1;
       setUsageCount(newCount);
       localStorage.setItem('biogen_usage_count', String(newCount));
 
-      // Mỗi 3 lần tạo -> Hiện Donate Modal
+      // Hiển thị Donate Modal mỗi 3 lần (3, 6, 9...)
+      // Logic này chạy SAU khi tạo đề thành công
       if (newCount > 0 && newCount % 3 === 0) {
-          // Soft limit: Hiện thông báo nhưng không chặn (isLimitReached = false để hiện nút Close)
-          setIsLimitReached(false); 
+          setIsLimitReached(false); // Chỉ là nhắc nhở, không chặn
           setShowDonate(true);
       }
   };
-  // --------------------------------------
 
   const handleGenerate = useCallback(async (criteriaList: Criteria[]) => {
     if (criteriaList.length === 0) return;
-
     setIsLoading(true);
     setError(null);
     setHasGenerated(true);
@@ -137,7 +134,7 @@ const App: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [i18n.language, t, usageCount]); // added usageCount dependency
+  }, [i18n.language, t, usageCount]);
 
   const handleSimulateExam = useCallback(async (userPrompt: string = "") => {
       setIsLoading(true);
@@ -145,14 +142,19 @@ const App: React.FC = () => {
       setHasGenerated(true);
       setGeneratedQuestions([]);
       setIsQuizMode(false);
+
       try {
         if (!process.env.API_KEY) throw new Error("API_KEY missing.");
+        
         const langInstruction = i18n.language === 'en' ? " (English)" : "";
+        
+        // Gọi hàm simulateExam với API Key để tạo đề chuẩn cấu trúc 2025
         const allQuestions = await simulateExam(process.env.API_KEY, userPrompt + langInstruction);
+        
         if (allQuestions.length === 0) throw new Error("Simulation failed.");
         
         setGeneratedQuestions(allQuestions);
-        incrementUsage(); // Tăng đếm
+        incrementUsage();
 
       } catch (err: any) {
           console.error("Simulation Error:", err);
@@ -166,9 +168,9 @@ const App: React.FC = () => {
   if (!user) return <LoginScreen onDemoLogin={handleDemoLogin} />;
 
   return (
-    <div className={`h-screen w-full font-sans text-slate-800 dark:text-slate-100 transition-colors duration-300 ${isDarkMode ? 'bg-slate-950' : 'bg-slate-100'} flex flex-col overflow-hidden`}>
+    <div className={`h-screen w-full font-sans text-slate-800 dark:text-slate-100 transition-colors duration-300 ${isDarkMode ? 'bg-slate-950' : 'bg-slate-100'} flex flex-col overflow-hidden relative`}>
       
-      <div className="flex-none z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="flex-none z-40 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm">
         <Header 
             isDarkMode={isDarkMode} 
             toggleTheme={toggleTheme} 
@@ -178,28 +180,24 @@ const App: React.FC = () => {
         />
       </div>
 
-      {/* Banner Ad */}
       {!isQuizMode && (
-          <div className="flex-none px-4 pt-2 pb-0 z-40 hidden md:block">
+          <div className="flex-none px-4 pt-2 pb-0 z-30 hidden md:block">
              <BannerAd onDonateClick={() => setShowDonate(true)} />
           </div>
       )}
 
-      <main className="flex-1 flex overflow-hidden px-4 pb-4 gap-4 relative">
+      <main className="flex-1 flex overflow-hidden px-4 pb-4 gap-4 relative z-10">
         {!isQuizMode && (
-            <aside className="w-[350px] xl:w-[400px] flex-none flex flex-col h-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden z-30">
+            <aside className="w-[350px] xl:w-[400px] flex-none flex flex-col h-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden z-20">
                 <CriteriaSelector 
                     onGenerate={handleGenerate} 
                     isLoading={isLoading} 
                     onSimulate={handleSimulateExam} 
                 />
-                 <div className="p-2 text-center text-[10px] text-slate-400 border-t border-slate-100 dark:border-slate-800">
-                     Đã tạo: <span className="font-bold text-indigo-600">{usageCount}</span> lần
-                 </div>
             </aside>
         )}
 
-        <div className="flex-1 flex flex-col h-full min-w-0 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden relative z-20">
+        <div className="flex-1 flex flex-col h-full min-w-0 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden relative z-10">
             <div className="absolute inset-0 overflow-hidden flex flex-col">
                  {isLoading ? (
                     <LoadingSpinner />
@@ -223,13 +221,15 @@ const App: React.FC = () => {
          <Footer onOpenDisclaimer={() => setShowDisclaimer(true)} />
       </div>
 
+      {/* Đặt Modals ở cuối cùng để đảm bảo z-index cao nhất */}
       <DisclaimerModal isOpen={showDisclaimer} onClose={() => setShowDisclaimer(false)} />
       <HistoryModal isOpen={showHistory} onClose={() => setShowHistory(false)} user={user} />
       
       <DonateModal 
           isOpen={showDonate} 
           onClose={() => setShowDonate(false)} 
-          onConfirmPayment={() => setShowDonate(false)} // Just close for now
+          // Nút xác nhận chỉ tắt modal, không khóa gì thêm vì là soft limit
+          onConfirmPayment={() => setShowDonate(false)} 
           isLimitReached={isLimitReached}
       />
     </div>
