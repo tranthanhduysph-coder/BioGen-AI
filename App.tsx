@@ -9,6 +9,7 @@ import { ErrorMessage } from './components/ErrorMessage';
 import { DisclaimerModal } from './components/DisclaimerModal';
 import { HistoryModal } from './components/HistoryModal';
 import { Footer } from './components/Footer';
+import { BannerAd } from './components/BannerAd';
 import type { Criteria, GeneratedQuestion } from './types';
 import { generatePrompt } from './services/geminiService';
 import { simulateExam } from './services/examSimulationService';
@@ -17,7 +18,6 @@ import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { LoginScreen } from './components/LoginScreen';
 import { useTranslation } from 'react-i18next';
 
-// Mock User for Demo Mode
 const DEMO_USER = {
   uid: 'demo-user-123',
   displayName: 'Khách (Demo)',
@@ -88,6 +88,7 @@ const App: React.FC = () => {
       if (!process.env.API_KEY) {
         throw new Error("API_KEY environment variable not set.");
       }
+      
       // STATIC MODE: Initialize SDK directly
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
@@ -123,7 +124,7 @@ const App: React.FC = () => {
 
     } catch (err: any) {
       console.error("Error generating questions:", err);
-      setError(i18n.language === 'en' ? "Failed to generate questions. Please check API Key or connection." : `Lỗi khi tạo câu hỏi: ${err.message || "Vui lòng thử lại sau."}`);
+      setError(i18n.language === 'en' ? "Failed to generate questions." : `Lỗi khi tạo câu hỏi: ${err.message || "Kiểm tra kết nối."}`);
     } finally {
       setIsLoading(false);
     }
@@ -141,10 +142,9 @@ const App: React.FC = () => {
             throw new Error("API_KEY environment variable not set.");
         }
         
-        // Pass language instruction as a prompt hack since the service handles logic internally
         const langInstruction = i18n.language === 'en' ? " (Generate output completely in English)" : "";
 
-        // Direct call to simulation service with API Key
+        // Direct call to simulation service
         const allQuestions = await simulateExam(process.env.API_KEY, userPrompt + langInstruction);
         
         if (allQuestions.length === 0) throw new Error("Không tạo được đề thi.");
@@ -180,6 +180,9 @@ const App: React.FC = () => {
         onLogout={handleLogout}
         onShowHistory={() => setShowHistory(true)}
       />
+      
+      {/* Banner Ad Display */}
+      {!isQuizMode && <BannerAd />}
       
       <main className="container mx-auto p-4 md:p-8 flex-grow">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8 h-full">
