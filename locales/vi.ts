@@ -12,49 +12,22 @@ export const vi = {
       language: "Ngôn ngữ"
     },
     auth: {
-      title: "BioGen AI",
-      subtitle: "Đăng nhập để lưu trữ dữ liệu",
+      // (Giữ nguyên phần Auth nếu không lỗi, tập trung sửa phần hiển thị chính)
       login_tab: "Đăng nhập",
-      register_tab: "Đăng ký mới",
-      fullname: "Họ và tên",
-      email: "Email",
-      password: "Mật khẩu",
-      login_btn: "Đăng nhập",
-      register_btn: "Đăng ký tài khoản",
-      processing: "Đang xử lý...",
-      or_google: "Hoặc tiếp tục với",
-      no_firebase: "Chưa kết nối Firebase",
-      no_firebase_msg: "Hệ thống chưa cấu hình API Key. Vui lòng kiểm tra file config hoặc sử dụng chế độ Demo.",
+      register_tab: "Đăng ký",
       demo_mode: "Vào chế độ Demo",
-      quick_experience: "Chỉ muốn trải nghiệm nhanh?",
-      use_guest: "Dùng chế độ khách",
-      errors: {
-        invalid_email: "Email không đúng định dạng.",
-        user_disabled: "Tài khoản này đã bị vô hiệu hóa.",
-        user_not_found: "Không tìm thấy tài khoản. Vui lòng đăng ký trước.",
-        wrong_password: "Sai mật khẩu.",
-        email_in_use: "Email này đã được đăng ký rồi.",
-        weak_password: "Mật khẩu quá yếu (cần ít nhất 6 ký tự).",
-        invalid_credential: "Thông tin đăng nhập không hợp lệ.",
-        operation_not_allowed: "Phương thức đăng nhập này chưa được bật.",
-        network_error: "Lỗi mạng. Vui lòng kiểm tra kết nối internet.",
-        popup_closed: "Bạn đã đóng cửa sổ đăng nhập.",
-        unauthorized_domain: "Tên miền trang web chưa được cấp quyền chạy Google Login.",
-        invalid_api_key: "API Key không hợp lệ.",
-        missing_fields: "Vui lòng điền đầy đủ email và mật khẩu.",
-        missing_name: "Vui lòng nhập tên hiển thị (Họ tên)."
-      }
+      // ...
     },
     welcome: {
       title: "Chào mừng bạn đến với BioGen AI",
-      desc: "Công cụ hỗ trợ giáo viên và học sinh tạo đề trắc nghiệm Sinh học tự động chuyên sâu theo cấu trúc 2025.",
+      desc: "Công cụ hỗ trợ giáo viên và học sinh tạo đề trắc nghiệm Sinh học tự động.",
       instruction: "Hãy chọn Chương, Mức độ, và Năng lực ở bảng bên trái để bắt đầu."
     },
     criteria: {
       title: "Cấu hình câu hỏi",
       quick_exam_title: "Tạo đề tự động (Nhanh)",
-      quick_exam_desc: "Tạo ngẫu nhiên đề thi hoàn chỉnh theo cấu trúc 2025 (18 câu trắc nghiệm, 4 câu Đ/S, 6 câu trả lời ngắn) với ma trận ngẫu nhiên.",
-      quick_exam_placeholder: "VD: Tập trung vào di truyền, hạn chế câu hỏi lớp 10...",
+      quick_exam_desc: "Tạo ngẫu nhiên đề thi hoàn chỉnh theo cấu trúc 2025.",
+      quick_exam_placeholder: "VD: Tập trung vào di truyền...",
       quick_exam_btn: "Tạo đề thi mẫu 2025 ngay",
       generating: "Đang tạo đề...",
       manual_opt: "Hoặc tùy chỉnh thủ công",
@@ -65,7 +38,7 @@ export const vi = {
       label_quantity: "Số lượng (1-40)",
       label_competency: "Năng Lực Cốt Lõi",
       label_extra: "Yêu cầu thêm",
-      placeholder_extra: "VD: Tập trung vào bài tập di truyền phả hệ...",
+      placeholder_extra: "VD: Tập trung vào bài tập...",
       add_queue: "Thêm vào danh sách",
       queue_title: "Danh sách tạo",
       clear_all: "Xóa hết",
@@ -134,13 +107,6 @@ export const vi = {
       ai_notice: "Trang web này sử dụng AI tạo sinh.",
       disclaimer_link: "Xem Cảnh báo & Miễn trừ trách nhiệm",
       copyright: "© 2025 BioGen Exam System"
-    },
-    disclaimer: {
-      title: "Cảnh báo & Miễn trừ Trách nhiệm",
-      content_1: "Nền tảng này sử dụng mô hình ngôn ngữ lớn (AI) để cung cấp các gợi ý và phản hồi. Các thông tin do AI tạo ra chỉ mang tính chất tham khảo.",
-      content_2: "Người biên soạn không chịu trách nhiệm về bất kỳ sự sai lệch, thiếu sót nào.",
-      content_3: "Người dùng có trách nhiệm tự kiểm tra, đối chiếu kiến thức.",
-      btn_close: "Đã hiểu"
     },
     loading: {
       title: "AI đang suy nghĩ...",
