@@ -8,12 +8,12 @@ export const en = {
       history: "History",
       theme: "Theme",
       logout: "Sign Out",
-      hello: "Hi"
+      hello: "Hi",
+      language: "Language"
     },
     auth: {
       title: "BioGen AI",
       subtitle: "Sign in to save your data",
-      // ... keep auth translations
       login_tab: "Sign In",
       register_tab: "Register",
       fullname: "Full Name",
@@ -47,7 +47,7 @@ export const en = {
     },
     welcome: {
       title: "Welcome to BioGen AI",
-      desc: "An automated advanced Biology quiz generation tool.",
+      desc: "An automated advanced Biology quiz generation tool following the 2025 format.",
       instruction: "Select Chapter, Difficulty, and Competency on the left to begin."
     },
     criteria: {
@@ -58,7 +58,6 @@ export const en = {
       quick_exam_btn: "Generate 2025 Sample Exam",
       generating: "Generating...",
       manual_opt: "Or Custom Manual Config",
-      // ... keep criteria translations
       label_chapter: "Chapter / Topic",
       label_context: "Context",
       label_type: "Question Type",
@@ -77,6 +76,11 @@ export const en = {
       title: "Generated Questions",
       count_suffix: "Qs",
       start_quiz: "Start Quiz",
+      export_docx: "Download DOCX",
+      share: "Share",
+      share_success: "Exam copied to clipboard!",
+      share_title: "BIOLOGY EXAM",
+      error_export: "Export failed",
       no_data: "No Data",
       no_data_desc: "Add items to the queue and click 'Generate' to start."
     },
