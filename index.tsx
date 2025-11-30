@@ -1,7 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
-import './src/i18n'; // QUAN TRỌNG: Import i18n trước tiên
+import './i18n'; // Correct relative path (assuming index.tsx and i18n.ts are both in src/)
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
