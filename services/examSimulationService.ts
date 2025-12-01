@@ -22,23 +22,22 @@ const pickRandomTopics = (sourceList: string[], count: number = 2): string[] => 
 
 export const simulateExam = async (apiKey: string, config: any, lang: string = 'vi'): Promise<GeneratedQuestion[]> => {
   const ai = new GoogleGenAI({ apiKey });
-  const batchRequests: any[] = []; // Stores { criteria, specificTopics }
+  const batchRequests: any[] = []; 
 
+  // Config contains arrays of selected topic keys
   const { p1_topics, p2_topics, p3_topics } = config;
 
   // --- PART I: 18 MCQ (3 Batches x 6) ---
   for (let i = 0; i < 3; i++) {
-    // Pick diverse topics for each batch from the user's selection
-    const batchTopics = pickRandomTopics(p1_topics, 3); 
-    
+    const batchTopics = pickRandomTopics(p1_topics, 3); // Pick 3 random topics for this batch
     batchRequests.push({
       criteria: {
         questionType: "type_mcq",
         questionCount: 6,
-        difficulty: i === 0 ? "diff_1" : (i === 1 ? "diff_2" : "diff_3"), // Tăng độ khó
+        difficulty: i === 0 ? "diff_1" : (i === 1 ? "diff_2" : "diff_3"), 
         competency: "nt1",
-        setting: SETTINGS[0], // Theory
-        chapter: "mixed", // Placeholder, used topics instead
+        setting: SETTINGS[0], 
+        chapter: "mixed", 
         customPrompt: ""
       },
       specificTopics: batchTopics
@@ -46,7 +45,6 @@ export const simulateExam = async (apiKey: string, config: any, lang: string = '
   }
 
   // --- PART II: 4 TF (4 Batches x 1) ---
-  // Mỗi câu chùm nên tập trung vào 1 chủ đề cụ thể
   for (let i = 0; i < 4; i++) {
      const singleTopic = pickRandomTopics(p2_topics, 1);
      batchRequests.push({
@@ -55,7 +53,7 @@ export const simulateExam = async (apiKey: string, config: any, lang: string = '
         questionCount: 1,
         difficulty: "diff_4",
         competency: "nt4",
-        setting: "set_exp", // Experiment context
+        setting: "set_exp", 
         chapter: "mixed",
         customPrompt: ""
       },
@@ -72,7 +70,7 @@ export const simulateExam = async (apiKey: string, config: any, lang: string = '
         questionCount: 3,
         difficulty: "diff_3",
         competency: "vd1",
-        setting: "set_calc", // Calculation
+        setting: "set_calc", 
         chapter: "mixed",
         customPrompt: ""
       },
@@ -82,9 +80,9 @@ export const simulateExam = async (apiKey: string, config: any, lang: string = '
 
   // EXECUTE
   const promises = batchRequests.map(async (req, index) => {
-    await new Promise(r => setTimeout(r, index * 300));
+    await new Promise(r => setTimeout(r, index * 600)); // Increased delay for stability
 
-    // Pass the specific topics list to the prompt generator
+    // Call generatePrompt with specific topics
     const prompt = generatePrompt(req.criteria, lang, req.specificTopics);
 
     try {
@@ -101,7 +99,8 @@ export const simulateExam = async (apiKey: string, config: any, lang: string = '
             ...q, 
             criteria: { 
                 ...req.criteria,
-                chapter: req.specificTopics.join(", ") // Store used topics in metadata
+                // Store translated topics in metadata if possible, or keys
+                chapter: req.specificTopics.join(", ") 
             } 
         }));
 
