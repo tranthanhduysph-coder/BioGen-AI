@@ -1,5 +1,5 @@
 import { db } from '../firebaseConfig';
-import { collection, addDoc, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, limit, deleteDoc } from 'firebase/firestore';
 import type { ExamResult } from '../types';
 import type { User } from 'firebase/auth';
 
@@ -8,7 +8,6 @@ const LOCAL_STORAGE_KEY = 'biogen_exam_history';
 
 export const saveExamResult = async (user: User, result: Omit<ExamResult, 'id' | 'userId'>) => {
   try {
-    // Fallback to LocalStorage if DB is not configured or User is Anonymous/Demo
     const isStaticMode = !db || !user || user.isAnonymous || user.email?.includes('demo');
 
     if (isStaticMode) {
@@ -29,10 +28,7 @@ export const saveExamResult = async (user: User, result: Omit<ExamResult, 'id' |
        return;
     }
 
-    // Save to Firestore
     if (db && user.uid) {
-        // We might want to strip heavy data if needed, but for <50 questions it's usually fine
-        // Firestore document limit is 1MB. 50 questions json is approx 20-50KB.
         await addDoc(collection(db, COLLECTION_NAME), {
             ...result,
             userId: user.uid,
@@ -55,11 +51,10 @@ export const getExamHistory = async (user: User): Promise<ExamResult[]> => {
 
      if (!db) return [];
      
-     // Note: We removed orderBy previously to avoid index issues, but client-side sort handles it.
      const q = query(
          collection(db, COLLECTION_NAME),
          where("userId", "==", user.uid),
-         limit(20)
+         limit(50)
      );
 
      const querySnapshot = await getDocs(q);
@@ -69,20 +64,38 @@ export const getExamHistory = async (user: User): Promise<ExamResult[]> => {
          history.push({ 
              id: doc.id, 
              ...d,
-             timestamp: d.timestamp || (d.createdAt?.toMillis ? d.createdAt.toMillis() : Date.now()),
-             // Ensure optional fields are loaded if present
-             questionsData: d.questionsData,
-             userAnswers: d.userAnswers
+             timestamp: d.timestamp || (d.createdAt?.toMillis ? d.createdAt.toMillis() : Date.now())
          } as ExamResult);
      });
      
-     // Client-side Sorting: Newest first
      return history.sort((a, b) => b.timestamp - a.timestamp);
 
   } catch (error) {
       console.error("Error fetching history:", error);
-      // Fallback
       const localData = localStorage.getItem(LOCAL_STORAGE_KEY);
       return localData ? JSON.parse(localData) : [];
   }
+};
+
+// NEW: Clear History Function
+export const clearExamHistory = async (user: User) => {
+    try {
+        const isStaticMode = !db || !user || user.isAnonymous || user.email?.includes('demo');
+
+        if (isStaticMode) {
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
+            return;
+        }
+
+        if (db && user.uid) {
+            const q = query(collection(db, COLLECTION_NAME), where("userId", "==", user.uid));
+            const snapshot = await getDocs(q);
+            // Delete each doc
+            const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
+            await Promise.all(deletePromises);
+        }
+    } catch (error) {
+        console.error("Error clearing history:", error);
+        throw error;
+    }
 };
