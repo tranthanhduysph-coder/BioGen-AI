@@ -3,9 +3,18 @@ export interface Criteria {
   difficulty: string;
   competency: string;
   setting: string;
-  questionType: string; // Added question type
+  questionType: string;
   questionCount: number;
   customPrompt: string;
+}
+
+// Cấu hình cho từng phần của đề thi 2025
+export interface ExamPartConfig {
+    id: 'p1' | 'p2' | 'p3';
+    name: string;
+    type: string; // 'Multiple Choice', 'True/False', 'Short Response'
+    questionCount: number;
+    selectedChapters: string[]; // Danh sách chủ đề được chọn cho phần này
 }
 
 export enum QuestionType {
@@ -21,29 +30,17 @@ export interface GeneratedQuestion {
   options: string[];
   answer: string;
   explanation: string;
-  // Optional metadata for the Matrix table in DOCX
   criteria?: Criteria; 
 }
 
-// New Interface for Exam Blueprint
-export interface ExamPartBlueprint {
-    partName: string;
-    questionType: string;
-    count: number;
-    difficultiesDistribution: string[]; // e.g., ['Nhận biết', 'Thông hiểu']
-}
-
-// Interface for storing exam history
 export interface ExamResult {
   id?: string;
   userId: string;
-  timestamp: number; // Unix timestamp
-  score: number; // Normalized score / 10
+  timestamp: number;
+  score: number;
   totalQuestions: number;
   correctCount: number;
-  chapterSummary: string; // e.g. "Di truyền học..." or "Tổng hợp"
-  
-  // NEW FIELDS FOR REVIEW
-  questionsData?: GeneratedQuestion[]; // Store the full questions array
-  userAnswers?: Record<number, any>;   // Store user's answers
+  chapterSummary: string;
+  questionsData?: GeneratedQuestion[];
+  userAnswers?: Record<number, any>;
 }
