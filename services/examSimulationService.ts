@@ -1,99 +1,91 @@
 import { GoogleGenAI } from '@google/genai';
 import type { GeneratedQuestion, Criteria } from '../types';
 import { generatePrompt } from './geminiService';
-import { CRITERIA_DATA, SETTINGS } from '../constants';
+import { SETTINGS } from '../constants';
 
-// Logic suy luận chủ đề từ prompt người dùng
-const inferContextFromPrompt = (prompt: string) => {
-    const lowerPrompt = prompt.toLowerCase();
-    let matchedChapter = "";
-    
-    // Nếu người dùng có nhập prompt, thử tìm xem họ muốn chủ đề gì
-    if (prompt.trim()) {
-        for (const chapterKey of CRITERIA_DATA.chapters) {
-             // Tìm kiếm từ khóa đơn giản trong tên chương
-             // Ví dụ: "Di truyền" sẽ khớp với "Di truyền phân tử", "Di truyền quần thể"...
-             // Lấy chương đầu tiên khớp làm chủ đề chính
-             const keywords = chapterKey.toLowerCase().split(/[:()-]/); 
-             if (keywords.some(k => k.trim() && lowerPrompt.includes(k.trim()))) {
-                 matchedChapter = chapterKey;
-                 break;
-             }
-        }
+const safeJsonParse = (text: string): any[] => {
+    try {
+        const cleanText = text.replace(/```json|```/g, '').trim();
+        return JSON.parse(cleanText);
+    } catch (e) {
+        console.error("JSON Parse Error:", e);
+        return [];
     }
-
-    // Nếu không tìm thấy hoặc không nhập, trả về rỗng để logic sau tự random
-    return matchedChapter;
 };
 
-export const simulateExam = async (apiKey: string, userPrompt: string = ""): Promise<GeneratedQuestion[]> => {
+// Helper to pick random topics from the user's selection for a specific batch
+const pickRandomTopics = (sourceList: string[], count: number = 2): string[] => {
+    if (!sourceList || sourceList.length === 0) return [];
+    const shuffled = [...sourceList].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+};
+
+export const simulateExam = async (apiKey: string, config: any, lang: string = 'vi'): Promise<GeneratedQuestion[]> => {
   const ai = new GoogleGenAI({ apiKey });
-  const batchRequests: Criteria[] = [];
-  
-  // Xác định chủ đề chính (nếu người dùng yêu cầu cụ thể)
-  const forcedChapter = inferContextFromPrompt(userPrompt);
-  
-  // Hàm lấy chủ đề: Nếu user ép buộc -> dùng nó. Nếu không -> Random để đa dạng
-  const getChapter = () => forcedChapter || CRITERIA_DATA.chapters[Math.floor(Math.random() * CRITERIA_DATA.chapters.length)];
-  const getSetting = () => SETTINGS[Math.floor(Math.random() * SETTINGS.length)];
+  const batchRequests: any[] = []; // Stores { criteria, specificTopics }
 
-  // --- CẤU TRÚC ĐỀ CHUẨN 2025 (28 Câu) ---
+  const { p1_topics, p2_topics, p3_topics } = config;
 
-  // PHẦN I: 18 Câu Trắc nghiệm nhiều lựa chọn (3 Batch x 6 câu)
+  // --- PART I: 18 MCQ (3 Batches x 6) ---
   for (let i = 0; i < 3; i++) {
+    // Pick diverse topics for each batch from the user's selection
+    const batchTopics = pickRandomTopics(p1_topics, 3); 
+    
     batchRequests.push({
-      chapter: getChapter(), 
-      difficulty: i === 0 ? "Nhận biết" : (i === 1 ? "Thông hiểu" : "Vận dụng"), // Tăng dần độ khó
-      competency: "NT1", // Competency tương đối
-      setting: getSetting(),
-      questionType: "Trắc nghiệm nhiều lựa chọn (Part I)", 
-      questionCount: 6,
-      customPrompt: userPrompt 
-        ? `${userPrompt} (Part I: Multiple Choice - Batch ${i+1})`
-        : `Đa dạng hóa chủ đề cho 6 câu trắc nghiệm này.`
+      criteria: {
+        questionType: "type_mcq",
+        questionCount: 6,
+        difficulty: i === 0 ? "diff_1" : (i === 1 ? "diff_2" : "diff_3"), // Tăng độ khó
+        competency: "nt1",
+        setting: SETTINGS[0], // Theory
+        chapter: "mixed", // Placeholder, used topics instead
+        customPrompt: ""
+      },
+      specificTopics: batchTopics
     });
   }
 
-  // PHẦN II: 4 Câu Đúng/Sai (4 Batch x 1 câu chùm)
-  // Mỗi câu Đ/S là một chùm 4 ý, nên ta tách riêng từng request để AI tập trung
+  // --- PART II: 4 TF (4 Batches x 1) ---
+  // Mỗi câu chùm nên tập trung vào 1 chủ đề cụ thể
   for (let i = 0; i < 4; i++) {
+     const singleTopic = pickRandomTopics(p2_topics, 1);
      batchRequests.push({
-      chapter: getChapter(),
-      difficulty: "Vận dụng cao", // Phần này thường khó
-      competency: "NT4",
-      setting: getSetting(),
-      questionType: "Trắc nghiệm Đúng/Sai (Part II)", 
-      questionCount: 1, // 1 câu chùm 4 ý
-      customPrompt: userPrompt 
-        ? `${userPrompt} (Part II: True/False Cluster - Question ${i+1})`
-        : `Tạo 1 câu hỏi chùm Đúng/Sai về chủ đề này.`
+      criteria: {
+        questionType: "type_tf",
+        questionCount: 1,
+        difficulty: "diff_4",
+        competency: "nt4",
+        setting: "set_exp", // Experiment context
+        chapter: "mixed",
+        customPrompt: ""
+      },
+      specificTopics: singleTopic
     });
   }
 
-  // PHẦN III: 6 Câu Trả lời ngắn (2 Batch x 3 câu)
+  // --- PART III: 6 Short (2 Batches x 3) ---
   for (let i = 0; i < 2; i++) {
+     const batchTopics = pickRandomTopics(p3_topics, 2);
      batchRequests.push({
-      chapter: getChapter(),
-      difficulty: "Vận dụng",
-      competency: "VD1",
-      setting: "Bài tập tính toán", // Ưu tiên tính toán cho phần này
-      questionType: "Trắc nghiệm Trả lời ngắn (Part III)", 
-      questionCount: 3,
-      customPrompt: userPrompt 
-        ? `${userPrompt} (Part III: Short Response)`
-        : `Tạo câu hỏi tính toán sinh học, điền số.`
+      criteria: {
+        questionType: "type_short",
+        questionCount: 3,
+        difficulty: "diff_3",
+        competency: "vd1",
+        setting: "set_calc", // Calculation
+        chapter: "mixed",
+        customPrompt: ""
+      },
+      specificTopics: batchTopics
     });
   }
 
-  // Detect Language
-  const isEnglish = userPrompt.toLowerCase().includes("english");
-  const lang = isEnglish ? 'en' : 'vi';
+  // EXECUTE
+  const promises = batchRequests.map(async (req, index) => {
+    await new Promise(r => setTimeout(r, index * 300));
 
-  // Execute requests
-  const promises = batchRequests.map(async (criteria, index) => {
-    await new Promise(r => setTimeout(r, index * 300)); // Stagger requests
-
-    const prompt = generatePrompt(criteria, lang);
+    // Pass the specific topics list to the prompt generator
+    const prompt = generatePrompt(req.criteria, lang, req.specificTopics);
 
     try {
         const response = await ai.models.generateContent({
@@ -102,19 +94,19 @@ export const simulateExam = async (apiKey: string, userPrompt: string = ""): Pro
             config: { responseMimeType: "application/json" },
         });
 
-        const jsonText = response.text?.replace(/```json|```/g, '').trim();
-        if (!jsonText) return [];
-        
-        const questions = JSON.parse(jsonText) as GeneratedQuestion[];
+        const questions = safeJsonParse(response.text || "");
         if (!Array.isArray(questions)) return [];
 
         return questions.map(q => ({ 
             ...q, 
-            criteria: { ...criteria } // Gắn metadata để biết câu hỏi thuộc phần nào
+            criteria: { 
+                ...req.criteria,
+                chapter: req.specificTopics.join(", ") // Store used topics in metadata
+            } 
         }));
 
     } catch (error) {
-        console.error("Batch generation failed:", error);
+        console.error(`Batch ${index} failed:`, error);
         return [];
     }
   });
@@ -122,12 +114,7 @@ export const simulateExam = async (apiKey: string, userPrompt: string = ""): Pro
   const results = await Promise.all(promises);
   const allQuestions = results.flat();
 
-  // Sort output to maintain structure: Part I -> Part II -> Part III
-  const typeOrder = { 
-      "Multiple choices": 1, 
-      "True/ False": 2, 
-      "Short response": 3 
-  };
+  const typeOrder = { "Multiple choices": 1, "True/ False": 2, "Short response": 3 };
   
   return allQuestions.sort((a, b) => {
      // @ts-ignore
