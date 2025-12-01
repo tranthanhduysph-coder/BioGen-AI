@@ -1,73 +1,79 @@
 import type { Criteria } from '../types';
-import { EXAMPLE_QUESTIONS } from '../constants';
+import { RAG_EXAMPLES } from '../constants';
+import { vi } from '../locales/vi';
+import { en } from '../locales/en';
 
-export const generatePrompt = (criteria: Criteria, lang: string = 'vi'): string => {
-  const exampleString = JSON.stringify(EXAMPLE_QUESTIONS, null, 2);
+const lookup = (key: string, lang: string, category: string): string => {
+    const resource = lang === 'en' ? en : vi;
+    // @ts-ignore
+    return resource.translation.constants[category][key] || key;
+};
+
+// Updated to accept a list of topics string directly
+export const generatePrompt = (criteria: Criteria, lang: string = 'vi', specificTopics: string[] = []): string => {
   const isEnglish = lang === 'en';
 
-  // --- 1. CHỈ THỊ LOẠI CÂU HỎI (STRICT MODE) ---
-  let typeInstruction = "";
-  
-  if (criteria.questionType.includes("Trắc nghiệm nhiều lựa chọn") || criteria.questionType.includes("Part I")) {
-      typeInstruction = isEnglish 
-        ? "MANDATORY: Generate ONLY 'Multiple choices' questions. Format: Question + 4 Options (A,B,C,D). ONE correct answer."
-        : "BẮT BUỘC: Chỉ tạo câu hỏi 'Trắc nghiệm nhiều lựa chọn'. Cấu trúc: Câu hỏi + 4 phương án (A,B,C,D). 1 đáp án đúng.";
-  } 
-  else if (criteria.questionType.includes("Trắc nghiệm Đúng/Sai") || criteria.questionType.includes("Part II")) {
-      typeInstruction = isEnglish
-        ? "MANDATORY: Generate ONLY 'True/ False' questions (PISA style). STRUCTURE: The 'question' field MUST contain a context paragraph (Stem/Scenario). The 'options' field MUST contain exactly 4 statements (a,b,c,d). Answer must specify True/False for EACH statement."
-        : "BẮT BUỘC: Chỉ tạo câu hỏi 'Trắc nghiệm Đúng/Sai' (Dạng chùm). CẤU TRÚC: Trường 'question' phải chứa ĐOẠN DẪN NGỮ CẢNH (thí nghiệm, biểu đồ...). Trường 'options' CHỨA ĐÚNG 4 MỆNH ĐỀ (a,b,c,d). Đáp án phải chỉ rõ Đúng/Sai cho từng ý.";
-  } 
-  else if (criteria.questionType.includes("Trả lời ngắn") || criteria.questionType.includes("Part III")) {
-      typeInstruction = isEnglish
-        ? "MANDATORY: Generate ONLY 'Short response' questions. The answer MUST be a specific number (integer/decimal). NO text in answer field."
-        : "BẮT BUỘC: Chỉ tạo câu hỏi 'Trả lời ngắn'. Đáp án PHẢI là một con số cụ thể (nguyên hoặc thập phân). KHÔNG viết chữ vào trường đáp án.";
-  } 
-  else {
-      typeInstruction = isEnglish
-        ? "Generate a mix of: Multiple choices, True/ False, and Short response."
-        : "Tạo hỗn hợp các loại: Multiple choices, True/ False, và Short response.";
+  // Handle Topics: If specific topics passed, translate them. If not, use the one in criteria.
+  let topicString = "";
+  if (specificTopics.length > 0) {
+      // Translate keys to text
+      const topicsText = specificTopics.map(k => lookup(k, lang, 'chapters')).join(", ");
+      topicString = topicsText;
+  } else {
+      topicString = lookup(criteria.chapter, lang, 'chapters');
   }
 
-  // --- 2. VAI TRÒ & NGÔN NGỮ ---
-  const role = isEnglish
-    ? "You are an expert Biology Teacher creating a standardized exam (2025 Format)."
-    : "Bạn là giáo viên Sinh học chuyên nghiệp đang soạn đề thi chuẩn hóa 2025.";
-
-  const task = isEnglish
-    ? `Generate ${criteria.questionCount} high-quality questions in **ENGLISH**.`
-    : `Tạo ${criteria.questionCount} câu hỏi chất lượng cao bằng **TIẾNG VIỆT**.`;
-
-  // --- 3. ĐỊNH DẠNG JSON (JSON ONLY) ---
-  const jsonFormat = `
-    OUTPUT FORMAT (Valid JSON Array only, no Markdown):
-    [
-      {
-        "type": "Multiple choices" | "True/ False" | "Short response",
-        "question": "Content of the question (or Context paragraph for True/False)",
-        "options": ["A...", "B...", "C...", "D..."] OR ["a)...", "b)...", "c)...", "d)..."],
-        "answer": "Correct key (e.g., 'A' or 'a) Đ, b) S...' or '120')",
-        "explanation": "Detailed explanation..."
-      }
-    ]
+  const difficultyText = lookup(criteria.difficulty, lang, 'difficulties');
+  const contextInfo = `
+    TOPICS/CHAPTERS: [ ${topicString} ]
+    SETTING: "${lookup(criteria.setting, lang, 'settings')}"
+    DIFFICULTY TARGET: "${difficultyText}"
   `;
 
+  let typeInstruction = "";
+  let jsonExample = "";
+  let negativeConstraint = "";
+  
+  if (criteria.questionType.includes("type_mcq") || criteria.questionType.includes("Part I")) {
+      typeInstruction = isEnglish 
+        ? "TASK: Generate 'Multiple choices' questions (Part I)."
+        : "NHIỆM VỤ: Tạo câu hỏi 'Trắc nghiệm nhiều lựa chọn' (Phần I).";
+      jsonExample = JSON.stringify([RAG_EXAMPLES.MCQ], null, 2);
+      negativeConstraint = "DO NOT generate True/False or Short Response questions. 4 Options A,B,C,D.";
+  } 
+  else if (criteria.questionType.includes("type_tf") || criteria.questionType.includes("Part II")) {
+      typeInstruction = isEnglish
+        ? "TASK: Generate 'True/ False' questions (PISA Format/Part II)."
+        : "NHIỆM VỤ: Tạo câu hỏi 'Trắc nghiệm Đúng/Sai' (Dạng chùm PISA/Phần II).";
+      jsonExample = JSON.stringify([RAG_EXAMPLES.TF], null, 2);
+      negativeConstraint = "MUST have a Context Stem and EXACTLY 4 statements (a,b,c,d).";
+  } 
+  else if (criteria.questionType.includes("type_short") || criteria.questionType.includes("Part III")) {
+      typeInstruction = isEnglish
+        ? "TASK: Generate 'Short response' questions (Part III)."
+        : "NHIỆM VỤ: Tạo câu hỏi 'Trắc nghiệm Trả lời ngắn' (Phần III).";
+      jsonExample = JSON.stringify([RAG_EXAMPLES.SHORT], null, 2);
+      negativeConstraint = "ANSWER MUST BE A NUMBER (Integer/Decimal). NO TEXT in answer.";
+  }
+
+  const taskLang = isEnglish
+    ? `Generate ${criteria.questionCount} questions in **ENGLISH** based on the provided TOPICS.`
+    : `Tạo ${criteria.questionCount} câu hỏi bằng **TIẾNG VIỆT** dựa trên các CHỦ ĐỀ đã cung cấp.`;
+
   return `
-${role}
-${task}
+You are an expert Biology Teacher (2025 Curriculum).
+${taskLang}
 
-CONFIGURATION:
-- Topic: "${criteria.chapter}"
-- Context: "${criteria.setting}"
-- Difficulty: "${criteria.difficulty}"
-- Competency: "${criteria.competency}"
-${criteria.customPrompt ? `- Note: "${criteria.customPrompt}"` : ''}
+${contextInfo}
 
-INSTRUCTIONS:
 ${typeInstruction}
 
-${jsonFormat}
+NEGATIVE CONSTRAINTS:
+${negativeConstraint}
 
-IMPORTANT: Ensure the output is valid JSON. Do not include \`\`\`json or \`\`\` tags.
+STRICT JSON OUTPUT:
+${jsonExample}
+
+Ensure valid JSON.
 `;
 };
