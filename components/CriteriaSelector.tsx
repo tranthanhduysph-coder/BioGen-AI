@@ -1,199 +1,181 @@
 import React, { useState } from 'react';
-import { CRITERIA_DATA } from '../constants';
+import type { Criteria } from '../types';
+import { CHAPTERS_KEYS, DIFFICULTIES_KEYS, COMPETENCIES_KEYS, SETTINGS_KEYS, QUESTION_TYPES_KEYS } from '../constants';
 import { useTranslation } from 'react-i18next';
 
 interface CriteriaSelectorProps {
-  onGenerate: (config: any) => void; // Changed to accept generic config object
+  onGenerate: (criteriaList: Criteria[]) => void;
   isLoading: boolean;
-  onSimulate: (config: any) => void; // Changed signature
+  onSimulate: (customPrompt: string) => void;
 }
 
-// Custom Multi-Select Component
-const MultiSelectChapter: React.FC<{ 
-    selected: string[], 
-    onChange: (selected: string[]) => void,
-    t: any 
-}> = ({ selected, onChange, t }) => {
-    const [isOpen, setIsOpen] = useState(false);
-
-    const toggleChapter = (chapterKey: string) => {
-        if (selected.includes(chapterKey)) {
-            onChange(selected.filter(k => k !== chapterKey));
-        } else {
-            onChange([...selected, chapterKey]);
-        }
-    };
-
-    const handleSelectAll = () => {
-        if (selected.length === CRITERIA_DATA.chapters.length) {
-            onChange([]);
-        } else {
-            onChange([...CRITERIA_DATA.chapters]);
-        }
-    };
-
-    return (
+const SelectField: React.FC<{ label: string, value: string, onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void, disabled?: boolean, children: React.ReactNode }> = ({ label, value, onChange, disabled, children }) => (
+    <div className="w-full">
+        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">{label}</label>
         <div className="relative">
-            <button 
-                onClick={() => setIsOpen(!isOpen)}
-                className="w-full text-left px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm flex justify-between items-center hover:border-indigo-500 transition-colors"
-            >
-                <span className="truncate text-slate-700 dark:text-slate-200">
-                    {selected.length === 0 
-                        ? "Chọn chủ đề..." 
-                        : `${selected.length} chủ đề đã chọn`}
-                </span>
-                <svg className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
-            </button>
-
-            {isOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-60 overflow-y-auto custom-scrollbar">
-                    <div className="p-2 border-b border-slate-100 dark:border-slate-700 sticky top-0 bg-white dark:bg-slate-800 z-10">
-                        <label className="flex items-center gap-2 text-xs font-bold text-indigo-600 cursor-pointer">
-                            <input 
-                                type="checkbox" 
-                                checked={selected.length === CRITERIA_DATA.chapters.length}
-                                onChange={handleSelectAll}
-                                className="rounded text-indigo-600 focus:ring-indigo-500"
-                            />
-                            Chọn tất cả
-                        </label>
-                    </div>
-                    {CRITERIA_DATA.chapters.map((key) => (
-                        <label key={key} className="flex items-start gap-2 p-2 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer border-b border-slate-50 dark:border-slate-700/50 last:border-0">
-                            <input 
-                                type="checkbox" 
-                                checked={selected.includes(key)}
-                                onChange={() => toggleChapter(key)}
-                                className="mt-1 rounded text-indigo-600 focus:ring-indigo-500"
-                            />
-                            <span className="text-xs text-slate-600 dark:text-slate-300 leading-snug">
-                                {t(`constants.chapters.${key}`, { defaultValue: key })}
-                            </span>
-                        </label>
-                    ))}
-                </div>
-            )}
+          <select
+              value={value}
+              onChange={onChange}
+              disabled={disabled}
+              className={`w-full appearance-none bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-sky-500 transition shadow-sm ${disabled ? 'opacity-60 bg-slate-100' : ''}`}
+          >
+              {children}
+          </select>
+           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                <svg className="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+            </div>
         </div>
-    );
-};
+    </div>
+);
 
-export const CriteriaSelector: React.FC<CriteriaSelectorProps> = ({ isLoading, onSimulate }) => {
+const QueueItem: React.FC<{ criteria: Criteria, index: number, onRemove: () => void, t: any }> = ({ criteria, index, onRemove, t }) => (
+    <div className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg mb-2 text-xs">
+        <div className="flex-1 mr-2 overflow-hidden">
+            <div className="flex items-center gap-2 mb-1">
+                <span className="font-bold text-white bg-slate-400 px-1.5 rounded-full text-[10px]">{index + 1}</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-200 truncate">
+                     {t(`constants.chapters.${criteria.chapter}`, { defaultValue: criteria.chapter })}
+                </span>
+            </div>
+            <div className="text-slate-500 truncate">
+                {t(`constants.types.${criteria.questionType}`).split('(')[0]} • {criteria.questionCount} câu
+            </div>
+        </div>
+        <button onClick={onRemove} className="text-slate-400 hover:text-red-500">✕</button>
+    </div>
+)
+
+export const CriteriaSelector: React.FC<CriteriaSelectorProps> = ({ onGenerate, isLoading, onSimulate }) => {
   const { t } = useTranslation();
   
-  // State for 3 parts
-  const [configP1, setConfigP1] = useState<string[]>([]); // MCQ
-  const [configP2, setConfigP2] = useState<string[]>([]); // TF
-  const [configP3, setConfigP3] = useState<string[]>([]); // SR
-
-  // Auto-select all logic for quick start
-  const handleQuickSelect = (part: 'p1'|'p2'|'p3') => {
-      if (part === 'p1') setConfigP1(configP1.length > 0 ? [] : [...CRITERIA_DATA.chapters]);
-      if (part === 'p2') setConfigP2(configP2.length > 0 ? [] : [...CRITERIA_DATA.chapters]);
-      if (part === 'p3') setConfigP3(configP3.length > 0 ? [] : [...CRITERIA_DATA.chapters]);
+  const defaultCriteria: Criteria = {
+    chapter: CHAPTERS_KEYS[0],
+    difficulty: DIFFICULTIES_KEYS[0],
+    competency: COMPETENCIES_KEYS[0],
+    setting: SETTINGS_KEYS[0],
+    questionType: QUESTION_TYPES_KEYS[0],
+    questionCount: 5,
+    customPrompt: "",
   };
 
-  const handleBuildExam = () => {
-      // Validate
-      if (configP1.length === 0 && configP2.length === 0 && configP3.length === 0) {
-          alert("Vui lòng chọn ít nhất 1 chủ đề cho một phần thi!");
-          return;
-      }
+  const [currentCriteria, setCurrentCriteria] = useState<Criteria>(defaultCriteria);
+  const [batchQueue, setBatchQueue] = useState<Criteria[]>([]);
+  const [simulationPrompt, setSimulationPrompt] = useState("");
 
-      // Send structured config to App -> Service
-      onSimulate({
-          p1_topics: configP1.length > 0 ? configP1 : CRITERIA_DATA.chapters, // Default to all if empty but other parts selected? No, strict.
-          p2_topics: configP2.length > 0 ? configP2 : CRITERIA_DATA.chapters,
-          p3_topics: configP3.length > 0 ? configP3 : CRITERIA_DATA.chapters,
-          // If user leaves empty, we assume they want RANDOM from ALL chapters, 
-          // OR we can force them to select. Let's assume Random All if empty for better UX.
-          mode: 'strict_2025'
-      });
+  const handleChange = (field: keyof Criteria, value: string | number) => {
+    setCurrentCriteria(prev => ({ ...prev, [field]: value }));
   };
+
+  const handleAddToQueue = () => setBatchQueue([...batchQueue, { ...currentCriteria }]);
+  const handleRemoveFromQueue = (index: number) => setBatchQueue(prev => prev.filter((_, i) => i !== index));
+  const handleGenerateAll = () => batchQueue.length > 0 ? onGenerate(batchQueue) : onGenerate([currentCriteria]);
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-900">
-      <div className="flex-none p-4 border-b border-slate-100 dark:border-slate-800">
-        <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
-            Cấu hình Đề thi 2025
+    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+      
+      <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+        <h2 className="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            {t('criteria.title')}
         </h2>
-        <p className="text-xs text-slate-500 mt-1">Chọn chủ đề cho từng phần để tránh AI bị quá tải.</p>
       </div>
       
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
+      <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
         
-        {/* PART I */}
-        <div className="bg-blue-50/50 dark:bg-blue-900/10 p-4 rounded-xl border border-blue-100 dark:border-blue-800/50">
-            <div className="flex justify-between items-center mb-2">
-                <div className="flex items-center gap-2">
-                    <span className="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">PHẦN I</span>
-                    <span className="text-sm font-bold text-blue-900 dark:text-blue-100">18 Câu Trắc nghiệm</span>
+        {/* LEFT COLUMN: AUTO GENERATE */}
+        <div className="flex flex-col gap-4">
+            <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-100 dark:border-indigo-800/50 h-full">
+                <div className="flex items-center gap-2 mb-2">
+                    <span className="p-1.5 bg-white dark:bg-slate-800 rounded-full shadow-sm text-indigo-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                    </span>
+                    <h3 className="text-sm font-bold text-indigo-900 dark:text-indigo-100 uppercase tracking-wide">{t('criteria.section_auto')}</h3>
                 </div>
-                <button onClick={() => handleQuickSelect('p1')} className="text-[10px] text-blue-600 hover:underline">
-                    {configP1.length > 0 ? "Bỏ chọn" : "Chọn hết"}
+                
+                <p className="text-xs text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
+                    {t('criteria.quick_exam_desc')}
+                </p>
+
+                <textarea
+                    value={simulationPrompt}
+                    onChange={(e) => setSimulationPrompt(e.target.value)}
+                    placeholder={t('criteria.quick_exam_placeholder')}
+                    rows={3}
+                    className="w-full bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-800 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 mb-4 resize-none"
+                />
+                
+                <button 
+                    onClick={() => onSimulate(simulationPrompt)} 
+                    disabled={isLoading} 
+                    className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md shadow-indigo-500/20 transition-all text-sm flex items-center justify-center gap-2"
+                >
+                    {isLoading ? t('criteria.generating') : t('criteria.quick_exam_btn')}
                 </button>
-            </div>
-            <MultiSelectChapter selected={configP1} onChange={setConfigP1} t={t} />
-            <div className="mt-2 text-[10px] text-slate-500">
-                Chọn các chương bạn muốn xuất hiện trong 18 câu hỏi trắc nghiệm 4 lựa chọn.
             </div>
         </div>
 
-        {/* PART II */}
-        <div className="bg-purple-50/50 dark:bg-purple-900/10 p-4 rounded-xl border border-purple-100 dark:border-purple-800/50">
-            <div className="flex justify-between items-center mb-2">
-                <div className="flex items-center gap-2">
-                    <span className="bg-purple-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">PHẦN II</span>
-                    <span className="text-sm font-bold text-purple-900 dark:text-purple-100">4 Câu Đúng/Sai</span>
+        {/* RIGHT COLUMN: MANUAL CONFIG */}
+        <div className="flex flex-col gap-4 border-t lg:border-t-0 lg:border-l border-slate-100 dark:border-slate-800 pt-6 lg:pt-0 lg:pl-8">
+            <div className="flex items-center gap-2 mb-1">
+                <span className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                </span>
+                <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wide">{t('criteria.section_manual')}</h3>
+            </div>
+
+            <div className="space-y-3">
+                <SelectField label={t('criteria.label_chapter')} value={currentCriteria.chapter} onChange={e => handleChange('chapter', e.target.value)}>
+                    {CHAPTERS_KEYS.map(key => <option key={key} value={key}>{t(`constants.chapters.${key}`)}</option>)}
+                </SelectField>
+
+                <div className="grid grid-cols-2 gap-3">
+                    <SelectField label={t('criteria.label_type')} value={currentCriteria.questionType} onChange={e => handleChange('questionType', e.target.value)}>
+                        {QUESTION_TYPES_KEYS.map(key => <option key={key} value={key}>{t(`constants.types.${key}`)}</option>)}
+                    </SelectField>
+                    <div>
+                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">{t('criteria.label_quantity')}</label>
+                        <input type="number" min="1" max="40" value={currentCriteria.questionCount} onChange={e => handleChange('questionCount', parseInt(e.target.value) || 1)} className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm" />
+                    </div>
                 </div>
-                <button onClick={() => handleQuickSelect('p2')} className="text-[10px] text-purple-600 hover:underline">
-                    {configP2.length > 0 ? "Bỏ chọn" : "Chọn hết"}
+
+                <div className="grid grid-cols-2 gap-3">
+                     <SelectField label={t('criteria.label_context')} value={currentCriteria.setting} onChange={e => handleChange('setting', e.target.value)}>
+                        {SETTINGS_KEYS.map(key => <option key={key} value={key}>{t(`constants.settings.${key}`)}</option>)}
+                    </SelectField>
+                    <SelectField label={t('criteria.label_difficulty')} value={currentCriteria.difficulty} onChange={e => handleChange('difficulty', e.target.value)}>
+                        {DIFFICULTIES_KEYS.map(key => <option key={key} value={key}>{t(`constants.difficulties.${key}`)}</option>)}
+                    </SelectField>
+                </div>
+                
+                <SelectField label={t('criteria.label_competency')} value={currentCriteria.competency} onChange={e => handleChange('competency', e.target.value)}>
+                    {COMPETENCIES_KEYS.map(key => <option key={key} value={key}>{t(`constants.competencies.${key}`)}</option>)}
+                </SelectField>
+
+                <button onClick={handleAddToQueue} className="w-full py-2.5 mt-2 bg-white dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-bold rounded-xl hover:border-sky-500 hover:text-sky-600 transition-colors flex items-center justify-center gap-2">
+                    <span>+</span> {t('criteria.add_queue')}
                 </button>
             </div>
-            <MultiSelectChapter selected={configP2} onChange={setConfigP2} t={t} />
-            <div className="mt-2 text-[10px] text-slate-500">
-                Mỗi câu là một bài toán tổng hợp gồm 4 ý nhận định (a, b, c, d).
-            </div>
-        </div>
 
-        {/* PART III */}
-        <div className="bg-orange-50/50 dark:bg-orange-900/10 p-4 rounded-xl border border-orange-100 dark:border-orange-800/50">
-            <div className="flex justify-between items-center mb-2">
-                <div className="flex items-center gap-2">
-                    <span className="bg-orange-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">PHẦN III</span>
-                    <span className="text-sm font-bold text-orange-900 dark:text-orange-100">6 Câu Trả lời ngắn</span>
+            {/* Queue List */}
+            {batchQueue.length > 0 && (
+                <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <div className="flex justify-between items-center mb-2">
+                        <span className="text-xs font-bold text-slate-400 uppercase">{t('criteria.queue_title')} ({batchQueue.length})</span>
+                        <button onClick={() => setBatchQueue([])} className="text-xs text-red-500 hover:underline">{t('criteria.clear_all')}</button>
+                    </div>
+                    <div className="max-h-32 overflow-y-auto custom-scrollbar pr-1">
+                        {batchQueue.map((item, idx) => (
+                            <QueueItem key={idx} index={idx} criteria={item} onRemove={() => handleRemoveFromQueue(idx)} t={t} />
+                        ))}
+                    </div>
                 </div>
-                <button onClick={() => handleQuickSelect('p3')} className="text-[10px] text-orange-600 hover:underline">
-                    {configP3.length > 0 ? "Bỏ chọn" : "Chọn hết"}
-                </button>
-            </div>
-            <MultiSelectChapter selected={configP3} onChange={setConfigP3} t={t} />
-            <div className="mt-2 text-[10px] text-slate-500">
-                Câu hỏi yêu cầu tính toán hoặc điền số liệu cụ thể.
-            </div>
+            )}
+
+            <button onClick={handleGenerateAll} disabled={isLoading} className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition-all text-sm">
+                {isLoading ? t('criteria.processing') : t('criteria.generate_btn', { count: batchQueue.length > 0 ? batchQueue.reduce((s, i) => s + i.questionCount, 0) : currentCriteria.questionCount })}
+            </button>
         </div>
 
-      </div>
-      
-      <div className="flex-none p-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-        <button 
-            onClick={handleBuildExam}
-            disabled={isLoading}
-            className="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
-        >
-             {isLoading ? (
-                 <>
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    Đang khởi tạo...
-                 </>
-             ) : (
-                 <>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/></svg>
-                    TẠO ĐỀ THI 2025
-                 </>
-             )}
-        </button>
       </div>
     </div>
   );
