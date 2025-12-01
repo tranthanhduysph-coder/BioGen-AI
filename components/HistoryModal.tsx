@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import type { ExamResult } from '../types';
 import type { User } from 'firebase/auth';
-import { getExamHistory } from '../services/historyService';
+import { getExamHistory, clearExamHistory } from '../services/historyService';
 import { LoadingSpinner } from './LoadingSpinner';
 import { useTranslation } from 'react-i18next';
 import { QuizMode } from './QuizMode';
@@ -20,24 +20,40 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose, use
 
   useEffect(() => {
     if (isOpen && user) {
+      loadHistory();
+    }
+  }, [isOpen, user]);
+
+  const loadHistory = () => {
       setIsLoading(true);
       getExamHistory(user)
         .then(setHistory)
         .catch(err => console.error("History load error", err))
         .finally(() => setIsLoading(false));
-    }
-  }, [isOpen, user]);
+  };
 
-  const handleSelectExam = (exam: ExamResult) => {
-      // SAFEGUARD: Chỉ cho phép xem lại nếu có dữ liệu câu hỏi
-      if (exam.questionsData && exam.questionsData.length > 0) {
-          setSelectedExam(exam);
-      } else {
-          alert("Bài thi này không có dữ liệu chi tiết để xem lại (Dữ liệu cũ).");
+  const handleClearHistory = async () => {
+      if (window.confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử bài thi không? Hành động này không thể hoàn tác.")) {
+          setIsLoading(true);
+          try {
+              await clearExamHistory(user);
+              setHistory([]);
+          } catch (err) {
+              alert("Lỗi khi xóa lịch sử.");
+          } finally {
+              setIsLoading(false);
+          }
       }
   };
 
-  // Render Review Mode
+  const handleSelectExam = (exam: ExamResult) => {
+      if (exam.questionsData && exam.questionsData.length > 0) {
+          setSelectedExam(exam);
+      } else {
+          alert("Bài thi này không có dữ liệu chi tiết để xem lại.");
+      }
+  };
+
   if (selectedExam && selectedExam.questionsData) {
       return (
         <div className="fixed inset-0 z-[9999] bg-white dark:bg-slate-900 overflow-hidden flex flex-col animate-fade-in">
@@ -71,7 +87,6 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose, use
 
   if (!isOpen) return null;
 
-  // Stats Calculation
   const totalExams = history.length;
   const avgScore = totalExams > 0 
     ? (history.reduce((acc, curr) => acc + curr.score, 0) / totalExams).toFixed(1) 
@@ -89,9 +104,19 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose, use
                 <h2 className="text-xl font-bold text-slate-800 dark:text-white">{t('history.title')}</h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400">{t('history.subtitle')}</p>
             </div>
-            <button onClick={onClose} className="p-2 bg-white dark:bg-slate-800 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 shadow-sm transition">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-            </button>
+            <div className="flex gap-2">
+                {history.length > 0 && (
+                    <button 
+                        onClick={handleClearHistory}
+                        className="px-3 py-1.5 text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800 transition-colors"
+                    >
+                        Xóa lịch sử
+                    </button>
+                )}
+                <button onClick={onClose} className="p-2 bg-white dark:bg-slate-800 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 shadow-sm transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
         </div>
 
         {isLoading ? (
