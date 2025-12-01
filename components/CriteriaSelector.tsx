@@ -11,9 +11,7 @@ interface CriteriaSelectorProps {
 
 const SelectField: React.FC<{ label: string, value: string, onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void, disabled?: boolean, children: React.ReactNode }> = ({ label, value, onChange, disabled, children }) => (
     <div className="w-full group">
-        <label className="block text-[11px] font-bold uppercase text-slate-400 dark:text-slate-500 mb-1 tracking-wider group-focus-within:text-indigo-600 transition-colors">
-            {label}
-        </label>
+        <label className="block text-[11px] font-bold uppercase text-slate-400 dark:text-slate-500 mb-1 tracking-wider group-focus-within:text-indigo-600 transition-colors">{label}</label>
         <div className="relative">
           <select
               value={value}
@@ -35,17 +33,14 @@ const QueueItem: React.FC<{ criteria: Criteria, index: number, onRemove: () => v
         <div className="flex-1 mr-2 overflow-hidden">
             <div className="flex items-center gap-2 mb-1">
                 <span className="flex-shrink-0 text-[10px] font-bold text-white bg-slate-400 px-1.5 py-0.5 rounded-full">#{index + 1}</span>
-                {/* FIX: Translate Chapter Key to Text */}
                 <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate block w-full">
                      {t(`constants.chapters.${criteria.chapter}`, { defaultValue: criteria.chapter })}
                 </span>
             </div>
             <div className="text-[10px] text-slate-500 flex flex-wrap gap-1.5">
-                {/* FIX: Translate Setting Key */}
                 <span className="bg-white dark:bg-slate-800 px-1.5 rounded border border-slate-200 dark:border-slate-600">
                     {t(`constants.settings.${criteria.setting}`, { defaultValue: criteria.setting })}
                 </span>
-                {/* FIX: Translate Type Key */}
                 <span className="bg-white dark:bg-slate-800 px-1.5 rounded border border-slate-200 dark:border-slate-600 text-sky-600 font-medium">
                      {t(`constants.types.${criteria.questionType}`, { defaultValue: criteria.questionType }).split('(')[0]}
                 </span>
@@ -91,6 +86,7 @@ export const CriteriaSelector: React.FC<CriteriaSelectorProps> = ({ onGenerate, 
   const handleAddToQueue = () => setBatchQueue([...batchQueue, { ...currentCriteria }]);
   const handleRemoveFromQueue = (index: number) => setBatchQueue(prev => prev.filter((_, i) => i !== index));
   const handleGenerateAll = () => batchQueue.length > 0 ? onGenerate(batchQueue) : onGenerate([currentCriteria]);
+  const totalQuestions = batchQueue.reduce((sum, item) => sum + item.questionCount, 0) + (batchQueue.length === 0 ? currentCriteria.questionCount : 0);
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col h-full overflow-hidden">
@@ -144,36 +140,31 @@ export const CriteriaSelector: React.FC<CriteriaSelectorProps> = ({ onGenerate, 
                     disabled={isLoading} 
                     className="w-full py-3 px-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg shadow-md text-sm flex items-center justify-center transition-all active:scale-[0.98]"
                 >
-                    {isLoading ? t('criteria.generating') : t('criteria.quick_exam_btn')}
+                    {isLoading ? (
+                         <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"/>{t('criteria.generating')}</>
+                    ) : t('criteria.quick_exam_btn')}
                 </button>
             </div>
         )}
 
-        {/* TAB 2: MANUAL CONFIG (FIXED DISPLAY) */}
+        {/* TAB 2: MANUAL CONFIG */}
         {activeTab === 'manual' && (
             <div className="animate-fade-in space-y-4">
                 <SelectField label={t('criteria.label_chapter')} value={currentCriteria.chapter} onChange={e => handleChange('chapter', e.target.value)}>
                     {CHAPTERS_KEYS.map(key => (
-                        <option key={key} value={key}>
-                            {/* FIX: Use t() to display translated text */}
-                            {t(`constants.chapters.${key}`, { defaultValue: key })}
-                        </option>
+                        <option key={key} value={key}>{t(`constants.chapters.${key}`, { defaultValue: key })}</option>
                     ))}
                 </SelectField>
                 
                 <div className="grid grid-cols-2 gap-3">
                     <SelectField label={t('criteria.label_context')} value={currentCriteria.setting} onChange={e => handleChange('setting', e.target.value)}>
                         {SETTINGS_KEYS.map(key => (
-                            <option key={key} value={key}>
-                                {t(`constants.settings.${key}`, { defaultValue: key })}
-                            </option>
+                            <option key={key} value={key}>{t(`constants.settings.${key}`, { defaultValue: key })}</option>
                         ))}
                     </SelectField>
                     <SelectField label={t('criteria.label_type')} value={currentCriteria.questionType} onChange={e => handleChange('questionType', e.target.value)}>
                         {QUESTION_TYPES_KEYS.map(key => (
-                            <option key={key} value={key}>
-                                {t(`constants.types.${key}`, { defaultValue: key })}
-                            </option>
+                            <option key={key} value={key}>{t(`constants.types.${key}`, { defaultValue: key })}</option>
                         ))}
                     </SelectField>
                 </div>
@@ -181,9 +172,7 @@ export const CriteriaSelector: React.FC<CriteriaSelectorProps> = ({ onGenerate, 
                 <div className="grid grid-cols-2 gap-3">
                     <SelectField label={t('criteria.label_difficulty')} value={currentCriteria.difficulty} onChange={e => handleChange('difficulty', e.target.value)} disabled={isNT1Selected}>
                         {DIFFICULTIES_KEYS.map(key => (
-                            <option key={key} value={key}>
-                                {t(`constants.difficulties.${key}`, { defaultValue: key })}
-                            </option>
+                            <option key={key} value={key}>{t(`constants.difficulties.${key}`, { defaultValue: key })}</option>
                         ))}
                     </SelectField>
                     <div>
@@ -194,9 +183,7 @@ export const CriteriaSelector: React.FC<CriteriaSelectorProps> = ({ onGenerate, 
 
                 <SelectField label={t('criteria.label_competency')} value={currentCriteria.competency} onChange={e => handleChange('competency', e.target.value)}>
                     {COMPETENCIES_KEYS.map(key => (
-                        <option key={key} value={key}>
-                            {t(`constants.competencies.${key}`, { defaultValue: key })}
-                        </option>
+                        <option key={key} value={key}>{t(`constants.competencies.${key}`, { defaultValue: key })}</option>
                     ))}
                 </SelectField>
 
@@ -209,30 +196,32 @@ export const CriteriaSelector: React.FC<CriteriaSelectorProps> = ({ onGenerate, 
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
                     {t('criteria.add_queue')}
                 </button>
-
-                {batchQueue.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-                        <div className="flex justify-between mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                            {t('criteria.queue_title')} <span className="ml-1 bg-slate-200 px-1.5 rounded text-slate-700">{batchQueue.length}</span>
-                            <button onClick={() => setBatchQueue([])} className="text-red-500 hover:underline">{t('criteria.clear_all')}</button>
-                        </div>
-                        <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
-                            {batchQueue.map((item, idx) => (
-                                <QueueItem key={idx} index={idx} criteria={item} onRemove={() => handleRemoveFromQueue(idx)} t={t} />
-                            ))}
-                        </div>
-                    </div>
-                )}
             </div>
         )}
 
+        {/* Queue List (Only for Manual Mode) */}
+        {activeTab === 'manual' && batchQueue.length > 0 && (
+            <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('criteria.queue_title')} <span className="ml-1 bg-slate-200 px-1.5 rounded text-slate-700">{batchQueue.length}</span></h3>
+                    <button onClick={() => setBatchQueue([])} className="text-xs font-bold text-red-500 hover:underline">{t('criteria.clear_all')}</button>
+                </div>
+                <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                    {batchQueue.map((item, idx) => (
+                        <QueueItem key={idx} index={idx} criteria={item} onRemove={() => handleRemoveFromQueue(idx)} t={t} />
+                    ))}
+                </div>
+            </div>
+        )}
       </div>
       
-      {/* Footer Button (Only for Manual Mode) */}
+      {/* Footer Button (Only for Manual) */}
       {activeTab === 'manual' && (
           <div className="flex-none p-4 bg-slate-50/50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 rounded-b-2xl backdrop-blur-sm">
             <button onClick={handleGenerateAll} disabled={isLoading} className="w-full bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 disabled:opacity-70 transition-all duration-300 flex items-center justify-center gap-2 transform active:scale-[0.99]">
-                 {isLoading ? t('criteria.processing') : t('criteria.generate_btn', { count: batchQueue.length > 0 ? totalQuestions : currentCriteria.questionCount })}
+                 {isLoading ? (
+                     <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"/>{t('criteria.processing')}</>
+                 ) : t('criteria.generate_btn', { count: batchQueue.length > 0 ? totalQuestions : currentCriteria.questionCount })}
             </button>
           </div>
       )}
