@@ -19,6 +19,7 @@ import { generateExamFromSlots, generateExamItem } from '../../services/examGene
 import type { GeneratedExamItem } from '../../types/generatedExam';
 import { exportExamPackageDocx } from '../../services/examPackageDocxService';
 import { getTrueFalseEarnedScore } from '../../services/examScoringService';
+import { generateMockExamFromSlots } from '../../services/examMockService';
 
 const STORAGE_KEY = 'biogen_exam_blueprint_v1';
 
@@ -126,6 +127,8 @@ export const ExamBlueprintBuilder: React.FC = () => {
   const [approvedSlotIds, setApprovedSlotIds] = useState<string[]>([]);
   const [lockedQuestionIds, setLockedQuestionIds] = useState<string[]>([]);
   const [editingSlotId, setEditingSlotId] = useState<string | null>(null);
+  const [generationSource, setGenerationSource] = useState<'ai' | 'mock' | null>(null);
+  const isBlueprintPreview = window.location.hostname === 'biogenai-blueprint-preview.onrender.com';
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(blueprint));
@@ -137,6 +140,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
     setApprovedSlotIds([]);
     setLockedQuestionIds([]);
     setEditingSlotId(null);
+    setGenerationSource(null);
   }, [blueprint]);
 
   const updateScorePart = (
@@ -315,6 +319,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
     setApprovedSlotIds([]);
     setLockedQuestionIds([]);
     setEditingSlotId(null);
+    setGenerationSource(null);
     setGenerationError(null);
     if (validation.valid) {
       setLockedSlots(slots);
@@ -341,6 +346,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
     setApprovedSlotIds([]);
     setLockedQuestionIds([]);
     setEditingSlotId(null);
+    setGenerationSource(null);
     setGenerationError(null);
     const total = lockedSlots.mcq.length + lockedSlots.tf.length + lockedSlots.short.length;
     setGenerationProgress({ completed: 0, total });
@@ -353,12 +359,24 @@ export const ExamBlueprintBuilder: React.FC = () => {
         setGenerationProgress,
       );
       setGeneratedItems(items);
+      setGenerationSource('ai');
     } catch (error: any) {
       console.error('Exam generation error:', error);
       setGenerationError(error?.message || (isEnglish ? 'Exam generation failed.' : 'Không thể tạo đề.'));
     } finally {
       setIsGeneratingExam(false);
     }
+  };
+
+  const handleGenerateMockExam = () => {
+    if (!lockedSlots) return;
+    const items = generateMockExamFromSlots(lockedSlots);
+    setGeneratedItems(items);
+    setApprovedSlotIds([]);
+    setLockedQuestionIds([]);
+    setEditingSlotId(null);
+    setGenerationError(null);
+    setGenerationSource('mock');
   };
 
   const handleRegenerateItem = async (item: GeneratedExamItem) => {
@@ -993,18 +1011,39 @@ export const ExamBlueprintBuilder: React.FC = () => {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={handleGenerateExam}
-              disabled={isGeneratingExam}
-              className="mt-3 w-full rounded-xl bg-purple-600 px-4 py-3 font-bold text-white shadow-sm transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isGeneratingExam
-                ? (isEnglish
-                    ? `Generating ${generationProgress.completed}/${generationProgress.total}...`
-                    : `Đang tạo ${generationProgress.completed}/${generationProgress.total} câu...`)
-                : (isEnglish ? 'Generate exam with AI' : 'Tạo đề bằng AI')}
-            </button>
+            <div className={`mt-3 grid gap-2 ${isBlueprintPreview ? 'sm:grid-cols-2' : ''}`}>
+              <button
+                type="button"
+                onClick={handleGenerateExam}
+                disabled={isGeneratingExam}
+                className="w-full rounded-xl bg-purple-600 px-4 py-3 font-bold text-white shadow-sm transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isGeneratingExam
+                  ? (isEnglish
+                      ? `Generating ${generationProgress.completed}/${generationProgress.total}...`
+                      : `Đang tạo ${generationProgress.completed}/${generationProgress.total} câu...`)
+                  : (isEnglish ? 'Generate exam with AI' : 'Tạo đề bằng AI')}
+              </button>
+
+              {isBlueprintPreview && (
+                <button
+                  type="button"
+                  onClick={handleGenerateMockExam}
+                  disabled={isGeneratingExam}
+                  className="w-full rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 font-bold text-amber-800 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-amber-800 dark:bg-amber-950/20 dark:text-amber-300"
+                >
+                  {isEnglish ? 'Create demo exam for workflow testing' : 'Tạo đề mẫu để kiểm thử workflow'}
+                </button>
+              )}
+            </div>
+
+            {isBlueprintPreview && (
+              <p className="mt-2 text-center text-[11px] text-amber-700 dark:text-amber-300">
+                {isEnglish
+                  ? 'Demo questions are placeholders only. They let you test review, editing, locking, and DOCX export without an API key.'
+                  : 'Đề mẫu chỉ là dữ liệu giả để kiểm thử Duyệt – Sửa – Khóa – Xuất DOCX, không dùng làm câu hỏi thật.'}
+              </p>
+            )}
 
             {isGeneratingExam && generationProgress.total > 0 && (
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-purple-100 dark:bg-purple-950">
@@ -1026,15 +1065,26 @@ export const ExamBlueprintBuilder: React.FC = () => {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <h5 className="text-sm font-bold text-slate-800 dark:text-white">
-                      {isEnglish ? 'AI-generated exam review' : 'Duyệt đề AI đã tạo'}
+                      {generationSource === 'mock'
+                        ? (isEnglish ? 'Demo exam workflow review' : 'Duyệt đề mẫu kiểm thử')
+                        : (isEnglish ? 'AI-generated exam review' : 'Duyệt đề AI đã tạo')}
                     </h5>
                     <p className="mt-1 text-xs text-slate-500">
-                      {isEnglish
-                        ? 'Each question remains tied to its locked slot. Regenerate only the question that needs revision.'
-                        : 'Mỗi câu vẫn gắn với slot đã khóa. Chỉ tạo lại câu cần sửa, không sinh lại toàn bộ đề.'}
+                      {generationSource === 'mock'
+                        ? (isEnglish
+                            ? 'Demo content is tied to the locked slots so you can test the complete review and DOCX workflow.'
+                            : 'Dữ liệu mẫu vẫn gắn đúng slot đã khóa để anh kiểm thử đầy đủ quy trình duyệt và DOCX.')
+                        : (isEnglish
+                            ? 'Each question remains tied to its locked slot. Regenerate only the question that needs revision.'
+                            : 'Mỗi câu vẫn gắn với slot đã khóa. Chỉ tạo lại câu cần sửa, không sinh lại toàn bộ đề.')}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
+                    {generationSource === 'mock' && (
+                      <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-extrabold text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                        DEMO
+                      </span>
+                    )}
                     <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-extrabold text-purple-700 dark:bg-purple-950 dark:text-purple-300">
                       {generatedItems.length} {isEnglish ? 'questions' : 'câu'}
                     </span>
@@ -1130,12 +1180,14 @@ export const ExamBlueprintBuilder: React.FC = () => {
                                     <button
                                       type="button"
                                       onClick={() => handleRegenerateItem(item)}
-                                      disabled={isLocked || regeneratingSlotId === item.slotId}
+                                      disabled={isLocked || generationSource === 'mock' || regeneratingSlotId === item.slotId}
                                       className="rounded-lg border border-purple-200 px-2.5 py-1.5 text-xs font-bold text-purple-700 transition hover:bg-purple-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-purple-800 dark:text-purple-300 dark:hover:bg-purple-950/30"
                                     >
-                                      {regeneratingSlotId === item.slotId
-                                        ? (isEnglish ? 'Regenerating…' : 'Đang tạo lại…')
-                                        : (isEnglish ? '↻ Regenerate' : '↻ Tạo lại')}
+                                      {generationSource === 'mock'
+                                        ? (isEnglish ? 'AI required' : 'Cần AI')
+                                        : regeneratingSlotId === item.slotId
+                                          ? (isEnglish ? 'Regenerating…' : 'Đang tạo lại…')
+                                          : (isEnglish ? '↻ Regenerate' : '↻ Tạo lại')}
                                     </button>
                                   </div>
                                 </div>
