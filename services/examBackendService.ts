@@ -7,8 +7,6 @@ export interface ExamBackendHealth {
   firebaseProjectId: string;
   generationUnitsPerHour: number;
   model: string;
-  authRequired: boolean;
-  firebaseProjectId: string;
 }
 
 const apiBase = () => {
@@ -40,8 +38,6 @@ export const getExamBackendHealth = async (): Promise<ExamBackendHealth | null> 
       firebaseProjectId: String(data.firebaseProjectId || ''),
       generationUnitsPerHour: Number(data.generationUnitsPerHour || 0),
       model: String(data.model || ''),
-      authRequired: Boolean(data.authRequired),
-      firebaseProjectId: String(data.firebaseProjectId || ''),
     };
   } catch {
     return null;
