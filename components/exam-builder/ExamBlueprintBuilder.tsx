@@ -698,6 +698,15 @@ export const ExamBlueprintBuilder: React.FC = () => {
   };
 
   const handleExportDocx = async (includeExam: boolean) => {
+    if (includeExam && !allQuestionsGenerated) {
+      setGenerationError(
+        isEnglish
+          ? `The exam is incomplete (${generatedItems.length}/${expectedGeneratedCount} questions). Generate the missing questions before exporting the full dossier.`
+          : `Đề chưa đủ câu (${generatedItems.length}/${expectedGeneratedCount}). Hãy tạo đủ các câu còn thiếu trước khi xuất bộ hồ sơ đề.`,
+      );
+      return;
+    }
+
     setIsExportingDocx(true);
     try {
       await exportExamPackageDocx(blueprint, includeExam ? generatedItems : []);
