@@ -364,22 +364,10 @@ def _validate_manual_question(data: dict[str, Any]) -> dict[str, Any]:
     if qtype == 'Short response':
         options = []
         clean_answer = re.sub(r'^\s*A\.\s*', '', answer, flags=re.I).strip()
-        if not re.match(r'^-?\d+(?:[\.,]\d+)?    payload: GenerateItemRequest,
-    user: dict[str, Any] = Depends(require_firebase_user),
-):
-    part = payload.slot.get('part')
-    try:
-        if part == 'tf':
-            slot = TfSlot.model_validate(payload.slot)
-        elif part in ('mcq', 'short'):
-            slot = SimpleSlot.model_validate(payload.slot)
-        else:
-            raise ValueError('Unsupported slot part.')
-    except Exception as exc:
-        raise HTTPException(status_code=422, detail=f'Invalid exam slot: {exc}') from exc
-    return _generate(slot, payload.lang)
-, clean_answer):
+        if not re.match(r'^-?\d+(?:[\.,]\d+)?$', clean_answer):
             raise ValueError('Short-response answer must be numeric.')
+        if len(clean_answer.replace('.', ',').replace('+', '')) > 4:
+            raise ValueError('Short-response answer must be at most four characters.')
         answer = clean_answer
 
     return {
