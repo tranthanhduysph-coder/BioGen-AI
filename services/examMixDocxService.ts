@@ -9,6 +9,11 @@ import {
 import saveAs from 'file-saver';
 import type { ExamBlueprint } from '../types/examBlueprint';
 import type { GeneratedExamItem } from '../types/generatedExam';
+import {
+  getTrueStatementLetters,
+  normalizeMixerShortAnswer,
+  parseMcqCorrectLetter,
+} from './examMixerFormatService';
 
 const A4 = { width: 11906, height: 16838 };
 const CM = 567;
@@ -52,42 +57,6 @@ const paragraph = (
 const stripOptionLabel = (value: string, fallback: string) =>
   value.replace(new RegExp(`^\\s*${fallback}[\\.\\)]\\s*`, 'i'), '').trim();
 
-const mcqCorrectLetter = (answer: string) => {
-  const match = answer.trim().match(/^([A-D])/i);
-  return match ? match[1].toUpperCase() : null;
-};
-
-const trueLettersFromAnswer = (answer: string) => {
-  const result = new Set<string>();
-  answer
-    .split(/[;\n]+/)
-    .map((part) => part.trim())
-    .forEach((part) => {
-      const match = part.match(/^([a-d])\s*[\)\.:\-]?\s*(Đúng|Dung|True|T)\b/i);
-      if (match) result.add(match[1].toLowerCase());
-    });
-  return result;
-};
-
-const normalizeShortAnswer = (answer: string) => {
-  const clean = answer
-    .replace(/^\s*A\.\s*/i, '')
-    .trim()
-    .replace('.', ',');
-
-  if (!/^-?\d+(?:,\d+)?$/.test(clean)) {
-    throw new Error(`Đáp án trả lời ngắn phải là số: "${answer}".`);
-  }
-
-  if (clean.length > 4) {
-    throw new Error(
-      `Đáp án trả lời ngắn "${clean}" dài ${clean.length} ký tự; format trộn đề chỉ cho phép tối đa 4 ký tự.`,
-    );
-  }
-
-  return clean;
-};
-
 const optionRuns = (
   letter: string,
   text: string,
@@ -106,7 +75,7 @@ const TAB_1 = [283];
 
 const mcqOptionParagraphs = (item: GeneratedExamItem) => {
   const labels = ['A', 'B', 'C', 'D'];
-  const correct = mcqCorrectLetter(item.question.answer);
+  const correct = parseMcqCorrectLetter(item.question.answer);
   const options = labels.map((label, index) => ({
     label,
     text: stripOptionLabel(item.question.options[index] || '', label),
@@ -177,7 +146,7 @@ const buildMixReadyExamChildren = (items: GeneratedExamItem[]) => {
     );
 
     part2.forEach((item) => {
-      const trueLetters = trueLettersFromAnswer(item.question.answer);
+      const trueLetters = getTrueStatementLetters(item.question.answer);
 
       children.push(
         paragraph([
@@ -211,7 +180,10 @@ const buildMixReadyExamChildren = (items: GeneratedExamItem[]) => {
     );
 
     part3.forEach((item) => {
-      const answer = normalizeShortAnswer(item.question.answer);
+      const answer = normalizeMixerShortAnswer(item.question.answer);
+      if (!/^-?\d+(?:,\d+)?$/.test(answer) || answer.length > 4) {
+        throw new Error(`Đáp án trả lời ngắn "${answer}" không đúng format số tối đa 4 ký tự.`);
+      }
 
       children.push(
         paragraph([
