@@ -1,6 +1,9 @@
 import json
 import os
 import re
+import threading
+import time
+from collections import defaultdict, deque
 from typing import Any, Literal
 
 from fastapi import Depends, FastAPI, Header, HTTPException
@@ -21,6 +24,7 @@ except Exception:
 
 APP_ENV = os.getenv('APP_ENV', 'development')
 FIREBASE_PROJECT_ID = os.getenv('FIREBASE_PROJECT_ID', 'biogen-ai').strip()
+AI_GENERATION_UNITS_PER_HOUR = int(os.getenv('AI_GENERATION_UNITS_PER_HOUR', '120'))
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '').strip()
 GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash').strip()
 CORS_ORIGINS = [
@@ -75,6 +79,37 @@ def require_firebase_user(authorization: str | None = Header(default=None)) -> d
         raise HTTPException(status_code=401, detail='Firebase token project mismatch.')
 
     return decoded
+
+_usage_lock = threading.Lock()
+_usage_by_uid: dict[str, deque[float]] = defaultdict(deque)
+
+def consume_ai_quota(user: dict[str, Any], units: int = 1) -> None:
+    uid = str(user.get('uid') or user.get('sub') or '').strip()
+    if not uid:
+        raise HTTPException(status_code=401, detail='Firebase user ID is missing.')
+
+    units = max(1, int(units))
+    now = time.time()
+    cutoff = now - 3600
+
+    with _usage_lock:
+        bucket = _usage_by_uid[uid]
+        while bucket and bucket[0] <= cutoff:
+            bucket.popleft()
+
+        if len(bucket) + units > AI_GENERATION_UNITS_PER_HOUR:
+            retry_after = max(1, int(3600 - (now - bucket[0]))) if bucket else 3600
+            raise HTTPException(
+                status_code=429,
+                detail=(
+                    f'AI generation quota exceeded. '
+                    f'Limit: {AI_GENERATION_UNITS_PER_HOUR} units/hour. '
+                    f'Retry in about {retry_after} seconds.'
+                ),
+            )
+
+        for _ in range(units):
+            bucket.append(now)
 
 class SimpleSlot(BaseModel):
     id: str
@@ -143,6 +178,7 @@ def health():
         'aiConfigured': bool(GEMINI_API_KEY),
         'authRequired': True,
         'firebaseProjectId': FIREBASE_PROJECT_ID,
+        'generationUnitsPerHour': AI_GENERATION_UNITS_PER_HOUR,
         'model': GEMINI_MODEL,
     }
 
@@ -368,6 +404,7 @@ def generate_manual_questions(
     payload: ManualGenerateRequest,
     user: dict[str, Any] = Depends(require_firebase_user),
 ):
+    consume_ai_quota(user, payload.expectedCount)
     client = _client()
     last_error = None
 
@@ -405,6 +442,7 @@ def generate_item(
     payload: GenerateItemRequest,
     user: dict[str, Any] = Depends(require_firebase_user),
 ):
+    consume_ai_quota(user, 1)
     part = payload.slot.get('part')
     try:
         if part == 'tf':
