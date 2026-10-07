@@ -329,6 +329,8 @@ export const ExamBlueprintBuilder: React.FC = () => {
     blueprint.scores.tf.questionCount +
     blueprint.scores.short.questionCount;
 
+  const missingQuestionCount = Math.max(0, expectedGeneratedCount - generatedItems.length);
+
   const allQuestionsGenerated =
     expectedGeneratedCount > 0 &&
     generatedItems.length === expectedGeneratedCount;
@@ -1333,6 +1335,21 @@ export const ExamBlueprintBuilder: React.FC = () => {
               )}
             </div>
 
+            {generationSource === 'ai' && missingQuestionCount > 0 && (
+              <button
+                type="button"
+                onClick={handleGenerateMissingItems}
+                disabled={isGeneratingExam}
+                className="mt-2 w-full rounded-xl border border-purple-300 bg-purple-50 px-4 py-2.5 text-sm font-bold text-purple-700 transition hover:bg-purple-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-purple-800 dark:bg-purple-950/20 dark:text-purple-300"
+              >
+                {isGeneratingExam
+                  ? (isEnglish ? 'Retrying missing questions…' : 'Đang tạo lại các câu còn thiếu…')
+                  : (isEnglish
+                      ? `Retry ${missingQuestionCount} missing question(s)`
+                      : `Tạo lại ${missingQuestionCount} câu còn thiếu`)}
+              </button>
+            )}
+
             {isBlueprintPreview && (
               <p className="mt-2 text-center text-[11px] text-amber-700 dark:text-amber-300">
                 {isEnglish
@@ -1353,6 +1370,25 @@ export const ExamBlueprintBuilder: React.FC = () => {
             {generationError && (
               <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/20 dark:text-red-200">
                 {generationError}
+              </div>
+            )}
+
+            {generationFailures.length > 0 && (
+              <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/20 dark:text-amber-200">
+                <strong className="mb-1 block">
+                  {isEnglish ? 'Missing slots:' : 'Các slot chưa tạo được:'}
+                </strong>
+                <ul className="list-disc space-y-1 pl-5">
+                  {generationFailures.map((failure) => (
+                    <li key={failure.slotId}>
+                      {failure.part === 'mcq' ? 'Phần I' : failure.part === 'tf' ? 'Phần II' : 'Phần III'}
+                      {' · '}
+                      {isEnglish ? 'Question' : 'Câu'} {failure.order}
+                      {' · '}
+                      {failure.message}
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
 
@@ -1382,13 +1418,13 @@ export const ExamBlueprintBuilder: React.FC = () => {
                       </span>
                     )}
                     <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-extrabold text-purple-700 dark:bg-purple-950 dark:text-purple-300">
-                      {generatedItems.length} {isEnglish ? 'questions' : 'câu'}
+                      {generatedItems.length}/{expectedGeneratedCount} {isEnglish ? 'questions' : 'câu'}
                     </span>
                     <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-extrabold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                      ✓ {approvedSlotIds.length}/{generatedItems.length} {isEnglish ? 'approved' : 'đã duyệt'}
+                      ✓ {approvedSlotIds.length}/{expectedGeneratedCount} {isEnglish ? 'approved' : 'đã duyệt'}
                     </span>
                     <span className="rounded-full bg-slate-200 px-3 py-1 text-xs font-extrabold text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                      🔒 {lockedQuestionIds.length}/{generatedItems.length}
+                      🔒 {lockedQuestionIds.length}/{expectedGeneratedCount}
                     </span>
                   </div>
                 </div>
@@ -1441,11 +1477,18 @@ export const ExamBlueprintBuilder: React.FC = () => {
                         {isEnglish ? 'Before mixer export:' : 'Trước khi xuất đề trộn:'}
                       </strong>
                       <ul className="list-disc space-y-1 pl-5 text-xs">
+                        {!allQuestionsGenerated && (
+                          <li>
+                            {isEnglish
+                              ? `Generate all questions (${generatedItems.length}/${expectedGeneratedCount} generated).`
+                              : `Tạo đủ tất cả câu (${generatedItems.length}/${expectedGeneratedCount} đã tạo).`}
+                          </li>
+                        )}
                         {!allQuestionsApproved && (
                           <li>
                             {isEnglish
-                              ? `Approve all questions (${approvedSlotIds.length}/${generatedItems.length} approved).`
-                              : `Duyệt đủ tất cả câu (${approvedSlotIds.length}/${generatedItems.length} đã duyệt).`}
+                              ? `Approve all questions (${approvedSlotIds.length}/${expectedGeneratedCount} approved).`
+                              : `Duyệt đủ tất cả câu (${approvedSlotIds.length}/${expectedGeneratedCount} đã duyệt).`}
                           </li>
                         )}
                         {!mixValidation.valid && mixValidation.issues.map((issue, index) => (
