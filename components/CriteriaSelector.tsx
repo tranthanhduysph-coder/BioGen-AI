@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { Criteria } from '../types';
 import { CHAPTERS_KEYS, DIFFICULTIES_KEYS, COMPETENCIES_KEYS, SETTINGS_KEYS, QUESTION_TYPES_KEYS } from '../constants';
 import { useTranslation } from 'react-i18next';
+import { ExamBlueprintBuilder } from './exam-builder/ExamBlueprintBuilder';
 
 interface CriteriaSelectorProps {
   onGenerate: (criteriaList: Criteria[]) => void;
@@ -116,35 +117,9 @@ export const CriteriaSelector: React.FC<CriteriaSelectorProps> = ({ onGenerate, 
       
       <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
         
-        {/* TAB 1: AUTO EXAM */}
+        {/* TAB 1: EXAM BLUEPRINT BUILDER */}
         {activeTab === 'auto' && (
-            <div className="p-5 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl border border-purple-200 dark:border-purple-700/50 shadow-sm animate-fade-in">
-                <h3 className="text-sm font-bold text-purple-800 dark:text-purple-200 mb-2 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
-                    {t('criteria.quick_exam_title')}
-                </h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
-                    {t('criteria.quick_exam_desc')}
-                </p>
-                <div className="mb-4">
-                    <textarea
-                        value={simulationPrompt}
-                        onChange={(e) => setSimulationPrompt(e.target.value)}
-                        placeholder={t('criteria.quick_exam_placeholder')}
-                        rows={3}
-                        className="w-full bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-600/50 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-shadow resize-none placeholder:text-slate-400/70"
-                    />
-                </div>
-                <button 
-                    onClick={() => onSimulate(simulationPrompt)} 
-                    disabled={isLoading} 
-                    className="w-full py-3 px-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg shadow-md text-sm flex items-center justify-center transition-all active:scale-[0.98]"
-                >
-                    {isLoading ? (
-                         <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"/>{t('criteria.generating')}</>
-                    ) : t('criteria.quick_exam_btn')}
-                </button>
-            </div>
+            <ExamBlueprintBuilder />
         )}
 
         {/* TAB 2: MANUAL CONFIG */}
