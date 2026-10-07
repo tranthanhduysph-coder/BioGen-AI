@@ -3,7 +3,7 @@ import os
 import re
 from typing import Any, Literal
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -12,7 +12,15 @@ try:
 except Exception:
     genai = None
 
+try:
+    import firebase_admin
+    from firebase_admin import auth as firebase_auth
+except Exception:
+    firebase_admin = None
+    firebase_auth = None
+
 APP_ENV = os.getenv('APP_ENV', 'development')
+FIREBASE_PROJECT_ID = os.getenv('FIREBASE_PROJECT_ID', 'biogen-ai').strip()
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '').strip()
 GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash').strip()
 CORS_ORIGINS = [
@@ -38,6 +46,35 @@ app.add_middleware(
     allow_methods=['GET', 'POST', 'OPTIONS'],
     allow_headers=['Content-Type', 'Authorization'],
 )
+
+if firebase_admin is not None:
+    try:
+        if not firebase_admin._apps:
+            firebase_admin.initialize_app(options={'projectId': FIREBASE_PROJECT_ID})
+    except Exception:
+        firebase_admin = None
+        firebase_auth = None
+
+def require_firebase_user(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    if firebase_auth is None:
+        raise HTTPException(status_code=503, detail='Firebase token verification is unavailable.')
+
+    if not authorization or not authorization.lower().startswith('bearer '):
+        raise HTTPException(status_code=401, detail='Firebase ID token is required.')
+
+    token = authorization.split(' ', 1)[1].strip()
+    if not token:
+        raise HTTPException(status_code=401, detail='Firebase ID token is required.')
+
+    try:
+        decoded = firebase_auth.verify_id_token(token, check_revoked=False)
+    except Exception:
+        raise HTTPException(status_code=401, detail='Invalid or expired Firebase ID token.')
+
+    if decoded.get('aud') != FIREBASE_PROJECT_ID:
+        raise HTTPException(status_code=401, detail='Firebase token project mismatch.')
+
+    return decoded
 
 class SimpleSlot(BaseModel):
     id: str
@@ -99,6 +136,8 @@ def health():
         'service': 'biogenai-api',
         'environment': APP_ENV,
         'aiConfigured': bool(GEMINI_API_KEY),
+        'authRequired': True,
+        'firebaseProjectId': FIREBASE_PROJECT_ID,
         'model': GEMINI_MODEL,
     }
 
@@ -267,7 +306,10 @@ def _generate(slot, lang: str) -> GeneratedExamItem:
     raise HTTPException(status_code=502, detail=f'AI generation failed after validation: {last_error}')
 
 @app.post('/api/exam/generate-item', response_model=GeneratedExamItem)
-def generate_item(payload: GenerateItemRequest):
+def generate_item(
+    payload: GenerateItemRequest,
+    user: dict[str, Any] = Depends(require_firebase_user),
+):
     part = payload.slot.get('part')
     try:
         if part == 'tf':
