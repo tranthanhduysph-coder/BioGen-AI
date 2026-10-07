@@ -1,3 +1,4 @@
+import { auth } from '../firebaseConfig';
 import type { GeneratedExamItem, GenerationProgress } from '../types/generatedExam';
 import type {
   ExamQuestionSlot,
@@ -20,6 +21,19 @@ const parseError = async (response: Response) => {
   }
 };
 
+const getFirebaseIdToken = async (lang: string) => {
+  const currentUser = auth?.currentUser;
+  if (!currentUser) {
+    throw new Error(
+      lang === 'en'
+        ? 'Sign in with a real Firebase account before using AI generation. Demo mode can still test the workflow without AI.'
+        : 'Hãy đăng nhập bằng tài khoản Firebase thật trước khi tạo đề bằng AI. Chế độ demo vẫn có thể kiểm thử toàn bộ workflow không dùng AI.',
+    );
+  }
+
+  return currentUser.getIdToken();
+};
+
 export const generateExamItem = async (
   slot: ExamQuestionSlot | TrueFalseQuestionSlot,
   lang: string = 'vi',
@@ -33,14 +47,28 @@ export const generateExamItem = async (
     );
   }
 
+  const idToken = await getFirebaseIdToken(lang);
+
   const response = await fetch(`${base}/api/exam/generate-item`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${idToken}`,
+    },
     body: JSON.stringify({ slot, lang }),
   });
 
   if (!response.ok) {
     const detail = await parseError(response);
+
+    if (response.status === 401) {
+      throw new Error(
+        lang === 'en'
+          ? 'Your login session is invalid or expired. Sign in again.'
+          : 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn. Hãy đăng nhập lại.',
+      );
+    }
+
     if (response.status === 503) {
       throw new Error(
         lang === 'en'
@@ -48,6 +76,7 @@ export const generateExamItem = async (
           : 'Backend BioGen đã hoạt động nhưng chưa được cấu hình GEMINI_API_KEY.',
       );
     }
+
     throw new Error(detail);
   }
 
