@@ -197,6 +197,14 @@ export const ExamBlueprintBuilder: React.FC = () => {
     refreshBackendHealth();
   }, []);
 
+  const changeGrade = (grade: 10 | 11 | 12) => {
+    setBlueprint((current) => ({
+      ...current,
+      grade,
+      rows: [],
+    }));
+  };
+
   const updateScorePart = (
     part: ExamPartKey,
     field: 'questionCount' | 'totalScore',
@@ -629,8 +637,8 @@ export const ExamBlueprintBuilder: React.FC = () => {
             </h3>
             <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
               {isEnglish
-                ? 'Build one combined specification + matrix before generating questions.'
-                : 'Ghép ma trận và bản đặc tả trong một bảng. Chưa sinh câu hỏi AI ở bước thử nghiệm này.'}
+                ? 'Build one combined specification + matrix, lock the blueprint, then generate and review the exam.'
+                : 'Ghép ma trận và bản đặc tả trong một bảng, khóa blueprint, sau đó tạo và duyệt đề.'}
             </p>
           </div>
           <button
@@ -647,11 +655,11 @@ export const ExamBlueprintBuilder: React.FC = () => {
             {isEnglish ? 'Grade' : 'Lớp'}
             <select
               value={blueprint.grade}
-              onChange={(event) => setBlueprint((current) => ({ ...current, grade: Number(event.target.value) as 10 | 11 | 12 }))}
+              onChange={(event) => changeGrade(Number(event.target.value) as 10 | 11 | 12)}
               className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm normal-case text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
             >
               <option value={10}>{isEnglish ? 'Grade 10' : 'Lớp 10'}</option>
-              <option value={11} disabled>{isEnglish ? 'Grade 11 — coming soon' : 'Lớp 11 — bổ sung sau'}</option>
+              <option value={11}>{isEnglish ? 'Grade 11' : 'Lớp 11'}</option>
               <option value={12} disabled>{isEnglish ? 'Grade 12 — coming soon' : 'Lớp 12 — bổ sung sau'}</option>
             </select>
           </label>
