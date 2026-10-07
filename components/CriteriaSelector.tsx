@@ -7,7 +7,6 @@ import { ExamBlueprintBuilder } from './exam-builder/ExamBlueprintBuilder';
 interface CriteriaSelectorProps {
   onGenerate: (criteriaList: Criteria[]) => void;
   isLoading: boolean;
-  onSimulate: (customPrompt: string) => void;
 }
 
 const SelectField: React.FC<{ label: string, value: string, onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void, disabled?: boolean, children: React.ReactNode }> = ({ label, value, onChange, disabled, children }) => (
@@ -54,7 +53,7 @@ const QueueItem: React.FC<{ criteria: Criteria, index: number, onRemove: () => v
     </div>
 )
 
-export const CriteriaSelector: React.FC<CriteriaSelectorProps> = ({ onGenerate, isLoading, onSimulate }) => {
+export const CriteriaSelector: React.FC<CriteriaSelectorProps> = ({ onGenerate, isLoading }) => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'auto' | 'manual'>('auto');
   
@@ -70,7 +69,6 @@ export const CriteriaSelector: React.FC<CriteriaSelectorProps> = ({ onGenerate, 
 
   const [currentCriteria, setCurrentCriteria] = useState<Criteria>(defaultCriteria);
   const [batchQueue, setBatchQueue] = useState<Criteria[]>([]);
-  const [simulationPrompt, setSimulationPrompt] = useState("");
 
   const isNT1Selected = currentCriteria.competency.startsWith("nt1");
 
