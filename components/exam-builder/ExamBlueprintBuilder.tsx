@@ -18,6 +18,7 @@ import type { ExamSlotPackage } from '../../types/examSlots';
 import { generateExamFromSlots, generateExamItem } from '../../services/examGenerationService';
 import type { GeneratedExamItem } from '../../types/generatedExam';
 import { exportExamPackageDocx } from '../../services/examPackageDocxService';
+import { getTrueFalseEarnedScore } from '../../services/examScoringService';
 
 const STORAGE_KEY = 'biogen_exam_blueprint_v1';
 
@@ -30,7 +31,7 @@ const defaultBlueprint = (): ExamBlueprint => ({
     tf: {
       questionCount: 2,
       totalScore: 2,
-      scoreLevels: { correct1: 0.1, correct2: 0.25, correct3: 0.5, correct4: 1 },
+      scoreLevels: { correct1: 10, correct2: 25, correct3: 50, correct4: 100 },
     },
     short: { questionCount: 4, totalScore: 2 },
   },
@@ -91,7 +92,24 @@ export const ExamBlueprintBuilder: React.FC = () => {
   const [blueprint, setBlueprint] = useState<ExamBlueprint>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : defaultBlueprint();
+      if (!saved) return defaultBlueprint();
+
+      const parsed = JSON.parse(saved) as ExamBlueprint;
+      const levels = parsed?.scores?.tf?.scoreLevels;
+
+      // Migrate preview data from the old absolute/fraction format
+      // (0.10, 0.25, 0.50, 1.00) to percentage format
+      // (10, 25, 50, 100) without losing the user's blueprint.
+      if (levels && Math.max(levels.correct1, levels.correct2, levels.correct3, levels.correct4) <= 1) {
+        parsed.scores.tf.scoreLevels = {
+          correct1: levels.correct1 * 100,
+          correct2: levels.correct2 * 100,
+          correct3: levels.correct3 * 100,
+          correct4: levels.correct4 * 100,
+        };
+      }
+
+      return parsed;
     } catch {
       return defaultBlueprint();
     }
@@ -267,6 +285,10 @@ export const ExamBlueprintBuilder: React.FC = () => {
     tfScale.correct1 <= tfScale.correct2 &&
     tfScale.correct2 <= tfScale.correct3 &&
     tfScale.correct3 <= tfScale.correct4;
+
+  const tfScaleWithinPercent =
+    tfScale.correct1 >= 0 &&
+    tfScale.correct4 <= 100;
 
   const selectedOutcome = (row: BlueprintRow) =>
     BIOLOGY_10_OUTCOMES.find((outcome) => outcome.id === row.outcomeId);
@@ -571,41 +593,64 @@ export const ExamBlueprintBuilder: React.FC = () => {
 
         <div className="mt-4 rounded-xl border border-purple-100 bg-purple-50/60 p-3 dark:border-purple-900/50 dark:bg-purple-950/20">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <strong className="text-sm text-purple-800 dark:text-purple-200">
-              {isEnglish ? 'True/False scoring · 4 statements' : 'Thang điểm câu Đúng/Sai · 4 ý'}
-            </strong>
+            <div>
+              <strong className="text-sm text-purple-800 dark:text-purple-200">
+                {isEnglish ? 'True/False scoring · percentage of each question' : 'Thang điểm câu Đúng/Sai · % điểm của mỗi câu'}
+              </strong>
+              <p className="mt-1 text-[11px] text-purple-600/80 dark:text-purple-300/80">
+                {isEnglish
+                  ? 'The four values below are percentages of the maximum score of one True/False question.'
+                  : 'Bốn mức dưới đây là tỷ lệ % của điểm tối đa một câu Đúng/Sai, không phải điểm tuyệt đối.'}
+              </p>
+            </div>
             <span className="text-xs text-purple-600 dark:text-purple-300">
               {isEnglish ? 'Max/question' : 'Điểm tối đa/câu'}: <b>{round(perQuestion.tf, 3)}</b>
             </span>
           </div>
 
           <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-            {(['correct1', 'correct2', 'correct3', 'correct4'] as const).map((key, index) => (
-              <label key={key} className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
-                {isEnglish ? `${index + 1}/4 correct` : `Đúng ${index + 1}/4 ý`}
-                <NumericInput
-                  value={blueprint.scores.tf.scoreLevels[key]}
-                  step={0.05}
-                  onChange={(value) => updateTfLevel(key, value)}
-                  className="mt-1"
-                />
-              </label>
-            ))}
+            {(['correct1', 'correct2', 'correct3', 'correct4'] as const).map((key, index) => {
+              const correctCount = (index + 1) as 1 | 2 | 3 | 4;
+              const earned = getTrueFalseEarnedScore(blueprint, correctCount);
+
+              return (
+                <label key={key} className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                  {isEnglish ? `${index + 1}/4 correct (%)` : `Đúng ${index + 1}/4 ý (%)`}
+                  <NumericInput
+                    value={blueprint.scores.tf.scoreLevels[key]}
+                    step={1}
+                    onChange={(value) => updateTfLevel(key, Math.min(100, value))}
+                    className="mt-1"
+                  />
+                  <span className="mt-1 block text-center text-[10px] font-semibold normal-case text-purple-700 dark:text-purple-300">
+                    → {round(earned, 3).toLocaleString(isEnglish ? 'en-US' : 'vi-VN')} {isEnglish ? 'pts' : 'điểm'}
+                  </span>
+                </label>
+              );
+            })}
           </div>
 
           {!tfScaleOrdered && (
             <p className="mt-2 text-xs font-semibold text-red-600">
               {isEnglish
-                ? 'Scoring levels should increase from 1/4 to 4/4 correct.'
-                : 'Bốn bậc điểm nên tăng dần từ đúng 1 ý đến đúng 4 ý.'}
+                ? 'Percentages should increase from 1/4 to 4/4 correct.'
+                : 'Bốn mức phần trăm nên tăng dần từ đúng 1 ý đến đúng 4 ý.'}
             </p>
           )}
 
-          {Math.abs(tfScale.correct4 - perQuestion.tf) > 0.0001 && (
+          {!tfScaleWithinPercent && (
+            <p className="mt-2 text-xs font-semibold text-red-600">
+              {isEnglish
+                ? 'True/False scoring percentages must stay between 0% and 100%.'
+                : 'Tỷ lệ chấm Đúng/Sai phải nằm trong khoảng 0% đến 100%.'}
+            </p>
+          )}
+
+          {tfScale.correct4 !== 100 && (
             <p className="mt-2 text-xs font-semibold text-amber-700 dark:text-amber-300">
               {isEnglish
-                ? `4/4 score is ${tfScale.correct4}, while the calculated maximum per question is ${round(perQuestion.tf, 3)}.`
-                : `Mức đúng 4/4 đang là ${tfScale.correct4}, trong khi điểm tối đa app tính cho mỗi câu là ${round(perQuestion.tf, 3)}. Anh vẫn có thể khóa ma trận; hãy chỉnh lại thang điểm trước khi xuất đáp án/chấm điểm.`}
+                ? 'With 4/4 correct below 100%, the configured total score for Part II cannot be fully reached.'
+                : 'Nếu mức đúng 4/4 thấp hơn 100%, thí sinh sẽ không thể đạt đủ tổng điểm tối đa của Phần II.'}
             </p>
           )}
         </div>
@@ -854,7 +899,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
           <button
             type="button"
             onClick={lockBlueprint}
-            disabled={!allocationReady || !tfScaleOrdered}
+            disabled={!allocationReady || !tfScaleOrdered || !tfScaleWithinPercent}
             className="w-full rounded-xl bg-sky-600 px-4 py-3 font-bold text-white shadow-sm transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700"
           >
             {isEnglish ? 'Lock blueprint & preview exam structure' : 'Khóa ma trận & xem cấu trúc đề'}
