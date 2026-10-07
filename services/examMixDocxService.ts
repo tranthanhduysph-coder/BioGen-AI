@@ -4,6 +4,7 @@ import {
   Packer,
   Paragraph,
   TextRun,
+  TabStopType,
 } from 'docx';
 import saveAs from 'file-saver';
 import type { ExamBlueprint } from '../types/examBlueprint';
@@ -26,15 +27,25 @@ const baseRun = (
 
 const paragraph = (
   children: TextRun[],
-  options: { before?: number; after?: number; alignment?: (typeof AlignmentType)[keyof typeof AlignmentType] } = {},
+  options: {
+    before?: number;
+    after?: number;
+    alignment?: (typeof AlignmentType)[keyof typeof AlignmentType];
+    tabStops?: number[];
+    line?: number;
+  } = {},
 ) =>
   new Paragraph({
     children,
     alignment: options.alignment,
+    tabStops: options.tabStops?.map((position) => ({
+      type: TabStopType.LEFT,
+      position,
+    })),
     spacing: {
       before: options.before ?? 0,
       after: options.after ?? 0,
-      line: 240,
+      line: options.line ?? 240,
     },
   });
 
@@ -89,6 +100,10 @@ const optionRuns = (
   baseRun(text),
 ];
 
+const TAB_4 = [283, 2906, 5528, 8150];
+const TAB_2 = [283, 5528];
+const TAB_1 = [283];
+
 const mcqOptionParagraphs = (item: GeneratedExamItem) => {
   const labels = ['A', 'B', 'C', 'D'];
   const correct = mcqCorrectLetter(item.question.answer);
@@ -104,7 +119,7 @@ const mcqOptionParagraphs = (item: GeneratedExamItem) => {
     options.forEach((option, index) => {
       runs.push(...optionRuns(option.label, option.text, correct === option.label, index === 0 ? '' : '\t'));
     });
-    return [paragraph(runs, { after: 0 })];
+    return [paragraph(runs, { after: 0, tabStops: TAB_4 })];
   }
 
   if (longest <= 58) {
@@ -112,16 +127,19 @@ const mcqOptionParagraphs = (item: GeneratedExamItem) => {
       paragraph([
         ...optionRuns('A', options[0].text, correct === 'A'),
         ...optionRuns('B', options[1].text, correct === 'B', '\t'),
-      ]),
+      ], { tabStops: TAB_2 }),
       paragraph([
         ...optionRuns('C', options[2].text, correct === 'C'),
         ...optionRuns('D', options[3].text, correct === 'D', '\t'),
-      ]),
+      ], { tabStops: TAB_2 }),
     ];
   }
 
   return options.map((option) =>
-    paragraph(optionRuns(option.label, option.text, correct === option.label)),
+    paragraph(
+      optionRuns(option.label, option.text, correct === option.label),
+      { tabStops: TAB_1 },
+    ),
   );
 };
 
@@ -178,7 +196,7 @@ const buildMixReadyExamChildren = (items: GeneratedExamItem[]) => {
             baseRun(letter, { bold: true, underline: trueLetters.has(letter) }),
             baseRun(') ', { bold: true }),
             baseRun(text),
-          ]),
+          ], { tabStops: TAB_1 }),
         );
       });
     });
