@@ -27,6 +27,10 @@ import {
   loadExamReviewDraft,
   saveExamReviewDraft,
 } from '../../services/examDraftService';
+import {
+  getExamBackendHealth,
+  type ExamBackendHealth,
+} from '../../services/examBackendService';
 
 const STORAGE_KEY = 'biogen_exam_blueprint_v1';
 
@@ -139,6 +143,8 @@ export const ExamBlueprintBuilder: React.FC = () => {
   const [lockedQuestionIds, setLockedQuestionIds] = useState<string[]>([]);
   const [editingSlotId, setEditingSlotId] = useState<string | null>(null);
   const [generationSource, setGenerationSource] = useState<'ai' | 'mock' | null>(null);
+  const [backendHealth, setBackendHealth] = useState<ExamBackendHealth | null>(null);
+  const [isCheckingBackend, setIsCheckingBackend] = useState(false);
   const isBlueprintPreview = window.location.hostname === 'biogenai-blueprint-preview.onrender.com';
 
   useEffect(() => {
@@ -179,6 +185,17 @@ export const ExamBlueprintBuilder: React.FC = () => {
     lockedQuestionIds,
     generationSource,
   ]);
+
+  const refreshBackendHealth = async () => {
+    setIsCheckingBackend(true);
+    const health = await getExamBackendHealth();
+    setBackendHealth(health);
+    setIsCheckingBackend(false);
+  };
+
+  useEffect(() => {
+    refreshBackendHealth();
+  }, []);
 
   const updateScorePart = (
     part: ExamPartKey,
@@ -1144,6 +1161,43 @@ export const ExamBlueprintBuilder: React.FC = () => {
                     </div>
                   ))}
                 </div>
+              </div>
+            </div>
+
+            <div className="mt-3 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <span className={`rounded-full px-2.5 py-1 font-bold ${
+                    backendHealth
+                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+                      : 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300'
+                  }`}>
+                    {backendHealth
+                      ? (isEnglish ? 'Backend online' : 'Backend online')
+                      : (isEnglish ? 'Backend unavailable' : 'Backend chưa kết nối')}
+                  </span>
+                  {backendHealth && (
+                    <span className={`rounded-full px-2.5 py-1 font-bold ${
+                      backendHealth.aiConfigured
+                        ? 'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300'
+                        : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
+                    }`}>
+                      {backendHealth.aiConfigured
+                        ? `AI: ${backendHealth.model}`
+                        : (isEnglish ? 'AI key not configured' : 'Chưa cấu hình AI key')}
+                    </span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={refreshBackendHealth}
+                  disabled={isCheckingBackend}
+                  className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-bold text-slate-500 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                >
+                  {isCheckingBackend
+                    ? (isEnglish ? 'Checking…' : 'Đang kiểm tra…')
+                    : (isEnglish ? 'Check again' : 'Kiểm tra lại')}
+                </button>
               </div>
             </div>
 
