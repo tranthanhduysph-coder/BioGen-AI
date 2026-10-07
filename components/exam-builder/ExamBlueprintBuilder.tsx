@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BIOLOGY_10_CONTENTS,
   BIOLOGY_10_OUTCOMES,
@@ -22,6 +22,11 @@ import { getTrueFalseEarnedScore } from '../../services/examScoringService';
 import { generateMockExamFromSlots } from '../../services/examMockService';
 import { exportMixReadyExamDocx } from '../../services/examMixDocxService';
 import { validateMixReadyExam } from '../../services/examMixValidationService';
+import {
+  clearExamReviewDraft,
+  loadExamReviewDraft,
+  saveExamReviewDraft,
+} from '../../services/examDraftService';
 
 const STORAGE_KEY = 'biogen_exam_blueprint_v1';
 
@@ -118,6 +123,9 @@ export const ExamBlueprintBuilder: React.FC = () => {
     }
   });
 
+  const initialBlueprintEffect = useRef(true);
+  const [recoverableDraft, setRecoverableDraft] = useState(() => loadExamReviewDraft(blueprint));
+
   const [lockedSlots, setLockedSlots] = useState<ExamSlotPackage | null>(null);
   const [slotIssues, setSlotIssues] = useState<string[]>([]);
   const [generatedItems, setGeneratedItems] = useState<GeneratedExamItem[]>([]);
@@ -134,6 +142,14 @@ export const ExamBlueprintBuilder: React.FC = () => {
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(blueprint));
+
+    if (initialBlueprintEffect.current) {
+      initialBlueprintEffect.current = false;
+      return;
+    }
+
+    clearExamReviewDraft();
+    setRecoverableDraft(null);
     setLockedSlots(null);
     setSlotIssues([]);
     setGeneratedItems([]);
@@ -144,6 +160,24 @@ export const ExamBlueprintBuilder: React.FC = () => {
     setEditingSlotId(null);
     setGenerationSource(null);
   }, [blueprint]);
+
+  useEffect(() => {
+    if (generatedItems.length === 0) return;
+
+    saveExamReviewDraft(
+      blueprint,
+      generatedItems,
+      approvedSlotIds,
+      lockedQuestionIds,
+      generationSource,
+    );
+  }, [
+    blueprint,
+    generatedItems,
+    approvedSlotIds,
+    lockedQuestionIds,
+    generationSource,
+  ]);
 
   const updateScorePart = (
     part: ExamPartKey,
@@ -261,6 +295,15 @@ export const ExamBlueprintBuilder: React.FC = () => {
     () => validateMixReadyExam(generatedItems),
     [generatedItems],
   );
+
+  const allQuestionsApproved =
+    generatedItems.length > 0 &&
+    approvedSlotIds.length === generatedItems.length;
+
+  const mixerExportReady =
+    generatedItems.length > 0 &&
+    mixValidation.valid &&
+    allQuestionsApproved;
 
   const totalScore =
     blueprint.scores.mcq.totalScore +
@@ -484,12 +527,54 @@ export const ExamBlueprintBuilder: React.FC = () => {
     setApprovedSlotIds((current) => current.filter((id) => id !== slotId));
   };
 
+  const restoreReviewDraft = () => {
+    if (!recoverableDraft) return;
+
+    const slots = buildExamSlots(blueprint);
+    const validation = validateExamSlots(blueprint, slots);
+    if (!validation.valid) {
+      setSlotIssues(validation.issues);
+      setRecoverableDraft(null);
+      clearExamReviewDraft();
+      return;
+    }
+
+    setLockedSlots(slots);
+    setGeneratedItems(recoverableDraft.generatedItems);
+    setApprovedSlotIds(recoverableDraft.approvedSlotIds);
+    setLockedQuestionIds(recoverableDraft.lockedQuestionIds);
+    setGenerationSource(recoverableDraft.generationSource);
+    setGenerationError(null);
+    setSlotIssues([]);
+    setRecoverableDraft(null);
+  };
+
+  const discardReviewDraft = () => {
+    clearExamReviewDraft();
+    setRecoverableDraft(null);
+  };
+
+  const approveAllQuestions = () => {
+    setApprovedSlotIds(generatedItems.map((item) => item.slotId));
+  };
+
+  const lockAllApprovedQuestions = () => {
+    setLockedQuestionIds((current) =>
+      Array.from(new Set([...current, ...approvedSlotIds])),
+    );
+    setEditingSlotId(null);
+  };
+
+  const unlockAllQuestions = () => {
+    setLockedQuestionIds([]);
+  };
+
   const handleExportMixDocx = async () => {
-    if (!mixValidation.valid) {
+    if (!mixerExportReady) {
       setGenerationError(
         isEnglish
-          ? 'Fix mixer-format issues before exporting the DOCX.'
-          : 'Hãy sửa các lỗi tương thích trộn đề trước khi xuất DOCX.',
+          ? 'Approve every question and fix mixer-format issues before exporting the DOCX.'
+          : 'Hãy duyệt toàn bộ câu hỏi và sửa hết lỗi format trước khi xuất đề DOCX để trộn.',
       );
       return;
     }
@@ -977,6 +1062,39 @@ export const ExamBlueprintBuilder: React.FC = () => {
           </div>
         )}
 
+        {recoverableDraft && !lockedSlots && (
+          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/60 dark:bg-amber-950/20">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <strong className="text-sm text-amber-800 dark:text-amber-200">
+                  {isEnglish ? 'Saved review draft found' : 'Có bản nháp duyệt đề đã lưu'}
+                </strong>
+                <p className="mt-1 text-xs text-amber-700/80 dark:text-amber-300/80">
+                  {isEnglish
+                    ? 'Restore the generated/edited questions and their approval/lock status.'
+                    : 'Có thể khôi phục câu đã tạo/đã sửa cùng trạng thái duyệt và khóa trước khi refresh.'}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={restoreReviewDraft}
+                  className="rounded-lg bg-amber-600 px-3 py-2 text-xs font-bold text-white hover:bg-amber-700"
+                >
+                  {isEnglish ? 'Restore draft' : 'Khôi phục bản nháp'}
+                </button>
+                <button
+                  type="button"
+                  onClick={discardReviewDraft}
+                  className="rounded-lg border border-amber-300 bg-white px-3 py-2 text-xs font-bold text-amber-700 hover:bg-amber-100 dark:bg-slate-900 dark:text-amber-300"
+                >
+                  {isEnglish ? 'Discard' : 'Bỏ bản nháp'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {lockedSlots && (
           <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 dark:border-emerald-900/60 dark:bg-emerald-950/20">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -1130,6 +1248,33 @@ export const ExamBlueprintBuilder: React.FC = () => {
                   </div>
                 </div>
 
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={approveAllQuestions}
+                    disabled={generatedItems.length === 0 || allQuestionsApproved}
+                    className="rounded-lg border border-emerald-200 px-3 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-emerald-800 dark:text-emerald-300 dark:hover:bg-emerald-950/30"
+                  >
+                    ✓ {isEnglish ? 'Approve all' : 'Duyệt tất cả'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={lockAllApprovedQuestions}
+                    disabled={approvedSlotIds.length === 0}
+                    className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                  >
+                    🔒 {isEnglish ? 'Lock approved' : 'Khóa các câu đã duyệt'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={unlockAllQuestions}
+                    disabled={lockedQuestionIds.length === 0}
+                    className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+                  >
+                    🔓 {isEnglish ? 'Unlock all' : 'Mở khóa tất cả'}
+                  </button>
+                </div>
+
                 <div className="rounded-xl border border-sky-100 bg-sky-50/70 p-3 dark:border-sky-900/50 dark:bg-sky-950/20">
                   <p className="text-xs leading-relaxed text-sky-800 dark:text-sky-200">
                     {isEnglish
@@ -1139,19 +1284,26 @@ export const ExamBlueprintBuilder: React.FC = () => {
                 </div>
 
                 <div className={`rounded-xl border px-4 py-3 text-sm ${
-                  mixValidation.valid
+                  mixerExportReady
                     ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-200'
-                    : 'border-red-200 bg-red-50 text-red-800 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-200'
+                    : 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200'
                 }`}>
-                  {mixValidation.valid ? (
-                    <strong>✓ {isEnglish ? 'Mixer DOCX format is valid.' : 'Đề đã đạt điều kiện format để trộn.'}</strong>
+                  {mixerExportReady ? (
+                    <strong>✓ {isEnglish ? 'Exam is ready for mixer DOCX export.' : 'Đề đã sẵn sàng xuất DOCX để trộn.'}</strong>
                   ) : (
                     <>
                       <strong className="block mb-1">
-                        {isEnglish ? 'Mixer format issues:' : 'Lỗi format trộn đề:'}
+                        {isEnglish ? 'Before mixer export:' : 'Trước khi xuất đề trộn:'}
                       </strong>
                       <ul className="list-disc space-y-1 pl-5 text-xs">
-                        {mixValidation.issues.map((issue, index) => (
+                        {!allQuestionsApproved && (
+                          <li>
+                            {isEnglish
+                              ? `Approve all questions (${approvedSlotIds.length}/${generatedItems.length} approved).`
+                              : `Duyệt đủ tất cả câu (${approvedSlotIds.length}/${generatedItems.length} đã duyệt).`}
+                          </li>
+                        )}
+                        {!mixValidation.valid && mixValidation.issues.map((issue, index) => (
                           <li key={`${issue.slotId}-${index}`}>
                             {isEnglish ? 'Question' : 'Câu'} {issue.order} · {issue.message}
                           </li>
@@ -1165,7 +1317,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleExportMixDocx}
-                    disabled={isExportingDocx || !mixValidation.valid}
+                    disabled={isExportingDocx || !mixerExportReady}
                     className="w-full rounded-xl bg-sky-700 px-4 py-3 font-bold text-white shadow-sm transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {isExportingDocx
