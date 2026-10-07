@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { GoogleGenAI } from '@google/genai';
 import { CriteriaSelector } from './components/CriteriaSelector';
 import { QuestionList } from './components/QuestionList';
 import { Header } from './components/Header';
@@ -12,8 +11,7 @@ import { DonateModal } from './components/DonateModal';
 import { Footer } from './components/Footer';
 import { BannerAd } from './components/BannerAd';
 import type { Criteria, GeneratedQuestion } from './types';
-import { generatePrompt } from './services/geminiService';
-import { simulateExam } from './services/examSimulationService';
+import { generateManualQuestions } from './services/manualGenerationService';
 import { auth, isConfigured } from './firebaseConfig';
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { LoginScreen } from './components/LoginScreen';
@@ -99,68 +97,24 @@ const App: React.FC = () => {
     setIsLoading(true);
     setError(null);
     setHasGenerated(true);
-    setGeneratedQuestions([]); 
+    setGeneratedQuestions([]);
     setIsQuizMode(false);
 
     try {
-      if (!process.env.API_KEY) throw new Error("API_KEY missing.");
-      
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      
-      const promises = criteriaList.map(async (criteria) => {
-        const prompt = generatePrompt(criteria, i18n.language);
-        const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: prompt,
-          config: { responseMimeType: "application/json" },
-        });
+      const allQuestions = await generateManualQuestions(criteriaList, i18n.language);
 
-        const jsonText = response.text?.replace(/```json|```/g, '').trim();
-        if (!jsonText) return [];
-        const questions = JSON.parse(jsonText) as GeneratedQuestion[];
-        if (!Array.isArray(questions)) return [];
-        return questions.map(q => ({ ...q, criteria }));
-      });
+      if (allQuestions.length === 0) {
+        throw new Error(t('results.no_data'));
+      }
 
-      const results = await Promise.all(promises);
-      const allQuestions = results.flat();
-      if (allQuestions.length === 0) throw new Error(t('results.no_data'));
-      
       setGeneratedQuestions(allQuestions);
       incrementUsage();
-
     } catch (err: any) {
-      console.error("Error:", err);
+      console.error('Generation error:', err);
       setError(err.message || t('error.title'));
     } finally {
       setIsLoading(false);
     }
-  }, [i18n.language, t, usageCount]);
-
-  const handleSimulateExam = useCallback(async (userPrompt: string = "") => {
-      setIsLoading(true);
-      setError(null);
-      setHasGenerated(true);
-      setGeneratedQuestions([]);
-      setIsQuizMode(false);
-
-      try {
-        if (!process.env.API_KEY) throw new Error("API_KEY missing.");
-        
-        const langInstruction = i18n.language === 'en' ? " (English)" : "";
-        const allQuestions = await simulateExam(process.env.API_KEY, userPrompt + langInstruction);
-        
-        if (allQuestions.length === 0) throw new Error("Simulation failed.");
-        
-        setGeneratedQuestions(allQuestions);
-        incrementUsage();
-
-      } catch (err: any) {
-          console.error("Simulation Error:", err);
-          setError(err.message || "Error simulating exam.");
-      } finally {
-          setIsLoading(false);
-      }
   }, [i18n.language, t, usageCount]);
 
   if (isAuthLoading) return <LoadingSpinner />;
@@ -192,7 +146,6 @@ const App: React.FC = () => {
                     <CriteriaSelector 
                         onGenerate={handleGenerate} 
                         isLoading={isLoading} 
-                        onSimulate={handleSimulateExam} 
                     />
                 </div>
             )}
