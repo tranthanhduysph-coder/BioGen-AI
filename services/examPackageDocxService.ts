@@ -16,6 +16,7 @@ import saveAs from 'file-saver';
 import type { ExamBlueprint } from '../types/examBlueprint';
 import type { GeneratedExamItem } from '../types/generatedExam';
 import { BIOLOGY_10_OUTCOMES } from '../data/biologySpecification';
+import { getTrueFalseMaxScorePerQuestion, getTrueFalseScoreRows } from './examScoringService';
 
 const A4 = { width: 11906, height: 16838 };
 const CM = 567;
@@ -129,7 +130,11 @@ const createSetupTable = (blueprint: ExamBlueprint) => {
 };
 
 const createTfScoreTable = (blueprint: ExamBlueprint) => {
-  const tf = blueprint.scores.tf.scoreLevels;
+  const rows = getTrueFalseScoreRows(blueprint);
+  const maxPerQuestion = getTrueFalseMaxScorePerQuestion(blueprint);
+  const formatScore = (value: number) =>
+    value.toFixed(3).replace(/0+$/, '').replace(/\.$/, '').replace('.', ',');
+
   return new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     borders,
@@ -145,11 +150,14 @@ const createTfScoreTable = (blueprint: ExamBlueprint) => {
       }),
       new TableRow({
         children: [
-          cell('Điểm', { bold: true }),
-          cell(String(tf.correct1)),
-          cell(String(tf.correct2)),
-          cell(String(tf.correct3)),
-          cell(String(tf.correct4)),
+          cell('Tỷ lệ điểm của câu', { bold: true }),
+          ...rows.map((row) => cell(`${row.percentage}%`)),
+        ],
+      }),
+      new TableRow({
+        children: [
+          cell(`Điểm thực nhận (câu tối đa ${formatScore(maxPerQuestion)} điểm)`, { bold: true }),
+          ...rows.map((row) => cell(formatScore(row.score))),
         ],
       }),
     ],
