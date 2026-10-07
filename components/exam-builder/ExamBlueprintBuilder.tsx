@@ -15,8 +15,8 @@ import {
 import { useTranslation } from 'react-i18next';
 import { buildExamSlots, validateExamSlots } from '../../services/examBlueprintService';
 import type { ExamSlotPackage } from '../../types/examSlots';
-import { generateExamFromSlots, generateExamItem } from '../../services/examGenerationService';
-import type { GeneratedExamItem } from '../../types/generatedExam';
+import { generateExamFromSlots, generateExamItem, generateExamItems } from '../../services/examGenerationService';
+import type { GeneratedExamItem, GenerationFailure } from '../../types/generatedExam';
 import { exportExamPackageDocx } from '../../services/examPackageDocxService';
 import { getTrueFalseEarnedScore } from '../../services/examScoringService';
 import { generateMockExamFromSlots } from '../../services/examMockService';
@@ -137,6 +137,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
   const [isGeneratingExam, setIsGeneratingExam] = useState(false);
   const [generationProgress, setGenerationProgress] = useState({ completed: 0, total: 0 });
   const [generationError, setGenerationError] = useState<string | null>(null);
+  const [generationFailures, setGenerationFailures] = useState<GenerationFailure[]>([]);
   const [regeneratingSlotId, setRegeneratingSlotId] = useState<string | null>(null);
   const [isExportingDocx, setIsExportingDocx] = useState(false);
   const [approvedSlotIds, setApprovedSlotIds] = useState<string[]>([]);
@@ -161,6 +162,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
     setSlotIssues([]);
     setGeneratedItems([]);
     setGenerationError(null);
+    setGenerationFailures([]);
     setGenerationProgress({ completed: 0, total: 0 });
     setApprovedSlotIds([]);
     setLockedQuestionIds([]);
@@ -322,12 +324,21 @@ export const ExamBlueprintBuilder: React.FC = () => {
     [generatedItems],
   );
 
+  const expectedGeneratedCount =
+    blueprint.scores.mcq.questionCount +
+    blueprint.scores.tf.questionCount +
+    blueprint.scores.short.questionCount;
+
+  const allQuestionsGenerated =
+    expectedGeneratedCount > 0 &&
+    generatedItems.length === expectedGeneratedCount;
+
   const allQuestionsApproved =
-    generatedItems.length > 0 &&
-    approvedSlotIds.length === generatedItems.length;
+    allQuestionsGenerated &&
+    approvedSlotIds.length === expectedGeneratedCount;
 
   const mixerExportReady =
-    generatedItems.length > 0 &&
+    allQuestionsGenerated &&
     mixValidation.valid &&
     allQuestionsApproved;
 
@@ -398,11 +409,25 @@ export const ExamBlueprintBuilder: React.FC = () => {
     setEditingSlotId(null);
     setGenerationSource(null);
     setGenerationError(null);
+    setGenerationFailures([]);
     if (validation.valid) {
       setLockedSlots(slots);
     } else {
       setLockedSlots(null);
     }
+  };
+
+  const mergeGeneratedItem = (item: GeneratedExamItem) => {
+    setGeneratedItems((current) => {
+      const next = current.filter((candidate) => candidate.slotId !== item.slotId);
+      next.push(item);
+      const partOrder = { mcq: 0, tf: 1, short: 2 } as const;
+      next.sort((a, b) => {
+        const partDiff = partOrder[a.part] - partOrder[b.part];
+        return partDiff !== 0 ? partDiff : a.order - b.order;
+      });
+      return next;
+    });
   };
 
   const handleGenerateExam = async () => {
@@ -412,6 +437,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
     setRecoverableDraft(null);
     setIsGeneratingExam(true);
     setGeneratedItems([]);
+    setGenerationFailures([]);
     setApprovedSlotIds([]);
     setLockedQuestionIds([]);
     setEditingSlotId(null);
@@ -421,16 +447,75 @@ export const ExamBlueprintBuilder: React.FC = () => {
     setGenerationProgress({ completed: 0, total });
 
     try {
-      const items = await generateExamFromSlots(
+      const result = await generateExamFromSlots(
         lockedSlots,
         i18n.language,
         setGenerationProgress,
+        mergeGeneratedItem,
       );
-      setGeneratedItems(items);
+      setGeneratedItems(result.items);
+      setGenerationFailures(result.failures);
       setGenerationSource('ai');
+
+      if (result.failures.length > 0) {
+        setGenerationError(
+          isEnglish
+            ? `${result.failures.length} question(s) were not generated. Keep the successful questions and retry only the missing ones.`
+            : `Có ${result.failures.length} câu chưa tạo được. Các câu thành công đã được giữ lại; chỉ cần tạo lại các câu còn thiếu.`,
+        );
+      }
     } catch (error: any) {
       console.error('Exam generation error:', error);
       setGenerationError(error?.message || (isEnglish ? 'Exam generation failed.' : 'Không thể tạo đề.'));
+    } finally {
+      setIsGeneratingExam(false);
+    }
+  };
+
+  const handleGenerateMissingItems = async () => {
+    if (!lockedSlots || isGeneratingExam) return;
+
+    const allSlots = [
+      ...lockedSlots.mcq,
+      ...lockedSlots.tf,
+      ...lockedSlots.short,
+    ];
+    const generatedIds = new Set(generatedItems.map((item) => item.slotId));
+    const missingSlots = allSlots.filter((slot) => !generatedIds.has(slot.id));
+
+    if (missingSlots.length === 0) {
+      setGenerationFailures([]);
+      return;
+    }
+
+    setIsGeneratingExam(true);
+    setGenerationError(null);
+    setGenerationFailures([]);
+    setGenerationProgress({ completed: 0, total: missingSlots.length });
+
+    try {
+      const result = await generateExamItems(
+        missingSlots,
+        i18n.language,
+        setGenerationProgress,
+        mergeGeneratedItem,
+      );
+      setGenerationFailures(result.failures);
+      setGenerationSource('ai');
+
+      if (result.failures.length > 0) {
+        setGenerationError(
+          isEnglish
+            ? `${result.failures.length} question(s) are still missing. You can retry again later.`
+            : `Vẫn còn ${result.failures.length} câu chưa tạo được. Có thể thử lại riêng các câu này sau.`,
+        );
+      }
+    } catch (error: any) {
+      console.error('Missing-question generation error:', error);
+      setGenerationError(
+        error?.message ||
+          (isEnglish ? 'Could not generate the missing questions.' : 'Không thể tạo các câu còn thiếu.'),
+      );
     } finally {
       setIsGeneratingExam(false);
     }
@@ -446,6 +531,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
     setLockedQuestionIds([]);
     setEditingSlotId(null);
     setGenerationError(null);
+    setGenerationFailures([]);
     setGenerationSource('mock');
   };
 
@@ -480,6 +566,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
       );
       setApprovedSlotIds((current) => current.filter((id) => id !== item.slotId));
       setEditingSlotId(null);
+      setGenerationFailures((current) => current.filter((failure) => failure.slotId !== item.slotId));
     } catch (error: any) {
       console.error('Regenerate question error:', error);
       setGenerationError(error?.message || (isEnglish ? 'Could not regenerate this question.' : 'Không thể tạo lại câu này.'));
@@ -555,6 +642,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
     setLockedQuestionIds(recoverableDraft.lockedQuestionIds);
     setGenerationSource(recoverableDraft.generationSource);
     setGenerationError(null);
+    setGenerationFailures([]);
     setSlotIssues([]);
     setRecoverableDraft(null);
   };
