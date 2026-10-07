@@ -8,19 +8,14 @@ from typing import Any, Literal
 
 from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token as google_id_token
 from pydantic import BaseModel, Field
 
 try:
     from google import genai
 except Exception:
     genai = None
-
-try:
-    import firebase_admin
-    from firebase_admin import auth as firebase_auth
-except Exception:
-    firebase_admin = None
-    firebase_auth = None
 
 APP_ENV = os.getenv('APP_ENV', 'development')
 FIREBASE_PROJECT_ID = os.getenv('FIREBASE_PROJECT_ID', 'biogen-ai').strip()
@@ -51,18 +46,9 @@ app.add_middleware(
     allow_headers=['Content-Type', 'Authorization'],
 )
 
-if firebase_admin is not None:
-    try:
-        if not firebase_admin._apps:
-            firebase_admin.initialize_app(options={'projectId': FIREBASE_PROJECT_ID})
-    except Exception:
-        firebase_admin = None
-        firebase_auth = None
+_firebase_request = google_requests.Request()
 
 def require_firebase_user(authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    if firebase_auth is None:
-        raise HTTPException(status_code=503, detail='Firebase token verification is unavailable.')
-
     if not authorization or not authorization.lower().startswith('bearer '):
         raise HTTPException(status_code=401, detail='Firebase ID token is required.')
 
@@ -71,14 +57,19 @@ def require_firebase_user(authorization: str | None = Header(default=None)) -> d
         raise HTTPException(status_code=401, detail='Firebase ID token is required.')
 
     try:
-        decoded = firebase_auth.verify_id_token(token, check_revoked=False)
+        decoded = google_id_token.verify_firebase_token(
+            token,
+            _firebase_request,
+            audience=FIREBASE_PROJECT_ID,
+        )
     except Exception:
         raise HTTPException(status_code=401, detail='Invalid or expired Firebase ID token.')
 
-    if decoded.get('aud') != FIREBASE_PROJECT_ID:
+    expected_issuer = f'https://securetoken.google.com/{FIREBASE_PROJECT_ID}'
+    if decoded.get('aud') != FIREBASE_PROJECT_ID or decoded.get('iss') != expected_issuer:
         raise HTTPException(status_code=401, detail='Firebase token project mismatch.')
 
-    return decoded
+    return dict(decoded)
 
 _usage_lock = threading.Lock()
 _usage_by_uid: dict[str, deque[float]] = defaultdict(deque)
