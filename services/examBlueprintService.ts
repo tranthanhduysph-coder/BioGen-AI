@@ -93,25 +93,34 @@ const groupTrueFalseQuestions = (blueprint: ExamBlueprint): TrueFalseQuestionSlo
   );
 
   const questions: TrueFalseQuestionSlot[] = [];
+  const byContent = new Map<string, TrueFalseStatementSlot[]>();
 
-  for (let offset = 0; offset < statements.length; offset += 4) {
-    const group = statements.slice(offset, offset + 4).map((statement, index) => ({
-      ...statement,
-      statementOrder: (index + 1) as 1 | 2 | 3 | 4,
-    }));
+  statements.forEach((statement) => {
+    const current = byContent.get(statement.contentId) || [];
+    current.push(statement);
+    byContent.set(statement.contentId, current);
+  });
 
-    if (group.length < 4) break;
+  byContent.forEach((contentStatements) => {
+    for (let offset = 0; offset < contentStatements.length; offset += 4) {
+      const group = contentStatements.slice(offset, offset + 4).map((statement, index) => ({
+        ...statement,
+        statementOrder: (index + 1) as 1 | 2 | 3 | 4,
+      }));
 
-    const order = questions.length + 1;
-    questions.push({
-      id: `tf-q${String(order).padStart(2, '0')}`,
-      part: 'tf',
-      order,
-      maxScore: score,
-      statements: group,
-      scoring: { ...blueprint.scores.tf.scoreLevels },
-    });
-  }
+      if (group.length < 4) continue;
+
+      const order = questions.length + 1;
+      questions.push({
+        id: `tf-q${String(order).padStart(2, '0')}`,
+        part: 'tf',
+        order,
+        maxScore: score,
+        statements: group,
+        scoring: { ...blueprint.scores.tf.scoreLevels },
+      });
+    }
+  });
 
   return questions;
 };
@@ -146,6 +155,22 @@ export const validateExamSlots = (blueprint: ExamBlueprint, slots: ExamSlotPacka
   slots.tf.forEach((question) => {
     if (question.statements.length !== 4) {
       issues.push(`Phần II câu ${question.order}: chưa đủ 4 ý.`);
+    }
+  });
+
+  const tfByContent = new Map<string, number>();
+  blueprint.rows.forEach((row) => {
+    const count = row.allocations.tf.know + row.allocations.tf.understand + row.allocations.tf.apply;
+    if (count > 0) {
+      tfByContent.set(row.contentId, (tfByContent.get(row.contentId) || 0) + count);
+    }
+  });
+  tfByContent.forEach((count, contentId) => {
+    if (count % 4 !== 0) {
+      const outcome = BIOLOGY_10_OUTCOMES.find((item) => item.contentId === contentId);
+      issues.push(
+        `Phần II: "${outcome?.contentLabel || contentId}" có ${count} ý, cần chia hết cho 4 để tạo câu Đúng/Sai.`,
+      );
     }
   });
 
