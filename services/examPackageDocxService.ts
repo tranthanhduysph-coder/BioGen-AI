@@ -14,7 +14,8 @@ import {
 } from 'docx';
 import saveAs from 'file-saver';
 import type { ExamBlueprint } from '../types/examBlueprint';
-import type { GeneratedExamItem } from '../types/generatedExam';\nimport { BIOLOGY_10_OUTCOMES } from '../data/biologySpecification';
+import type { GeneratedExamItem } from '../types/generatedExam';
+import { BIOLOGY_10_OUTCOMES } from '../data/biologySpecification';
 
 const A4 = { width: 11906, height: 16838 };
 const CM = 567;
