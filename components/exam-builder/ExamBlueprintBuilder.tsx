@@ -15,6 +15,8 @@ import {
 import { useTranslation } from 'react-i18next';
 import { buildExamSlots, validateExamSlots } from '../../services/examBlueprintService';
 import type { ExamSlotPackage } from '../../types/examSlots';
+import { generateExamFromSlots, generateExamItem } from '../../services/examGenerationService';
+import type { GeneratedExamItem } from '../../types/generatedExam';
 
 const STORAGE_KEY = 'biogen_exam_blueprint_v1';
 
@@ -96,11 +98,19 @@ export const ExamBlueprintBuilder: React.FC = () => {
 
   const [lockedSlots, setLockedSlots] = useState<ExamSlotPackage | null>(null);
   const [slotIssues, setSlotIssues] = useState<string[]>([]);
+  const [generatedItems, setGeneratedItems] = useState<GeneratedExamItem[]>([]);
+  const [isGeneratingExam, setIsGeneratingExam] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState({ completed: 0, total: 0 });
+  const [generationError, setGenerationError] = useState<string | null>(null);
+  const [regeneratingSlotId, setRegeneratingSlotId] = useState<string | null>(null);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(blueprint));
     setLockedSlots(null);
     setSlotIssues([]);
+    setGeneratedItems([]);
+    setGenerationError(null);
+    setGenerationProgress({ completed: 0, total: 0 });
   }, [blueprint]);
 
   const updateScorePart = (
@@ -271,11 +281,92 @@ export const ExamBlueprintBuilder: React.FC = () => {
     const slots = buildExamSlots(blueprint);
     const validation = validateExamSlots(blueprint, slots);
     setSlotIssues(validation.issues);
+    setGeneratedItems([]);
+    setGenerationError(null);
     if (validation.valid) {
       setLockedSlots(slots);
     } else {
       setLockedSlots(null);
     }
+  };
+
+  const handleGenerateExam = async () => {
+    if (!lockedSlots) return;
+
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+      setGenerationError(
+        isEnglish
+          ? 'The preview site does not have an AI API key configured yet.'
+          : 'Bản preview chưa được cấu hình API key để gọi AI.',
+      );
+      return;
+    }
+
+    setIsGeneratingExam(true);
+    setGeneratedItems([]);
+    setGenerationError(null);
+    const total = lockedSlots.mcq.length + lockedSlots.tf.length + lockedSlots.short.length;
+    setGenerationProgress({ completed: 0, total });
+
+    try {
+      const items = await generateExamFromSlots(
+        apiKey,
+        lockedSlots,
+        i18n.language,
+        setGenerationProgress,
+      );
+      setGeneratedItems(items);
+    } catch (error: any) {
+      console.error('Exam generation error:', error);
+      setGenerationError(error?.message || (isEnglish ? 'Exam generation failed.' : 'Không thể tạo đề.'));
+    } finally {
+      setIsGeneratingExam(false);
+    }
+  };
+
+  const handleRegenerateItem = async (item: GeneratedExamItem) => {
+    if (!lockedSlots) return;
+
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+      setGenerationError(
+        isEnglish
+          ? 'The preview site does not have an AI API key configured yet.'
+          : 'Bản preview chưa được cấu hình API key để gọi AI.',
+      );
+      return;
+    }
+
+    const slot =
+      item.part === 'mcq'
+        ? lockedSlots.mcq.find((candidate) => candidate.id === item.slotId)
+        : item.part === 'tf'
+          ? lockedSlots.tf.find((candidate) => candidate.id === item.slotId)
+          : lockedSlots.short.find((candidate) => candidate.id === item.slotId);
+
+    if (!slot) return;
+
+    setRegeneratingSlotId(item.slotId);
+    setGenerationError(null);
+
+    try {
+      const replacement = await generateExamItem(apiKey, slot, i18n.language);
+      setGeneratedItems((current) =>
+        current.map((candidate) => candidate.slotId === item.slotId ? replacement : candidate),
+      );
+    } catch (error: any) {
+      console.error('Regenerate question error:', error);
+      setGenerationError(error?.message || (isEnglish ? 'Could not regenerate this question.' : 'Không thể tạo lại câu này.'));
+    } finally {
+      setRegeneratingSlotId(null);
+    }
+  };
+
+  const partTitle = (part: ExamPartKey) => {
+    if (part === 'mcq') return isEnglish ? 'Part I · Multiple choice' : 'PHẦN I · Trắc nghiệm nhiều lựa chọn';
+    if (part === 'tf') return isEnglish ? 'Part II · True/False' : 'PHẦN II · Trắc nghiệm Đúng/Sai';
+    return isEnglish ? 'Part III · Short response' : 'PHẦN III · Trả lời ngắn';
   };
 
   return (
@@ -756,12 +847,114 @@ export const ExamBlueprintBuilder: React.FC = () => {
 
             <button
               type="button"
-              disabled
-              className="mt-3 w-full cursor-not-allowed rounded-xl bg-slate-300 px-4 py-3 font-bold text-white dark:bg-slate-700"
-              title={isEnglish ? 'AI generation is the next isolated step.' : 'Nối AI sẽ là bước riêng tiếp theo.'}
+              onClick={handleGenerateExam}
+              disabled={isGeneratingExam}
+              className="mt-3 w-full rounded-xl bg-purple-600 px-4 py-3 font-bold text-white shadow-sm transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isEnglish ? 'Generate exam with AI — next step' : 'Tạo đề bằng AI — bước kế tiếp'}
+              {isGeneratingExam
+                ? (isEnglish
+                    ? `Generating ${generationProgress.completed}/${generationProgress.total}...`
+                    : `Đang tạo ${generationProgress.completed}/${generationProgress.total} câu...`)
+                : (isEnglish ? 'Generate exam with AI' : 'Tạo đề bằng AI')}
             </button>
+
+            {isGeneratingExam && generationProgress.total > 0 && (
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-purple-100 dark:bg-purple-950">
+                <div
+                  className="h-full bg-purple-600 transition-all"
+                  style={{ width: `${Math.round((generationProgress.completed / generationProgress.total) * 100)}%` }}
+                />
+              </div>
+            )}
+
+            {generationError && (
+              <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/20 dark:text-red-200">
+                {generationError}
+              </div>
+            )}
+
+            {generatedItems.length > 0 && (
+              <div className="mt-5 space-y-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h5 className="text-sm font-bold text-slate-800 dark:text-white">
+                      {isEnglish ? 'AI-generated exam review' : 'Duyệt đề AI đã tạo'}
+                    </h5>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {isEnglish
+                        ? 'Each question remains tied to its locked slot. Regenerate only the question that needs revision.'
+                        : 'Mỗi câu vẫn gắn với slot đã khóa. Chỉ tạo lại câu cần sửa, không sinh lại toàn bộ đề.'}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-extrabold text-purple-700 dark:bg-purple-950 dark:text-purple-300">
+                    {generatedItems.length} {isEnglish ? 'questions' : 'câu'}
+                  </span>
+                </div>
+
+                {(['mcq', 'tf', 'short'] as ExamPartKey[]).map((part) => {
+                  const partItems = generatedItems.filter((item) => item.part === part);
+                  if (partItems.length === 0) return null;
+
+                  return (
+                    <div key={part} className="space-y-3">
+                      <div className="border-b border-slate-200 pb-2 text-sm font-extrabold text-slate-700 dark:border-slate-700 dark:text-slate-200">
+                        {partTitle(part)}
+                      </div>
+
+                      {partItems.map((item) => (
+                        <article key={item.slotId} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="rounded-full bg-slate-900 px-2.5 py-1 text-[11px] font-bold text-white dark:bg-sky-800">
+                                Câu {item.order}
+                              </span>
+                              <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                                {item.slotId}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRegenerateItem(item)}
+                              disabled={regeneratingSlotId === item.slotId}
+                              className="rounded-lg border border-purple-200 px-2.5 py-1.5 text-xs font-bold text-purple-700 transition hover:bg-purple-50 disabled:opacity-50 dark:border-purple-800 dark:text-purple-300 dark:hover:bg-purple-950/30"
+                            >
+                              {regeneratingSlotId === item.slotId
+                                ? (isEnglish ? 'Regenerating…' : 'Đang tạo lại…')
+                                : (isEnglish ? '↻ Regenerate' : '↻ Tạo lại câu này')}
+                            </button>
+                          </div>
+
+                          <p className="text-sm font-semibold leading-relaxed text-slate-800 dark:text-slate-100">
+                            {item.question.question}
+                          </p>
+
+                          {item.question.options.length > 0 && (
+                            <div className="mt-3 space-y-1.5">
+                              {item.question.options.map((option, optionIndex) => (
+                                <div key={optionIndex} className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                                  {option}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          <div className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-200">
+                            <b>{isEnglish ? 'Answer:' : 'Đáp án:'}</b> {item.question.answer}
+                          </div>
+
+                          <details className="mt-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300">
+                            <summary className="cursor-pointer font-bold">
+                              {isEnglish ? 'Explanation' : 'Giải thích'}
+                            </summary>
+                            <p className="mt-2 leading-relaxed">{item.question.explanation}</p>
+                          </details>
+                        </article>
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
       </section>
