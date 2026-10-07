@@ -17,6 +17,7 @@ import { buildExamSlots, validateExamSlots } from '../../services/examBlueprintS
 import type { ExamSlotPackage } from '../../types/examSlots';
 import { generateExamFromSlots, generateExamItem } from '../../services/examGenerationService';
 import type { GeneratedExamItem } from '../../types/generatedExam';
+import { exportExamPackageDocx } from '../../services/examPackageDocxService';
 
 const STORAGE_KEY = 'biogen_exam_blueprint_v1';
 
@@ -103,6 +104,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
   const [generationProgress, setGenerationProgress] = useState({ completed: 0, total: 0 });
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [regeneratingSlotId, setRegeneratingSlotId] = useState<string | null>(null);
+  const [isExportingDocx, setIsExportingDocx] = useState(false);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(blueprint));
@@ -360,6 +362,22 @@ export const ExamBlueprintBuilder: React.FC = () => {
       setGenerationError(error?.message || (isEnglish ? 'Could not regenerate this question.' : 'Không thể tạo lại câu này.'));
     } finally {
       setRegeneratingSlotId(null);
+    }
+  };
+
+  const handleExportDocx = async (includeExam: boolean) => {
+    setIsExportingDocx(true);
+    try {
+      await exportExamPackageDocx(blueprint, includeExam ? generatedItems : []);
+    } catch (error) {
+      console.error('DOCX export error:', error);
+      setGenerationError(
+        isEnglish
+          ? 'Could not export the DOCX file.'
+          : 'Không thể xuất file DOCX.',
+      );
+    } finally {
+      setIsExportingDocx(false);
     }
   };
 
@@ -760,14 +778,27 @@ export const ExamBlueprintBuilder: React.FC = () => {
                 : 'Hãy phân bổ đến khi tổng các cột khớp số câu/lệnh hỏi đã thiết lập ở từng phần.')}
         </div>
 
-        <button
-          type="button"
-          onClick={lockBlueprint}
-          disabled={!allocationReady || !tfScaleOrdered}
-          className="mt-3 w-full rounded-xl bg-sky-600 px-4 py-3 font-bold text-white shadow-sm transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700"
-        >
-          {isEnglish ? 'Lock blueprint & preview exam structure' : 'Khóa ma trận & xem cấu trúc đề'}
-        </button>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={lockBlueprint}
+            disabled={!allocationReady || !tfScaleOrdered}
+            className="w-full rounded-xl bg-sky-600 px-4 py-3 font-bold text-white shadow-sm transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700"
+          >
+            {isEnglish ? 'Lock blueprint & preview exam structure' : 'Khóa ma trận & xem cấu trúc đề'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleExportDocx(false)}
+            disabled={blueprint.rows.length === 0 || isExportingDocx}
+            className="w-full rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 font-bold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-emerald-900/60 dark:bg-emerald-950/20 dark:text-emerald-300"
+          >
+            {isExportingDocx
+              ? (isEnglish ? 'Exporting…' : 'Đang xuất…')
+              : (isEnglish ? 'Download matrix + specification DOCX' : 'Tải ma trận + đặc tả DOCX')}
+          </button>
+        </div>
 
         {slotIssues.length > 0 && (
           <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/20 dark:text-red-200">
@@ -890,6 +921,17 @@ export const ExamBlueprintBuilder: React.FC = () => {
                     {generatedItems.length} {isEnglish ? 'questions' : 'câu'}
                   </span>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleExportDocx(true)}
+                  disabled={isExportingDocx}
+                  className="w-full rounded-xl bg-emerald-600 px-4 py-3 font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isExportingDocx
+                    ? (isEnglish ? 'Exporting DOCX…' : 'Đang xuất DOCX…')
+                    : (isEnglish ? 'Download full exam package DOCX' : 'Tải bộ đề đầy đủ DOCX')}
+                </button>
 
                 {(['mcq', 'tf', 'short'] as ExamPartKey[]).map((part) => {
                   const partItems = generatedItems.filter((item) => item.part === part);
