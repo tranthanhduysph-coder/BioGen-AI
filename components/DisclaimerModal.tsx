@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface DisclaimerModalProps {
   isOpen: boolean;
@@ -7,45 +7,75 @@ interface DisclaimerModalProps {
 }
 
 export const DisclaimerModal: React.FC<DisclaimerModalProps> = ({ isOpen, onClose }) => {
+  const { i18n } = useTranslation();
+  const isEnglish = i18n.language === 'en';
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden relative">
-        <button 
-            onClick={onClose}
-            className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
+      role="presentation"
+      onMouseDown={onClose}
+    >
+      <section
+        className="relative w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="biogen-terms-title"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-slate-50 text-2xl leading-none text-slate-500 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+          aria-label={isEnglish ? 'Close' : 'Đóng'}
         >
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          ×
         </button>
-        
-        <div className="p-6 md:p-8">
-            <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-4">
-                Cảnh báo & Miễn trừ Trách nhiệm
-            </h3>
-            
-            <div className="space-y-4 text-slate-600 dark:text-slate-300 text-sm md:text-base leading-relaxed">
-                <p>
-                    Nền tảng này sử dụng mô hình ngôn ngữ lớn (AI) để cung cấp các gợi ý và phản hồi. Các thông tin do AI tạo ra chỉ mang tính chất tham khảo, hỗ trợ học tập và không thể thay thế cho kiến thức chuyên môn, sự phán đoán của giảng viên hoặc các hướng dẫn học thuật chính thức.
-                </p>
-                <p>
-                    Người biên soạn (Trần Thanh Duy) không chịu trách nhiệm về bất kỳ sự sai lệch, thiếu sót, hoặc hậu quả nào phát sinh từ việc sử dụng các thông tin do AI cung cấp.
-                </p>
-                <p>
-                    Người dùng có trách nhiệm tự kiểm tra, đối chiếu và chịu trách nhiệm cuối cùng cho sản phẩm học thuật (đề cương, bài báo...) của mình. Luôn luôn tham khảo ý kiến của giảng viên hướng dẫn.
-                </p>
-            </div>
+
+        <div className="p-6 md:p-7">
+          <p className="mb-1 text-[11px] font-extrabold uppercase tracking-[0.18em] text-sky-600 dark:text-sky-400">
+            BioGen AI
+          </p>
+          <h2 id="biogen-terms-title" className="mb-4 pr-12 text-xl font-bold text-slate-900 dark:text-white md:text-2xl">
+            {isEnglish ? 'Terms & disclaimer' : 'Điều khoản & Miễn trừ trách nhiệm'}
+          </h2>
+
+          <div className="space-y-4 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+            <p>
+              {isEnglish
+                ? 'BioGen AI uses artificial intelligence to generate questions, explanations and assessment-support content. AI output may contain factual, conceptual, wording or answer-key errors and should not be treated as an authoritative source.'
+                : 'BioGen AI sử dụng trí tuệ nhân tạo để tạo câu hỏi, lời giải thích và nội dung hỗ trợ đánh giá. Nội dung AI có thể có sai sót về kiến thức, khái niệm, cách diễn đạt hoặc đáp án và không nên được xem là nguồn thông tin có thẩm quyền tuyệt đối.'}
+            </p>
+            <p>
+              {isEnglish
+                ? 'Teachers and learners should verify generated content against textbooks, official curriculum materials and reliable scientific sources before using it for teaching, practice, testing or grading.'
+                : 'Giáo viên và người học cần đối chiếu nội dung được tạo với SGK, tài liệu chương trình chính thức và các nguồn khoa học đáng tin cậy trước khi sử dụng trong dạy học, luyện tập, kiểm tra hoặc chấm điểm.'}
+            </p>
+            <p>
+              {isEnglish
+                ? 'BioGen AI supports educational work but does not replace professional judgement by teachers, subject specialists or assessment designers. Users remain responsible for the final selection, editing and use of generated materials.'
+                : 'BioGen AI là công cụ hỗ trợ giáo dục và không thay thế phán đoán chuyên môn của giáo viên, chuyên gia môn học hoặc người thiết kế đánh giá. Người dùng chịu trách nhiệm cuối cùng đối với việc lựa chọn, biên tập và sử dụng tài liệu được tạo.'}
+            </p>
+            <p>
+              {isEnglish
+                ? 'Do not submit passwords, API keys, confidential student information or other sensitive personal data in prompts or generated-content workflows.'
+                : 'Không đưa mật khẩu, API key, thông tin học sinh mang tính bảo mật hoặc dữ liệu cá nhân nhạy cảm vào prompt hay quy trình tạo nội dung.'}
+            </p>
+          </div>
         </div>
-        
-        <div className="bg-slate-50 dark:bg-slate-800 px-6 py-4 flex justify-end">
-            <button 
-                onClick={onClose}
-                className="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white font-medium rounded-lg transition-colors shadow-sm"
-            >
-                Đã hiểu
-            </button>
+
+        <div className="flex justify-end border-t border-slate-200 bg-slate-50 px-6 py-3 dark:border-slate-700 dark:bg-slate-800/70">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg bg-sky-600 px-5 py-2 font-medium text-white shadow-sm transition-colors hover:bg-sky-700"
+          >
+            {isEnglish ? 'Understood' : 'Đã hiểu'}
+          </button>
         </div>
-      </div>
+      </section>
     </div>
   );
 };
