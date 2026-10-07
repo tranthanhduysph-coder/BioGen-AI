@@ -1,6 +1,5 @@
 import { auth } from '../firebaseConfig';
 import type { GeneratedExamItem, GenerationProgress } from '../types/generatedExam';
-import { auth } from '../firebaseConfig';
 import type {
   ExamQuestionSlot,
   ExamSlotPackage,
