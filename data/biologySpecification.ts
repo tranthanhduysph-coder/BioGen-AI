@@ -193,16 +193,29 @@ export const BIOLOGY_10_OUTCOMES: BiologyLearningOutcome[] = [
   },
 ];
 
-export const BIOLOGY_10_CONTENTS = Array.from(
-  new Map(BIOLOGY_10_OUTCOMES.map((outcome) => [
-    outcome.contentId,
-    { id: outcome.contentId, label: outcome.contentLabel },
-  ])).values(),
-);
+export const BIOLOGY_OUTCOMES: BiologyLearningOutcome[] = [
+  ...BIOLOGY_10_OUTCOMES,
+];
 
-export const getCompetenciesForContent = (contentId: string) => {
-  const values = BIOLOGY_10_OUTCOMES
-    .filter((item) => item.contentId === contentId)
+export const getOutcomesForGrade = (grade: 10 | 11 | 12) =>
+  BIOLOGY_OUTCOMES.filter((outcome) => outcome.grade === grade);
+
+export const getContentsForGrade = (grade: 10 | 11 | 12) =>
+  Array.from(
+    new Map(
+      getOutcomesForGrade(grade).map((outcome) => [
+        outcome.contentId,
+        { id: outcome.contentId, label: outcome.contentLabel },
+      ]),
+    ).values(),
+  );
+
+export const getCompetenciesForContent = (
+  grade: 10 | 11 | 12,
+  contentId: string,
+) => {
+  const values = BIOLOGY_OUTCOMES
+    .filter((item) => item.grade === grade && item.contentId === contentId)
     .map((item) => ({
       code: item.competencyCode,
       label: item.competencyLabel,
@@ -211,7 +224,20 @@ export const getCompetenciesForContent = (contentId: string) => {
   return Array.from(new Map(values.map((item) => [item.code, item])).values());
 };
 
-export const getOutcomesForSelection = (contentId: string, competencyCode: string) =>
-  BIOLOGY_10_OUTCOMES.filter(
-    (item) => item.contentId === contentId && item.competencyCode === competencyCode,
+export const getOutcomesForSelection = (
+  grade: 10 | 11 | 12,
+  contentId: string,
+  competencyCode: string,
+) =>
+  BIOLOGY_OUTCOMES.filter(
+    (item) =>
+      item.grade === grade &&
+      item.contentId === contentId &&
+      item.competencyCode === competencyCode,
   );
+
+export const getOutcomeById = (outcomeId: string) =>
+  BIOLOGY_OUTCOMES.find((outcome) => outcome.id === outcomeId);
+
+// Backward-compatible aliases while the builder migrates to grade-aware helpers.
+export const BIOLOGY_10_CONTENTS = getContentsForGrade(10);
