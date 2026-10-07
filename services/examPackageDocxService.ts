@@ -15,7 +15,7 @@ import {
 import saveAs from 'file-saver';
 import type { ExamBlueprint } from '../types/examBlueprint';
 import type { GeneratedExamItem } from '../types/generatedExam';
-import { BIOLOGY_10_OUTCOMES } from '../data/biologySpecification';
+import { getOutcomeById } from '../data/biologySpecification';
 import { getTrueFalseMaxScorePerQuestion, getTrueFalseScoreRows } from './examScoringService';
 
 const A4 = { width: 11906, height: 16838 };
@@ -194,7 +194,7 @@ const createBlueprintTable = (blueprint: ExamBlueprint) => {
   );
 
   blueprint.rows.forEach((row) => {
-    const outcome = BIOLOGY_10_OUTCOMES.find((item) => item.id === row.outcomeId);
+    const outcome = getOutcomeById(row.outcomeId);
     const outcomeText = outcome?.text || row.outcomeId;
     const contentLabel = outcome?.contentLabel || row.contentId;
     const formatAlloc = (part: 'mcq' | 'tf' | 'short') =>
