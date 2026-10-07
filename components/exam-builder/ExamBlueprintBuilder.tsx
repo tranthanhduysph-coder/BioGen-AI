@@ -1176,6 +1176,16 @@ export const ExamBlueprintBuilder: React.FC = () => {
                       ? (isEnglish ? 'Backend online' : 'Backend online')
                       : (isEnglish ? 'Backend unavailable' : 'Backend chưa kết nối')}
                   </span>
+                  {backendHealth?.authRequired && (
+                    <span className="rounded-full bg-sky-100 px-2.5 py-1 font-bold text-sky-700 dark:bg-sky-950 dark:text-sky-300">
+                      {isEnglish ? 'Firebase protected' : 'Đã bảo vệ bằng Firebase'}
+                    </span>
+                  )}
+                  {backendHealth && backendHealth.generationUnitsPerHour > 0 && (
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                      {backendHealth.generationUnitsPerHour} {isEnglish ? 'units/user/hour' : 'đơn vị/user/giờ'}
+                    </span>
+                  )}
                   {backendHealth && (
                     <span className={`rounded-full px-2.5 py-1 font-bold ${
                       backendHealth.aiConfigured
