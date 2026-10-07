@@ -21,6 +21,7 @@ import { exportExamPackageDocx } from '../../services/examPackageDocxService';
 import { getTrueFalseEarnedScore } from '../../services/examScoringService';
 import { generateMockExamFromSlots } from '../../services/examMockService';
 import { exportMixReadyExamDocx } from '../../services/examMixDocxService';
+import { validateMixReadyExam } from '../../services/examMixValidationService';
 
 const STORAGE_KEY = 'biogen_exam_blueprint_v1';
 
@@ -256,6 +257,11 @@ export const ExamBlueprintBuilder: React.FC = () => {
     apply: totals.mcq.apply + totals.tf.apply + totals.short.apply,
   }), [totals]);
 
+  const mixValidation = useMemo(
+    () => validateMixReadyExam(generatedItems),
+    [generatedItems],
+  );
+
   const totalScore =
     blueprint.scores.mcq.totalScore +
     blueprint.scores.tf.totalScore +
@@ -479,6 +485,15 @@ export const ExamBlueprintBuilder: React.FC = () => {
   };
 
   const handleExportMixDocx = async () => {
+    if (!mixValidation.valid) {
+      setGenerationError(
+        isEnglish
+          ? 'Fix mixer-format issues before exporting the DOCX.'
+          : 'Hãy sửa các lỗi tương thích trộn đề trước khi xuất DOCX.',
+      );
+      return;
+    }
+
     setIsExportingDocx(true);
     try {
       await exportMixReadyExamDocx(blueprint, generatedItems);
@@ -1123,11 +1138,34 @@ export const ExamBlueprintBuilder: React.FC = () => {
                   </p>
                 </div>
 
+                <div className={`rounded-xl border px-4 py-3 text-sm ${
+                  mixValidation.valid
+                    ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-200'
+                    : 'border-red-200 bg-red-50 text-red-800 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-200'
+                }`}>
+                  {mixValidation.valid ? (
+                    <strong>✓ {isEnglish ? 'Mixer DOCX format is valid.' : 'Đề đã đạt điều kiện format để trộn.'}</strong>
+                  ) : (
+                    <>
+                      <strong className="block mb-1">
+                        {isEnglish ? 'Mixer format issues:' : 'Lỗi format trộn đề:'}
+                      </strong>
+                      <ul className="list-disc space-y-1 pl-5 text-xs">
+                        {mixValidation.issues.map((issue, index) => (
+                          <li key={`${issue.slotId}-${index}`}>
+                            {isEnglish ? 'Question' : 'Câu'} {issue.order} · {issue.message}
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </div>
+
                 <div className="grid gap-2 sm:grid-cols-2">
                   <button
                     type="button"
                     onClick={handleExportMixDocx}
-                    disabled={isExportingDocx}
+                    disabled={isExportingDocx || !mixValidation.valid}
                     className="w-full rounded-xl bg-sky-700 px-4 py-3 font-bold text-white shadow-sm transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {isExportingDocx
