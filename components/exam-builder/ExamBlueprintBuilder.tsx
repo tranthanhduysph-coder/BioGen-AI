@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  BIOLOGY_10_CONTENTS,
-  BIOLOGY_10_OUTCOMES,
   getCompetenciesForContent,
+  getContentsForGrade,
+  getOutcomeById,
   getOutcomesForSelection,
 } from '../../data/biologySpecification';
 import {
@@ -64,10 +64,11 @@ const safeNumber = (value: string | number) => {
   return Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
 };
 
-const getDefaultRow = (): BlueprintRow => {
-  const contentId = BIOLOGY_10_CONTENTS[0]?.id || '';
-  const competencyCode = getCompetenciesForContent(contentId)[0]?.code || '';
-  const outcomeId = getOutcomesForSelection(contentId, competencyCode)[0]?.id || '';
+const getDefaultRow = (grade: 10 | 11 | 12): BlueprintRow => {
+  const contents = getContentsForGrade(grade);
+  const contentId = contents[0]?.id || '';
+  const competencyCode = getCompetenciesForContent(grade, contentId)[0]?.code || '';
+  const outcomeId = getOutcomesForSelection(grade, contentId, competencyCode)[0]?.id || '';
   return {
     id: `row-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     contentId,
@@ -225,8 +226,8 @@ export const ExamBlueprintBuilder: React.FC = () => {
     value: string,
   ) => {
     if (field === 'contentId') {
-      const nextCompetency = getCompetenciesForContent(value)[0]?.code || '';
-      const nextOutcome = getOutcomesForSelection(value, nextCompetency)[0]?.id || '';
+      const nextCompetency = getCompetenciesForContent(blueprint.grade, value)[0]?.code || '';
+      const nextOutcome = getOutcomesForSelection(blueprint.grade, value, nextCompetency)[0]?.id || '';
       updateRow(row.id, {
         contentId: value,
         competencyCode: nextCompetency,
@@ -236,7 +237,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
     }
 
     if (field === 'competencyCode') {
-      const nextOutcome = getOutcomesForSelection(row.contentId, value)[0]?.id || '';
+      const nextOutcome = getOutcomesForSelection(blueprint.grade, row.contentId, value)[0]?.id || '';
       updateRow(row.id, { competencyCode: value, outcomeId: nextOutcome });
       return;
     }
@@ -344,8 +345,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
     tfScale.correct1 >= 0 &&
     tfScale.correct4 <= 100;
 
-  const selectedOutcome = (row: BlueprintRow) =>
-    BIOLOGY_10_OUTCOMES.find((outcome) => outcome.id === row.outcomeId);
+  const selectedOutcome = (row: BlueprintRow) => getOutcomeById(row.outcomeId);
 
   const rowTotal = (row: BlueprintRow) =>
     PARTS.reduce(
@@ -812,7 +812,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
           </div>
           <button
             type="button"
-            onClick={() => setBlueprint((current) => ({ ...current, rows: [...current.rows, getDefaultRow()] }))}
+            onClick={() => setBlueprint((current) => ({ ...current, rows: [...current.rows, getDefaultRow(current.grade)] }))}
             className="rounded-lg bg-sky-600 px-3 py-2 text-xs font-bold text-white shadow-sm hover:bg-sky-700"
           >
             + {isEnglish ? 'Add content' : 'Thêm nội dung'}
@@ -822,7 +822,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
         {blueprint.rows.length === 0 ? (
           <button
             type="button"
-            onClick={() => setBlueprint((current) => ({ ...current, rows: [getDefaultRow()] }))}
+            onClick={() => setBlueprint((current) => ({ ...current, rows: [getDefaultRow(current.grade)] }))}
             className="w-full rounded-xl border-2 border-dashed border-slate-200 px-4 py-8 text-sm font-semibold text-slate-400 transition hover:border-sky-300 hover:text-sky-600 dark:border-slate-700"
           >
             + {isEnglish ? 'Add the first specification row' : 'Thêm dòng đặc tả đầu tiên'}
@@ -858,8 +858,8 @@ export const ExamBlueprintBuilder: React.FC = () => {
 
               <tbody>
                 {blueprint.rows.map((row) => {
-                  const competencies = getCompetenciesForContent(row.contentId);
-                  const outcomes = getOutcomesForSelection(row.contentId, row.competencyCode);
+                  const competencies = getCompetenciesForContent(blueprint.grade, row.contentId);
+                  const outcomes = getOutcomesForSelection(blueprint.grade, row.contentId, row.competencyCode);
                   const outcome = selectedOutcome(row);
 
                   return (
@@ -870,7 +870,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
                           onChange={(event) => updateRowSelection(row, 'contentId', event.target.value)}
                           className="w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs dark:border-slate-700 dark:bg-slate-900"
                         >
-                          {BIOLOGY_10_CONTENTS.map((content) => (
+                          {getContentsForGrade(blueprint.grade).map((content) => (
                             <option key={content.id} value={content.id}>{content.label}</option>
                           ))}
                         </select>
