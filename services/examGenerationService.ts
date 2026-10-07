@@ -1,10 +1,17 @@
 import { auth } from '../firebaseConfig';
-import type { GeneratedExamItem, GenerationProgress } from '../types/generatedExam';
+import type {
+  GeneratedExamItem,
+  GenerationBatchResult,
+  GenerationFailure,
+  GenerationProgress,
+} from '../types/generatedExam';
 import type {
   ExamQuestionSlot,
   ExamSlotPackage,
   TrueFalseQuestionSlot,
 } from '../types/examSlots';
+
+type AnyExamSlot = ExamQuestionSlot | TrueFalseQuestionSlot;
 
 const apiBase = () => {
   const value = (import.meta as any).env?.VITE_API_BASE_URL || '';
@@ -34,9 +41,10 @@ const getFirebaseIdToken = async (lang: string) => {
   return currentUser.getIdToken();
 };
 
-export const generateExamItem = async (
-  slot: ExamQuestionSlot | TrueFalseQuestionSlot,
-  lang: string = 'vi',
+const requestExamItem = async (
+  slot: AnyExamSlot,
+  lang: string,
+  idToken: string,
 ): Promise<GeneratedExamItem> => {
   const base = apiBase();
   if (!base) {
@@ -46,8 +54,6 @@ export const generateExamItem = async (
         : 'Backend BioGen chưa được cấu hình.',
     );
   }
-
-  const idToken = await getFirebaseIdToken(lang);
 
   const response = await fetch(`${base}/api/exam/generate-item`, {
     method: 'POST',
@@ -66,6 +72,14 @@ export const generateExamItem = async (
         lang === 'en'
           ? 'Your login session is invalid or expired. Sign in again.'
           : 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn. Hãy đăng nhập lại.',
+      );
+    }
+
+    if (response.status === 429) {
+      throw new Error(
+        lang === 'en'
+          ? 'AI generation quota for this account has been reached. Please try again later.'
+          : 'Tài khoản đã đạt giới hạn tạo câu hỏi AI trong giờ này. Hãy thử lại sau.',
       );
     }
 
@@ -97,48 +111,87 @@ export const generateExamItem = async (
   return data as GeneratedExamItem;
 };
 
-const runWithConcurrency = async <T, R>(
-  items: T[],
-  limit: number,
-  worker: (item: T) => Promise<R>,
+export const generateExamItem = async (
+  slot: AnyExamSlot,
+  lang: string = 'vi',
+): Promise<GeneratedExamItem> => {
+  const idToken = await getFirebaseIdToken(lang);
+  return requestExamItem(slot, lang, idToken);
+};
+
+export const generateExamItems = async (
+  slots: AnyExamSlot[],
+  lang: string = 'vi',
   onProgress?: (progress: GenerationProgress) => void,
-): Promise<R[]> => {
-  const results: R[] = new Array(items.length);
+  onItem?: (item: GeneratedExamItem) => void,
+): Promise<GenerationBatchResult> => {
+  if (slots.length === 0) {
+    onProgress?.({ completed: 0, total: 0 });
+    return { items: [], failures: [] };
+  }
+
+  const idToken = await getFirebaseIdToken(lang);
+  const items: GeneratedExamItem[] = [];
+  const failures: GenerationFailure[] = [];
   let cursor = 0;
   let completed = 0;
 
   const runners = Array.from(
-    { length: Math.min(limit, Math.max(1, items.length)) },
+    { length: Math.min(3, slots.length) },
     async () => {
-      while (cursor < items.length) {
+      while (cursor < slots.length) {
         const index = cursor;
         cursor += 1;
-        results[index] = await worker(items[index]);
-        completed += 1;
-        onProgress?.({ completed, total: items.length });
+        const slot = slots[index];
+
+        try {
+          const item = await requestExamItem(slot, lang, idToken);
+          items.push(item);
+          onItem?.(item);
+        } catch (error) {
+          failures.push({
+            slotId: slot.id,
+            part: slot.part,
+            order: slot.order,
+            message:
+              error instanceof Error
+                ? error.message
+                : (lang === 'en' ? 'Question generation failed.' : 'Không thể tạo câu hỏi.'),
+          });
+        } finally {
+          completed += 1;
+          onProgress?.({ completed, total: slots.length });
+        }
       }
     },
   );
 
   await Promise.all(runners);
-  return results;
+
+  const partOrder = { mcq: 0, tf: 1, short: 2 } as const;
+  items.sort((a, b) => {
+    const partDiff = partOrder[a.part] - partOrder[b.part];
+    return partDiff !== 0 ? partDiff : a.order - b.order;
+  });
+  failures.sort((a, b) => {
+    const partDiff = partOrder[a.part] - partOrder[b.part];
+    return partDiff !== 0 ? partDiff : a.order - b.order;
+  });
+
+  return { items, failures };
 };
 
 export const generateExamFromSlots = async (
   slots: ExamSlotPackage,
   lang: string = 'vi',
   onProgress?: (progress: GenerationProgress) => void,
-): Promise<GeneratedExamItem[]> => {
-  const orderedSlots: Array<ExamQuestionSlot | TrueFalseQuestionSlot> = [
+  onItem?: (item: GeneratedExamItem) => void,
+): Promise<GenerationBatchResult> => {
+  const orderedSlots: AnyExamSlot[] = [
     ...slots.mcq,
     ...slots.tf,
     ...slots.short,
   ];
 
-  return runWithConcurrency(
-    orderedSlots,
-    3,
-    (slot) => generateExamItem(slot, lang),
-    onProgress,
-  );
+  return generateExamItems(orderedSlots, lang, onProgress, onItem);
 };
