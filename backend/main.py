@@ -110,6 +110,11 @@ class GenerateItemRequest(BaseModel):
     slot: dict[str, Any]
     lang: str = 'vi'
 
+class ManualGenerateRequest(BaseModel):
+    prompt: str = Field(min_length=20, max_length=16000)
+    expectedCount: int = Field(ge=1, le=40)
+    lang: str = 'vi'
+
 class GeneratedQuestion(BaseModel):
     question: str
     type: str
@@ -304,6 +309,96 @@ def _generate(slot, lang: str) -> GeneratedExamItem:
         except Exception as exc:
             last_error = exc
     raise HTTPException(status_code=502, detail=f'AI generation failed after validation: {last_error}')
+
+def _validate_manual_question(data: dict[str, Any]) -> dict[str, Any]:
+    question = str(data.get('question', '')).strip()
+    qtype = str(data.get('type', '')).strip()
+    answer = str(data.get('answer', '')).strip()
+    explanation = str(data.get('explanation', '')).strip()
+    options = data.get('options', [])
+
+    if not question or not answer or not explanation:
+        raise ValueError('Manual question is missing required fields.')
+
+    if qtype not in ('Multiple choices', 'True/ False', 'Short response', 'Free answer'):
+        raise ValueError('Unsupported question type.')
+
+    if not isinstance(options, list):
+        raise ValueError('Question options must be an array.')
+
+    options = [str(item).strip() for item in options]
+
+    if qtype == 'Multiple choices' and len(options) != 4:
+        raise ValueError('Multiple-choice question must contain exactly four options.')
+
+    if qtype == 'True/ False' and len(options) != 4:
+        raise ValueError('True/False question must contain exactly four statements.')
+
+    if qtype == 'Short response':
+        options = []
+        clean_answer = re.sub(r'^\s*A\.\s*', '', answer, flags=re.I).strip()
+        if not re.match(r'^-?\d+(?:[\.,]\d+)?    payload: GenerateItemRequest,
+    user: dict[str, Any] = Depends(require_firebase_user),
+):
+    part = payload.slot.get('part')
+    try:
+        if part == 'tf':
+            slot = TfSlot.model_validate(payload.slot)
+        elif part in ('mcq', 'short'):
+            slot = SimpleSlot.model_validate(payload.slot)
+        else:
+            raise ValueError('Unsupported slot part.')
+    except Exception as exc:
+        raise HTTPException(status_code=422, detail=f'Invalid exam slot: {exc}') from exc
+    return _generate(slot, payload.lang)
+, clean_answer):
+            raise ValueError('Short-response answer must be numeric.')
+        answer = clean_answer
+
+    return {
+        'question': question,
+        'type': qtype,
+        'options': options,
+        'answer': answer,
+        'explanation': explanation,
+    }
+
+@app.post('/api/questions/generate-manual')
+def generate_manual_questions(
+    payload: ManualGenerateRequest,
+    user: dict[str, Any] = Depends(require_firebase_user),
+):
+    client = _client()
+    last_error = None
+
+    for attempt in range(2):
+        try:
+            response = client.models.generate_content(
+                model=GEMINI_MODEL,
+                contents=payload.prompt + (
+                    '\nIMPORTANT: Return the exact requested number of questions and valid JSON only.'
+                    if attempt
+                    else ''
+                ),
+                config={'response_mime_type': 'application/json'},
+            )
+            data = json.loads((response.text or '').strip())
+            if not isinstance(data, list):
+                raise ValueError('AI response must be a JSON array.')
+            if len(data) != payload.expectedCount:
+                raise ValueError(
+                    f'Expected {payload.expectedCount} questions, received {len(data)}.'
+                )
+            return [_validate_manual_question(item) for item in data]
+        except HTTPException:
+            raise
+        except Exception as exc:
+            last_error = exc
+
+    raise HTTPException(
+        status_code=502,
+        detail=f'Manual AI generation failed after validation: {last_error}',
+    )
 
 @app.post('/api/exam/generate-item', response_model=GeneratedExamItem)
 def generate_item(
