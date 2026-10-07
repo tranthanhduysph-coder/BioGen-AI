@@ -383,16 +383,6 @@ export const ExamBlueprintBuilder: React.FC = () => {
   const handleGenerateExam = async () => {
     if (!lockedSlots) return;
 
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) {
-      setGenerationError(
-        isEnglish
-          ? 'The preview site does not have an AI API key configured yet.'
-          : 'Bản preview chưa được cấu hình API key để gọi AI.',
-      );
-      return;
-    }
-
     clearExamReviewDraft();
     setRecoverableDraft(null);
     setIsGeneratingExam(true);
@@ -407,7 +397,6 @@ export const ExamBlueprintBuilder: React.FC = () => {
 
     try {
       const items = await generateExamFromSlots(
-        apiKey,
         lockedSlots,
         i18n.language,
         setGenerationProgress,
@@ -447,16 +436,6 @@ export const ExamBlueprintBuilder: React.FC = () => {
       return;
     }
 
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) {
-      setGenerationError(
-        isEnglish
-          ? 'The preview site does not have an AI API key configured yet.'
-          : 'Bản preview chưa được cấu hình API key để gọi AI.',
-      );
-      return;
-    }
-
     const slot =
       item.part === 'mcq'
         ? lockedSlots.mcq.find((candidate) => candidate.id === item.slotId)
@@ -470,7 +449,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
     setGenerationError(null);
 
     try {
-      const replacement = await generateExamItem(apiKey, slot, i18n.language);
+      const replacement = await generateExamItem(slot, i18n.language);
       setGeneratedItems((current) =>
         current.map((candidate) => candidate.slotId === item.slotId ? replacement : candidate),
       );
