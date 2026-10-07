@@ -105,6 +105,9 @@ export const ExamBlueprintBuilder: React.FC = () => {
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [regeneratingSlotId, setRegeneratingSlotId] = useState<string | null>(null);
   const [isExportingDocx, setIsExportingDocx] = useState(false);
+  const [approvedSlotIds, setApprovedSlotIds] = useState<string[]>([]);
+  const [lockedQuestionIds, setLockedQuestionIds] = useState<string[]>([]);
+  const [editingSlotId, setEditingSlotId] = useState<string | null>(null);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(blueprint));
@@ -113,6 +116,9 @@ export const ExamBlueprintBuilder: React.FC = () => {
     setGeneratedItems([]);
     setGenerationError(null);
     setGenerationProgress({ completed: 0, total: 0 });
+    setApprovedSlotIds([]);
+    setLockedQuestionIds([]);
+    setEditingSlotId(null);
   }, [blueprint]);
 
   const updateScorePart = (
@@ -284,6 +290,9 @@ export const ExamBlueprintBuilder: React.FC = () => {
     const validation = validateExamSlots(blueprint, slots);
     setSlotIssues(validation.issues);
     setGeneratedItems([]);
+    setApprovedSlotIds([]);
+    setLockedQuestionIds([]);
+    setEditingSlotId(null);
     setGenerationError(null);
     if (validation.valid) {
       setLockedSlots(slots);
@@ -307,6 +316,9 @@ export const ExamBlueprintBuilder: React.FC = () => {
 
     setIsGeneratingExam(true);
     setGeneratedItems([]);
+    setApprovedSlotIds([]);
+    setLockedQuestionIds([]);
+    setEditingSlotId(null);
     setGenerationError(null);
     const total = lockedSlots.mcq.length + lockedSlots.tf.length + lockedSlots.short.length;
     setGenerationProgress({ completed: 0, total });
@@ -329,6 +341,15 @@ export const ExamBlueprintBuilder: React.FC = () => {
 
   const handleRegenerateItem = async (item: GeneratedExamItem) => {
     if (!lockedSlots) return;
+
+    if (lockedQuestionIds.includes(item.slotId)) {
+      setGenerationError(
+        isEnglish
+          ? 'Unlock this question before regenerating it.'
+          : 'Hãy mở khóa câu này trước khi tạo lại.',
+      );
+      return;
+    }
 
     const apiKey = process.env.API_KEY;
     if (!apiKey) {
@@ -357,12 +378,63 @@ export const ExamBlueprintBuilder: React.FC = () => {
       setGeneratedItems((current) =>
         current.map((candidate) => candidate.slotId === item.slotId ? replacement : candidate),
       );
+      setApprovedSlotIds((current) => current.filter((id) => id !== item.slotId));
+      setEditingSlotId(null);
     } catch (error: any) {
       console.error('Regenerate question error:', error);
       setGenerationError(error?.message || (isEnglish ? 'Could not regenerate this question.' : 'Không thể tạo lại câu này.'));
     } finally {
       setRegeneratingSlotId(null);
     }
+  };
+
+  const toggleApproval = (slotId: string) => {
+    setApprovedSlotIds((current) =>
+      current.includes(slotId)
+        ? current.filter((id) => id !== slotId)
+        : [...current, slotId],
+    );
+  };
+
+  const toggleQuestionLock = (slotId: string) => {
+    const isLocked = lockedQuestionIds.includes(slotId);
+    if (isLocked) {
+      setLockedQuestionIds((current) => current.filter((id) => id !== slotId));
+      return;
+    }
+
+    setLockedQuestionIds((current) => [...current, slotId]);
+    setApprovedSlotIds((current) => current.includes(slotId) ? current : [...current, slotId]);
+    if (editingSlotId === slotId) setEditingSlotId(null);
+  };
+
+  const updateGeneratedQuestion = (
+    slotId: string,
+    field: 'question' | 'answer' | 'explanation',
+    value: string,
+  ) => {
+    if (lockedQuestionIds.includes(slotId)) return;
+    setGeneratedItems((current) =>
+      current.map((item) =>
+        item.slotId === slotId
+          ? { ...item, question: { ...item.question, [field]: value } }
+          : item,
+      ),
+    );
+    setApprovedSlotIds((current) => current.filter((id) => id !== slotId));
+  };
+
+  const updateGeneratedOption = (slotId: string, optionIndex: number, value: string) => {
+    if (lockedQuestionIds.includes(slotId)) return;
+    setGeneratedItems((current) =>
+      current.map((item) => {
+        if (item.slotId !== slotId) return item;
+        const options = [...item.question.options];
+        options[optionIndex] = value;
+        return { ...item, question: { ...item.question, options } };
+      }),
+    );
+    setApprovedSlotIds((current) => current.filter((id) => id !== slotId));
   };
 
   const handleExportDocx = async (includeExam: boolean) => {
@@ -917,9 +989,17 @@ export const ExamBlueprintBuilder: React.FC = () => {
                         : 'Mỗi câu vẫn gắn với slot đã khóa. Chỉ tạo lại câu cần sửa, không sinh lại toàn bộ đề.'}
                     </p>
                   </div>
-                  <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-extrabold text-purple-700 dark:bg-purple-950 dark:text-purple-300">
-                    {generatedItems.length} {isEnglish ? 'questions' : 'câu'}
-                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-extrabold text-purple-700 dark:bg-purple-950 dark:text-purple-300">
+                      {generatedItems.length} {isEnglish ? 'questions' : 'câu'}
+                    </span>
+                    <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-extrabold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                      ✓ {approvedSlotIds.length}/{generatedItems.length} {isEnglish ? 'approved' : 'đã duyệt'}
+                    </span>
+                    <span className="rounded-full bg-slate-200 px-3 py-1 text-xs font-extrabold text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                      🔒 {lockedQuestionIds.length}/{generatedItems.length}
+                    </span>
+                  </div>
                 </div>
 
                 <button
@@ -945,51 +1025,154 @@ export const ExamBlueprintBuilder: React.FC = () => {
 
                       {partItems.map((item) => (
                         <article key={item.slotId} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                            <div className="flex items-center gap-2">
-                              <span className="rounded-full bg-slate-900 px-2.5 py-1 text-[11px] font-bold text-white dark:bg-sky-800">
-                                Câu {item.order}
-                              </span>
-                              <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                                {item.slotId}
-                              </span>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => handleRegenerateItem(item)}
-                              disabled={regeneratingSlotId === item.slotId}
-                              className="rounded-lg border border-purple-200 px-2.5 py-1.5 text-xs font-bold text-purple-700 transition hover:bg-purple-50 disabled:opacity-50 dark:border-purple-800 dark:text-purple-300 dark:hover:bg-purple-950/30"
-                            >
-                              {regeneratingSlotId === item.slotId
-                                ? (isEnglish ? 'Regenerating…' : 'Đang tạo lại…')
-                                : (isEnglish ? '↻ Regenerate' : '↻ Tạo lại câu này')}
-                            </button>
-                          </div>
+                          {(() => {
+                            const isApproved = approvedSlotIds.includes(item.slotId);
+                            const isLocked = lockedQuestionIds.includes(item.slotId);
+                            const isEditing = editingSlotId === item.slotId;
 
-                          <p className="text-sm font-semibold leading-relaxed text-slate-800 dark:text-slate-100">
-                            {item.question.question}
-                          </p>
+                            return (
+                              <>
+                                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <span className="rounded-full bg-slate-900 px-2.5 py-1 text-[11px] font-bold text-white dark:bg-sky-800">
+                                      Câu {item.order}
+                                    </span>
+                                    <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                                      {item.slotId}
+                                    </span>
+                                    {isApproved && (
+                                      <span className="rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                                        ✓ {isEnglish ? 'Approved' : 'Đã duyệt'}
+                                      </span>
+                                    )}
+                                    {isLocked && (
+                                      <span className="rounded-full bg-slate-200 px-2 py-1 text-[10px] font-bold text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                                        🔒 {isEnglish ? 'Locked' : 'Đã khóa'}
+                                      </span>
+                                    )}
+                                  </div>
 
-                          {item.question.options.length > 0 && (
-                            <div className="mt-3 space-y-1.5">
-                              {item.question.options.map((option, optionIndex) => (
-                                <div key={optionIndex} className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                                  {option}
+                                  <div className="flex flex-wrap gap-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleApproval(item.slotId)}
+                                      className={`rounded-lg border px-2.5 py-1.5 text-xs font-bold transition ${
+                                        isApproved
+                                          ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300'
+                                          : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'
+                                      }`}
+                                    >
+                                      {isApproved ? (isEnglish ? '✓ Approved' : '✓ Đã duyệt') : (isEnglish ? '✓ Approve' : '✓ Duyệt')}
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditingSlotId(isEditing ? null : item.slotId)}
+                                      disabled={isLocked}
+                                      className="rounded-lg border border-sky-200 px-2.5 py-1.5 text-xs font-bold text-sky-700 transition hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-sky-800 dark:text-sky-300 dark:hover:bg-sky-950/30"
+                                    >
+                                      {isEditing ? (isEnglish ? 'Done editing' : 'Xong sửa') : (isEnglish ? '✎ Edit' : '✎ Sửa')}
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleQuestionLock(item.slotId)}
+                                      className="rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                                    >
+                                      {isLocked ? (isEnglish ? '🔓 Unlock' : '🔓 Mở khóa') : (isEnglish ? '🔒 Lock' : '🔒 Khóa')}
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRegenerateItem(item)}
+                                      disabled={isLocked || regeneratingSlotId === item.slotId}
+                                      className="rounded-lg border border-purple-200 px-2.5 py-1.5 text-xs font-bold text-purple-700 transition hover:bg-purple-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-purple-800 dark:text-purple-300 dark:hover:bg-purple-950/30"
+                                    >
+                                      {regeneratingSlotId === item.slotId
+                                        ? (isEnglish ? 'Regenerating…' : 'Đang tạo lại…')
+                                        : (isEnglish ? '↻ Regenerate' : '↻ Tạo lại')}
+                                    </button>
+                                  </div>
                                 </div>
-                              ))}
-                            </div>
-                          )}
 
-                          <div className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-200">
-                            <b>{isEnglish ? 'Answer:' : 'Đáp án:'}</b> {item.question.answer}
-                          </div>
+                                {isEditing ? (
+                                  <div className="space-y-3">
+                                    <label className="block text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                                      {isEnglish ? 'Question / stem' : 'Nội dung câu / đoạn dẫn'}
+                                      <textarea
+                                        value={item.question.question}
+                                        onChange={(event) => updateGeneratedQuestion(item.slotId, 'question', event.target.value)}
+                                        rows={4}
+                                        className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm normal-case leading-relaxed text-slate-800 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                                      />
+                                    </label>
 
-                          <details className="mt-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300">
-                            <summary className="cursor-pointer font-bold">
-                              {isEnglish ? 'Explanation' : 'Giải thích'}
-                            </summary>
-                            <p className="mt-2 leading-relaxed">{item.question.explanation}</p>
-                          </details>
+                                    {item.question.options.length > 0 && (
+                                      <div className="space-y-2">
+                                        <div className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                                          {isEnglish ? 'Options / statements' : 'Phương án / các ý'}
+                                        </div>
+                                        {item.question.options.map((option, optionIndex) => (
+                                          <input
+                                            key={optionIndex}
+                                            value={option}
+                                            onChange={(event) => updateGeneratedOption(item.slotId, optionIndex, event.target.value)}
+                                            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                                          />
+                                        ))}
+                                      </div>
+                                    )}
+
+                                    <label className="block text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                                      {isEnglish ? 'Answer' : 'Đáp án'}
+                                      <input
+                                        value={item.question.answer}
+                                        onChange={(event) => updateGeneratedQuestion(item.slotId, 'answer', event.target.value)}
+                                        className="mt-1 w-full rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm normal-case font-semibold text-emerald-800 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-emerald-900/60 dark:bg-emerald-950/20 dark:text-emerald-200"
+                                      />
+                                    </label>
+
+                                    <label className="block text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                                      {isEnglish ? 'Explanation' : 'Giải thích'}
+                                      <textarea
+                                        value={item.question.explanation}
+                                        onChange={(event) => updateGeneratedQuestion(item.slotId, 'explanation', event.target.value)}
+                                        rows={3}
+                                        className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm normal-case leading-relaxed text-slate-700 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                                      />
+                                    </label>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <p className="text-sm font-semibold leading-relaxed text-slate-800 dark:text-slate-100">
+                                      {item.question.question}
+                                    </p>
+
+                                    {item.question.options.length > 0 && (
+                                      <div className="mt-3 space-y-1.5">
+                                        {item.question.options.map((option, optionIndex) => (
+                                          <div key={optionIndex} className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                                            {option}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+
+                                    <div className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-200">
+                                      <b>{isEnglish ? 'Answer:' : 'Đáp án:'}</b> {item.question.answer}
+                                    </div>
+
+                                    <details className="mt-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300">
+                                      <summary className="cursor-pointer font-bold">
+                                        {isEnglish ? 'Explanation' : 'Giải thích'}
+                                      </summary>
+                                      <p className="mt-2 leading-relaxed">{item.question.explanation}</p>
+                                    </details>
+                                  </>
+                                )}
+                              </>
+                            );
+                          })()}
                         </article>
                       ))}
                     </div>
