@@ -12,6 +12,8 @@ from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
 from pydantic import BaseModel, Field
 
+from backend.auth import AUTH_REQUIRED, FIREBASE_PROJECT_ID, verify_firebase_user
+
 try:
     from google import genai
 except Exception:
@@ -171,6 +173,8 @@ def health():
         'firebaseProjectId': FIREBASE_PROJECT_ID,
         'generationUnitsPerHour': AI_GENERATION_UNITS_PER_HOUR,
         'model': GEMINI_MODEL,
+        'authRequired': AUTH_REQUIRED,
+        'firebaseProjectId': FIREBASE_PROJECT_ID,
     }
 
 def _client():
