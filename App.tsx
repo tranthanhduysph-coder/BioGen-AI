@@ -52,6 +52,13 @@ const App: React.FC = () => {
     const storedUsage = parseInt(localStorage.getItem('biogen_usage_count') || '0', 10);
     setUsageCount(storedUsage);
 
+    const isBlueprintPreview = window.location.hostname === 'biogenai-blueprint-preview.onrender.com';
+    if (isBlueprintPreview) {
+      setUser(DEMO_USER);
+      setIsAuthLoading(false);
+      return;
+    }
+
     if (isConfigured && auth) {
       const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
         setUser(currentUser);
