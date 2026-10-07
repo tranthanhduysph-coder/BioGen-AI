@@ -68,8 +68,12 @@ const validateQuestion = (question: GeneratedQuestion, part: 'mcq' | 'tf' | 'sho
 
   if (part === 'short') {
     if (question.options.length > 0) issues.push('Trả lời ngắn không được có phương án lựa chọn.');
-    if (!/^-?\d+(?:[.,]\d+)?$/.test(question.answer.trim())) {
+    const shortAnswer = question.answer.trim().replace(/^A\.\s*/i, '');
+    if (!/^-?\d+(?:[.,]\d+)?$/.test(shortAnswer)) {
       issues.push('Đáp án trả lời ngắn phải là một giá trị số.');
+    }
+    if (shortAnswer.length > 4) {
+      issues.push('Đáp án trả lời ngắn tối đa 4 ký tự theo format đề trộn.');
     }
   }
 
@@ -120,6 +124,7 @@ Cognitive level: ${levelLabel[slot.level].en}
 
 Requirements:
 - The final answer MUST be a single number, integer or decimal.
+- The answer text must contain at most 4 characters total, including minus sign or decimal separator.
 - No multiple-choice options.
 - Match the requested cognitive level and learning outcome.
 - Return ONLY one valid JSON object:
@@ -132,6 +137,7 @@ Mức độ: ${levelLabel[slot.level].vi}
 
 Yêu cầu:
 - Đáp án cuối cùng PHẢI là một giá trị số duy nhất, có thể là số nguyên hoặc thập phân.
+- Chuỗi đáp án tối đa 4 ký tự, tính cả dấu âm hoặc dấu thập phân.
 - Không có phương án lựa chọn.
 - Phải bám đúng yêu cầu cần đạt và mức độ đã chỉ định.
 - Chỉ trả về MỘT JSON object hợp lệ:
