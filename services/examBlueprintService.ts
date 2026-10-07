@@ -1,4 +1,4 @@
-import { BIOLOGY_10_OUTCOMES } from '../data/biologySpecification';
+import { getOutcomeById, getOutcomesForGrade } from '../data/biologySpecification';
 import type {
   BlueprintRow,
   CognitiveLevel,
@@ -14,8 +14,7 @@ import type {
 
 const levelOrder: CognitiveLevel[] = ['know', 'understand', 'apply'];
 
-const getOutcome = (outcomeId: string) =>
-  BIOLOGY_10_OUTCOMES.find((outcome) => outcome.id === outcomeId);
+const getOutcome = (outcomeId: string) => getOutcomeById(outcomeId);
 
 const questionScore = (totalScore: number, questionCount: number) =>
   questionCount > 0 ? totalScore / questionCount : 0;
@@ -167,7 +166,7 @@ export const validateExamSlots = (blueprint: ExamBlueprint, slots: ExamSlotPacka
   });
   tfByContent.forEach((count, contentId) => {
     if (count % 4 !== 0) {
-      const outcome = BIOLOGY_10_OUTCOMES.find((item) => item.contentId === contentId);
+      const outcome = getOutcomesForGrade(blueprint.grade).find((item) => item.contentId === contentId);
       issues.push(
         `Phần II: "${outcome?.contentLabel || contentId}" có ${count} ý, cần chia hết cho 4 để tạo câu Đúng/Sai.`,
       );
