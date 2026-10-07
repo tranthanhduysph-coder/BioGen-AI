@@ -362,6 +362,8 @@ export const ExamBlueprintBuilder: React.FC = () => {
   };
 
   const lockBlueprint = () => {
+    clearExamReviewDraft();
+    setRecoverableDraft(null);
     const slots = buildExamSlots(blueprint);
     const validation = validateExamSlots(blueprint, slots);
     setSlotIssues(validation.issues);
@@ -391,6 +393,8 @@ export const ExamBlueprintBuilder: React.FC = () => {
       return;
     }
 
+    clearExamReviewDraft();
+    setRecoverableDraft(null);
     setIsGeneratingExam(true);
     setGeneratedItems([]);
     setApprovedSlotIds([]);
@@ -420,6 +424,8 @@ export const ExamBlueprintBuilder: React.FC = () => {
 
   const handleGenerateMockExam = () => {
     if (!lockedSlots) return;
+    clearExamReviewDraft();
+    setRecoverableDraft(null);
     const items = generateMockExamFromSlots(lockedSlots);
     setGeneratedItems(items);
     setApprovedSlotIds([]);
