@@ -20,6 +20,7 @@ import type { GeneratedExamItem } from '../../types/generatedExam';
 import { exportExamPackageDocx } from '../../services/examPackageDocxService';
 import { getTrueFalseEarnedScore } from '../../services/examScoringService';
 import { generateMockExamFromSlots } from '../../services/examMockService';
+import { exportMixReadyExamDocx } from '../../services/examMixDocxService';
 
 const STORAGE_KEY = 'biogen_exam_blueprint_v1';
 
@@ -475,6 +476,23 @@ export const ExamBlueprintBuilder: React.FC = () => {
       }),
     );
     setApprovedSlotIds((current) => current.filter((id) => id !== slotId));
+  };
+
+  const handleExportMixDocx = async () => {
+    setIsExportingDocx(true);
+    try {
+      await exportMixReadyExamDocx(blueprint, generatedItems);
+    } catch (error: any) {
+      console.error('Mix-ready DOCX export error:', error);
+      setGenerationError(
+        error?.message ||
+          (isEnglish
+            ? 'Could not export the mixer-compatible DOCX file.'
+            : 'Không thể xuất file DOCX theo format trộn đề.'),
+      );
+    } finally {
+      setIsExportingDocx(false);
+    }
   };
 
   const handleExportDocx = async (includeExam: boolean) => {
@@ -1097,16 +1115,37 @@ export const ExamBlueprintBuilder: React.FC = () => {
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => handleExportDocx(true)}
-                  disabled={isExportingDocx}
-                  className="w-full rounded-xl bg-emerald-600 px-4 py-3 font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {isExportingDocx
-                    ? (isEnglish ? 'Exporting DOCX…' : 'Đang xuất DOCX…')
-                    : (isEnglish ? 'Download full exam package DOCX' : 'Tải bộ đề đầy đủ DOCX')}
-                </button>
+                <div className="rounded-xl border border-sky-100 bg-sky-50/70 p-3 dark:border-sky-900/50 dark:bg-sky-950/20">
+                  <p className="text-xs leading-relaxed text-sky-800 dark:text-sky-200">
+                    {isEnglish
+                      ? 'Mixer DOCX contract: underline only the correct A/B/C/D letter in Part I; underline the a/b/c/d letters of TRUE statements in Part II; Part III answers use “A. number” with at most 4 characters.'
+                      : 'Format DOCX để trộn: Phần I chỉ gạch dưới ký tự A/B/C/D của đáp án đúng; Phần II chỉ gạch dưới ký tự a/b/c/d của các ý Đúng; Phần III ghi “A. số”, tối đa 4 ký tự.'}
+                  </p>
+                </div>
+
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={handleExportMixDocx}
+                    disabled={isExportingDocx}
+                    className="w-full rounded-xl bg-sky-700 px-4 py-3 font-bold text-white shadow-sm transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isExportingDocx
+                      ? (isEnglish ? 'Exporting DOCX…' : 'Đang xuất DOCX…')
+                      : (isEnglish ? 'Download mixer-ready DOCX' : 'Tải đề DOCX để trộn')}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleExportDocx(true)}
+                    disabled={isExportingDocx}
+                    className="w-full rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 font-bold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-900/60 dark:bg-emerald-950/20 dark:text-emerald-300"
+                  >
+                    {isExportingDocx
+                      ? (isEnglish ? 'Exporting…' : 'Đang xuất…')
+                      : (isEnglish ? 'Download full exam dossier' : 'Tải bộ hồ sơ đề')}
+                  </button>
+                </div>
 
                 {(['mcq', 'tf', 'short'] as ExamPartKey[]).map((part) => {
                   const partItems = generatedItems.filter((item) => item.part === part);
