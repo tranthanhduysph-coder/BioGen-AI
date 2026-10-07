@@ -3,6 +3,9 @@ export interface ExamBackendHealth {
   service: string;
   environment: string;
   aiConfigured: boolean;
+  authRequired: boolean;
+  firebaseProjectId: string;
+  generationUnitsPerHour: number;
   model: string;
 }
 
@@ -31,6 +34,9 @@ export const getExamBackendHealth = async (): Promise<ExamBackendHealth | null> 
       service: String(data.service || 'biogenai-api'),
       environment: String(data.environment || ''),
       aiConfigured: Boolean(data.aiConfigured),
+      authRequired: Boolean(data.authRequired),
+      firebaseProjectId: String(data.firebaseProjectId || ''),
+      generationUnitsPerHour: Number(data.generationUnitsPerHour || 0),
       model: String(data.model || ''),
     };
   } catch {
