@@ -1516,7 +1516,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleExportDocx(true)}
-                    disabled={isExportingDocx}
+                    disabled={isExportingDocx || !allQuestionsGenerated}
                     className="w-full rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 font-bold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-900/60 dark:bg-emerald-950/20 dark:text-emerald-300"
                   >
                     {isExportingDocx
