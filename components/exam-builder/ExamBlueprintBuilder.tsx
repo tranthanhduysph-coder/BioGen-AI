@@ -13,6 +13,8 @@ import {
   type ExamPartKey,
 } from '../../types/examBlueprint';
 import { useTranslation } from 'react-i18next';
+import { buildExamSlots, validateExamSlots } from '../../services/examBlueprintService';
+import type { ExamSlotPackage } from '../../types/examSlots';
 
 const STORAGE_KEY = 'biogen_exam_blueprint_v1';
 
@@ -92,8 +94,13 @@ export const ExamBlueprintBuilder: React.FC = () => {
     }
   });
 
+  const [lockedSlots, setLockedSlots] = useState<ExamSlotPackage | null>(null);
+  const [slotIssues, setSlotIssues] = useState<string[]>([]);
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(blueprint));
+    setLockedSlots(null);
+    setSlotIssues([]);
   }, [blueprint]);
 
   const updateScorePart = (
@@ -257,6 +264,17 @@ export const ExamBlueprintBuilder: React.FC = () => {
   const resetBlueprint = () => {
     if (window.confirm(isEnglish ? 'Reset the exam blueprint?' : 'Đặt lại toàn bộ bảng thiết kế đề?')) {
       setBlueprint(defaultBlueprint());
+    }
+  };
+
+  const lockBlueprint = () => {
+    const slots = buildExamSlots(blueprint);
+    const validation = validateExamSlots(blueprint, slots);
+    setSlotIssues(validation.issues);
+    if (validation.valid) {
+      setLockedSlots(slots);
+    } else {
+      setLockedSlots(null);
     }
   };
 
@@ -653,12 +671,99 @@ export const ExamBlueprintBuilder: React.FC = () => {
 
         <button
           type="button"
-          disabled
-          className="mt-3 w-full cursor-not-allowed rounded-xl bg-slate-300 px-4 py-3 font-bold text-white dark:bg-slate-700"
-          title={isEnglish ? 'AI generation will be connected after the blueprint UI is validated.' : 'Sẽ nối AI sau khi chốt giao diện blueprint.'}
+          onClick={lockBlueprint}
+          disabled={!allocationReady || !tfScaleOrdered || Math.abs(tfScale.correct4 - perQuestion.tf) > 0.0001}
+          className="mt-3 w-full rounded-xl bg-sky-600 px-4 py-3 font-bold text-white shadow-sm transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700"
         >
-          {isEnglish ? 'Lock blueprint & generate exam — next phase' : 'Khóa ma trận & tạo đề — bước tiếp theo'}
+          {isEnglish ? 'Lock blueprint & preview exam structure' : 'Khóa ma trận & xem cấu trúc đề'}
         </button>
+
+        {slotIssues.length > 0 && (
+          <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/20 dark:text-red-200">
+            <strong className="block mb-1">{isEnglish ? 'Please fix:' : 'Cần chỉnh:'}</strong>
+            <ul className="list-disc space-y-1 pl-5">
+              {slotIssues.map((issue) => <li key={issue}>{issue}</li>)}
+            </ul>
+          </div>
+        )}
+
+        {lockedSlots && (
+          <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 dark:border-emerald-900/60 dark:bg-emerald-950/20">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <strong className="text-sm text-emerald-800 dark:text-emerald-200">
+                  {isEnglish ? 'Blueprint locked' : 'Đã khóa blueprint'}
+                </strong>
+                <p className="mt-1 text-xs text-emerald-700/80 dark:text-emerald-300/80">
+                  {isEnglish
+                    ? 'The app has converted the matrix into deterministic question slots.'
+                    : 'App đã chuyển ma trận thành danh sách slot câu hỏi cố định trước khi gọi AI.'}
+                </p>
+              </div>
+              <span className="rounded-full bg-white px-3 py-1 text-xs font-extrabold text-emerald-700 shadow-sm dark:bg-slate-900 dark:text-emerald-300">
+                {lockedSlots.mcq.length + lockedSlots.tf.length + lockedSlots.short.length} {isEnglish ? 'questions' : 'câu'}
+              </span>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-3">
+              <div className="rounded-lg bg-white p-3 shadow-sm dark:bg-slate-900">
+                <div className="mb-2 text-xs font-bold uppercase text-slate-400">Phần I</div>
+                <div className="space-y-1">
+                  {lockedSlots.mcq.slice(0, 6).map((slot) => (
+                    <div key={slot.id} className="flex items-start justify-between gap-2 text-xs">
+                      <span><b>Câu {slot.order}</b> · {slot.contentLabel}</span>
+                      <span className="whitespace-nowrap text-slate-400">{LEVELS.find((l) => l.key === slot.level)?.vi}</span>
+                    </div>
+                  ))}
+                  {lockedSlots.mcq.length > 6 && <div className="text-[11px] text-slate-400">… +{lockedSlots.mcq.length - 6} câu</div>}
+                </div>
+              </div>
+
+              <div className="rounded-lg bg-white p-3 shadow-sm dark:bg-slate-900">
+                <div className="mb-2 text-xs font-bold uppercase text-slate-400">Phần II</div>
+                <div className="space-y-2">
+                  {lockedSlots.tf.map((slot) => (
+                    <div key={slot.id} className="rounded-lg border border-slate-100 p-2 dark:border-slate-800">
+                      <div className="mb-1 flex items-center justify-between text-xs">
+                        <b>Câu {slot.order}</b>
+                        <span className="text-slate-400">{round(slot.maxScore, 3)} điểm</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {slot.statements.map((statement) => (
+                          <span key={statement.id} className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] dark:bg-slate-800">
+                            {String.fromCharCode(96 + statement.statementOrder)}) {LEVELS.find((l) => l.key === statement.level)?.vi}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="mt-1 truncate text-[10px] text-slate-400">{slot.statements[0]?.contentLabel}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-lg bg-white p-3 shadow-sm dark:bg-slate-900">
+                <div className="mb-2 text-xs font-bold uppercase text-slate-400">Phần III</div>
+                <div className="space-y-1">
+                  {lockedSlots.short.map((slot) => (
+                    <div key={slot.id} className="flex items-start justify-between gap-2 text-xs">
+                      <span><b>Câu {slot.order}</b> · {slot.contentLabel}</span>
+                      <span className="whitespace-nowrap text-slate-400">{LEVELS.find((l) => l.key === slot.level)?.vi}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              disabled
+              className="mt-3 w-full cursor-not-allowed rounded-xl bg-slate-300 px-4 py-3 font-bold text-white dark:bg-slate-700"
+              title={isEnglish ? 'AI generation is the next isolated step.' : 'Nối AI sẽ là bước riêng tiếp theo.'}
+            >
+              {isEnglish ? 'Generate exam with AI — next step' : 'Tạo đề bằng AI — bước kế tiếp'}
+            </button>
+          </div>
+        )}
       </section>
     </div>
   );
