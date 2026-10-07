@@ -1,4 +1,9 @@
 import type { GeneratedExamItem } from '../types/generatedExam';
+import {
+  normalizeMixerShortAnswer,
+  parseMcqCorrectLetter,
+  parseTrueFalseAnswerMap,
+} from './examMixerFormatService';
 
 export interface MixValidationIssue {
   slotId: string;
@@ -6,31 +11,6 @@ export interface MixValidationIssue {
   order: number;
   message: string;
 }
-
-const parseMcqLetter = (answer: string) => {
-  const match = answer.trim().match(/^([A-D])/i);
-  return match ? match[1].toUpperCase() : null;
-};
-
-const parseTfAnswers = (answer: string) => {
-  const values = new Map<string, boolean>();
-  answer
-    .split(/[;\n]+/)
-    .map((part) => part.trim())
-    .filter(Boolean)
-    .forEach((part) => {
-      const match = part.match(/^([a-d])\s*[\)\.:\-]?\s*(Đúng|Dung|Sai|True|False|T|F)\b/i);
-      if (!match) return;
-      const letter = match[1].toLowerCase();
-      const token = match[2].toLowerCase();
-      const isTrue = ['đúng', 'dung', 'true', 't'].includes(token);
-      values.set(letter, isTrue);
-    });
-  return values;
-};
-
-const normalizeShortAnswer = (answer: string) =>
-  answer.replace(/^\s*A\.\s*/i, '').trim().replace('.', ',');
 
 export const validateMixReadyExam = (items: GeneratedExamItem[]) => {
   const issues: MixValidationIssue[] = [];
@@ -46,7 +26,7 @@ export const validateMixReadyExam = (items: GeneratedExamItem[]) => {
         });
       }
 
-      if (!parseMcqLetter(item.question.answer)) {
+      if (!parseMcqCorrectLetter(item.question.answer)) {
         issues.push({
           slotId: item.slotId,
           part: item.part,
@@ -66,7 +46,7 @@ export const validateMixReadyExam = (items: GeneratedExamItem[]) => {
         });
       }
 
-      const answers = parseTfAnswers(item.question.answer);
+      const answers = parseTrueFalseAnswerMap(item.question.answer);
       const missing = ['a', 'b', 'c', 'd'].filter((letter) => !answers.has(letter));
       if (missing.length > 0) {
         issues.push({
@@ -79,7 +59,7 @@ export const validateMixReadyExam = (items: GeneratedExamItem[]) => {
     }
 
     if (item.part === 'short') {
-      const answer = normalizeShortAnswer(item.question.answer);
+      const answer = normalizeMixerShortAnswer(item.question.answer);
 
       if (!/^-?\d+(?:,\d+)?$/.test(answer)) {
         issues.push({
