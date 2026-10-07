@@ -443,7 +443,9 @@ export const ExamBlueprintBuilder: React.FC = () => {
     setApprovedSlotIds([]);
     setLockedQuestionIds([]);
     setEditingSlotId(null);
-    setGenerationSource(null);
+    // Mark the draft as AI-backed before the first request finishes so that
+    // an interrupted/refresh recovery can retry only the missing slots.
+    setGenerationSource('ai');
     setGenerationError(null);
     const total = lockedSlots.mcq.length + lockedSlots.tf.length + lockedSlots.short.length;
     setGenerationProgress({ completed: 0, total });
