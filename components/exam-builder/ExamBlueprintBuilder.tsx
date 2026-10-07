@@ -515,7 +515,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
             <p className="mt-2 text-xs font-semibold text-amber-700 dark:text-amber-300">
               {isEnglish
                 ? `4/4 score is ${tfScale.correct4}, while the calculated maximum per question is ${round(perQuestion.tf, 3)}.`
-                : `Mức đúng 4/4 đang là ${tfScale.correct4}, trong khi điểm tối đa app tính cho mỗi câu là ${round(perQuestion.tf, 3)}.`}
+                : `Mức đúng 4/4 đang là ${tfScale.correct4}, trong khi điểm tối đa app tính cho mỗi câu là ${round(perQuestion.tf, 3)}. Anh vẫn có thể khóa ma trận; hãy chỉnh lại thang điểm trước khi xuất đáp án/chấm điểm.`}
             </p>
           )}
         </div>
@@ -763,7 +763,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
         <button
           type="button"
           onClick={lockBlueprint}
-          disabled={!allocationReady || !tfScaleOrdered || Math.abs(tfScale.correct4 - perQuestion.tf) > 0.0001}
+          disabled={!allocationReady || !tfScaleOrdered}
           className="mt-3 w-full rounded-xl bg-sky-600 px-4 py-3 font-bold text-white shadow-sm transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700"
         >
           {isEnglish ? 'Lock blueprint & preview exam structure' : 'Khóa ma trận & xem cấu trúc đề'}
