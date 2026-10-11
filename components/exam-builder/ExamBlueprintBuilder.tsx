@@ -372,6 +372,38 @@ export const ExamBlueprintBuilder: React.FC = () => {
     tfScale.correct1 >= 0 &&
     tfScale.correct4 <= 100;
 
+  const lockIssues = useMemo(() => {
+    const issues: string[] = [];
+    if (blueprint.rows.length === 0) {
+      issues.push(isEnglish ? 'Add at least one specification row.' : 'Thêm ít nhất một dòng đặc tả.');
+    }
+    PARTS.forEach((part) => {
+      const current = partTotals[part.key];
+      const target = targets[part.key];
+      if (current === target) return;
+      const unit = part.key === 'tf' ? (isEnglish ? 'statements' : 'ý') : (isEnglish ? 'questions' : 'câu');
+      const difference = Math.abs(target - current);
+      issues.push(isEnglish
+        ? `${part.en}: allocated ${current}/${target} ${unit}; ${current < target ? 'add' : 'remove'} ${difference} ${unit}.`
+        : `${part.vi}: đã phân bổ ${current}/${target} ${unit}; ${current < target ? 'còn thiếu' : 'thừa'} ${difference} ${unit}.`);
+    });
+    if (!tfScaleOrdered) {
+      issues.push(isEnglish
+        ? 'True/False scoring percentages must increase from 1/4 to 4/4 correct.'
+        : 'Thang điểm Đúng/Sai phải tăng dần từ đúng 1 ý đến đúng 4 ý.');
+    }
+    if (!tfScaleWithinPercent) {
+      issues.push(isEnglish
+        ? 'True/False scoring percentages must be between 0% and 100%.'
+        : 'Thang điểm Đúng/Sai phải nằm trong khoảng 0% đến 100%.');
+    }
+    // Reuse the engine's grouping checks before the user can lock the matrix.
+    if (allocationReady) issues.push(...validateExamSlots(blueprint, buildExamSlots(blueprint)).issues);
+    return issues;
+  }, [blueprint, partTotals, allocationReady, tfScaleOrdered, tfScaleWithinPercent, isEnglish]);
+
+  const canLockBlueprint = lockIssues.length === 0;
+
   const selectedOutcome = (row: BlueprintRow) => getOutcomeById(row.outcomeId);
 
   const rowTotal = (row: BlueprintRow) =>
@@ -820,6 +852,13 @@ export const ExamBlueprintBuilder: React.FC = () => {
                 <tr key={part.key} className="border-b border-slate-100 dark:border-slate-800">
                   <td className="px-2 py-2 font-semibold text-slate-700 dark:text-slate-200">
                     {isEnglish ? part.en : part.vi}
+                    {part.key === 'tf' && (
+                      <span className="mt-1 block text-xs font-normal text-slate-500">
+                        {isEnglish
+                          ? `${blueprint.scores.tf.questionCount} questions × 4 statements = ${targets.tf} statements to allocate`
+                          : `${blueprint.scores.tf.questionCount} câu × 4 ý = ${targets.tf} ý cần phân bổ`}
+                      </span>
+                    )}
                   </td>
                   <td className="w-28 px-2 py-2">
                     <NumericInput
@@ -930,6 +969,11 @@ export const ExamBlueprintBuilder: React.FC = () => {
                 ? 'Choose content → competency → learning outcome, then allocate items by level.'
                 : 'Chọn Nội dung → Năng lực → Yêu cầu cần đạt, sau đó nhập số câu/lệnh hỏi theo Biết – Hiểu – Vận dụng.'}
             </p>
+            <p className="mt-1 text-xs font-semibold text-purple-700 dark:text-purple-300">
+              {isEnglish
+                ? 'Parts I and III: enter question counts. Part II: enter statement counts; each True/False question has 4 statements within the same content.'
+                : 'Phần I và III: nhập số câu. Phần II: nhập số ý; mỗi câu Đúng/Sai gồm 4 ý trong cùng một nội dung.'}
+            </p>
           </div>
           <button
             type="button"
@@ -959,6 +1003,9 @@ export const ExamBlueprintBuilder: React.FC = () => {
                   {PARTS.map((part) => (
                     <th key={part.key} colSpan={3} className="border-l border-slate-200 px-2 py-2 text-center dark:border-slate-700">
                       {isEnglish ? part.en : part.vi}
+                      <span className="mt-1 block text-[10px] font-normal text-slate-500">
+                        {part.key === 'tf' ? (isEnglish ? 'Statement counts' : 'Số ý') : (isEnglish ? 'Question counts' : 'Số câu')}
+                      </span>
                     </th>
                   ))}
                   <th rowSpan={2} className="w-20 border-l border-slate-200 px-2 py-2 text-center dark:border-slate-700">
@@ -1124,6 +1171,13 @@ export const ExamBlueprintBuilder: React.FC = () => {
                     {part.key === 'tf' ? (isEnglish ? ' statements' : ' ý') : (isEnglish ? ' questions' : ' câu')}
                   </span>
                 </div>
+                {part.key === 'tf' && (
+                  <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
+                    {isEnglish
+                      ? `${blueprint.scores.tf.questionCount} questions × 4 statements = ${target} statements required`
+                      : `${blueprint.scores.tf.questionCount} câu × 4 ý = ${target} ý cần phân bổ`}
+                  </p>
+                )}
                 <div className="mt-2 flex justify-between text-xs text-slate-500">
                   <span>B {totals[part.key].know}</span>
                   <span>H {totals[part.key].understand}</span>
@@ -1156,24 +1210,30 @@ export const ExamBlueprintBuilder: React.FC = () => {
           </div>
         </div>
 
-        <div className={`mt-4 rounded-xl border px-4 py-3 text-sm font-semibold ${allocationReady
+        <div id="blueprint-lock-status" role="status" className={`mt-4 rounded-xl border px-4 py-3 text-sm font-semibold ${canLockBlueprint
           ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-200'
           : 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200'}`}
         >
-          {allocationReady
+          {canLockBlueprint
             ? (isEnglish
-                ? '✓ The allocation matches all three part settings.'
-                : '✓ Phân bổ đã khớp số câu/lệnh hỏi của cả 3 phần.')
+                ? '✓ The blueprint is ready to lock.'
+                : '✓ Ma trận đã hợp lệ, có thể khóa.')
             : (isEnglish
-                ? 'Complete the allocation until each part matches its configured number of questions/statements.'
-                : 'Hãy phân bổ đến khi tổng các cột khớp số câu/lệnh hỏi đã thiết lập ở từng phần.')}
+                ? 'Cannot lock the blueprint yet:'
+                : 'Chưa thể khóa ma trận:')}
+          {lockIssues.length > 0 && (
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              {lockIssues.map((issue, index) => <li key={index}>{issue}</li>)}
+            </ul>
+          )}
         </div>
 
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           <button
             type="button"
             onClick={lockBlueprint}
-            disabled={!allocationReady || !tfScaleOrdered || !tfScaleWithinPercent}
+            disabled={!canLockBlueprint}
+            aria-describedby="blueprint-lock-status"
             className="w-full rounded-xl bg-sky-600 px-4 py-3 font-bold text-white shadow-sm transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700"
           >
             {isEnglish ? 'Lock blueprint & preview exam structure' : 'Khóa ma trận & xem cấu trúc đề'}
