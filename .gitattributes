@@ -1,0 +1,4 @@
+# Preserve the source fingerprint and deterministic importer output across platforms.
+data/biologySpecification/source/biology-thpt.md -text
+data/biologySpecification/catalog.json text eol=lf
+public/specification/biology-thpt.pdf binary
