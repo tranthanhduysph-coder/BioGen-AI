@@ -48,8 +48,13 @@ export interface BiologyLearningOutcome {
   contentLabel: string;
   competencyCode: string;
   competencyLabel: string;
-  level: CognitiveLevel;
+  level: CognitiveLevel | null;
   text: string;
+  sourcePage?: number;
+  sourcePages?: number[];
+  sourceNote?: string;
+  sourceCodeMissing?: boolean;
+  sourceLevelMissing?: boolean;
 }
 
 export interface ExamBlueprint {

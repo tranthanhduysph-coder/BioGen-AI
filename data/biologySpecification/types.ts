@@ -6,7 +6,7 @@ export interface BiologySpecificationRecord {
   strand: string;
   contentId: string;
   contentLabel: string;
-  level: CognitiveLevel;
+  level: CognitiveLevel | null;
   competencyCode: string | null;
   text: string;
   sourcePage: number;
@@ -14,6 +14,12 @@ export interface BiologySpecificationRecord {
   sourceIncomplete?: boolean;
   sourceCodeMissing?: boolean;
   sourceDuplicate?: boolean;
+  sourcePages?: number[];
+  sourceLocation?: string;
+  sourceLevelMissing?: boolean;
+  sourceEmpty?: boolean;
+  duplicateOf?: string;
+  questionReferences?: { mcq: string; tf: string; short: string };
 }
 
 export type BiologySpecificationTuple = readonly [

@@ -1,4 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createDefaultBlueprint as defaultBlueprint, createBlueprintFromPreset, getBlueprintPresetsForGrade } from '../../data/examBlueprintPresets';
+import { getSpecificationSourceUrl } from '../../data/biologySpecification/catalog';
+import { SpecificationCatalog } from './SpecificationCatalog';
 import {
   getCompetenciesForContent,
   getContentsForGrade,
@@ -33,22 +36,6 @@ import {
 } from '../../services/examBackendService';
 
 const STORAGE_KEY = 'biogen_exam_blueprint_v1';
-
-const defaultBlueprint = (): ExamBlueprint => ({
-  grade: 10,
-  title: 'Đề kiểm tra Sinh học',
-  durationMinutes: 50,
-  scores: {
-    mcq: { questionCount: 12, totalScore: 6 },
-    tf: {
-      questionCount: 2,
-      totalScore: 2,
-      scoreLevels: { correct1: 10, correct2: 25, correct3: 50, correct4: 100 },
-    },
-    short: { questionCount: 4, totalScore: 2 },
-  },
-  rows: [],
-});
 
 const LEVELS: { key: CognitiveLevel; vi: string; en: string }[] = [
   { key: 'know', vi: 'Biết', en: 'Know' },
@@ -102,6 +89,7 @@ const NumericInput: React.FC<{
 export const ExamBlueprintBuilder: React.FC = () => {
   const { i18n } = useTranslation();
   const isEnglish = i18n.language === 'en';
+  const [presetId, setPresetId] = useState('');
   const [blueprint, setBlueprint] = useState<ExamBlueprint>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -200,6 +188,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
   }, []);
 
   const changeGrade = (grade: 10 | 11 | 12) => {
+    setPresetId('');
     setBlueprint((current) => ({
       ...current,
       grade,
@@ -761,7 +750,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
             >
               <option value={10}>{isEnglish ? 'Grade 10' : 'Lớp 10'}</option>
               <option value={11}>{isEnglish ? 'Grade 11' : 'Lớp 11'}</option>
-              <option value={12} disabled>{isEnglish ? 'Grade 12 — coming soon' : 'Lớp 12 — bổ sung sau'}</option>
+              <option value={12}>{isEnglish ? 'Grade 12' : 'Lớp 12'}</option>
             </select>
           </label>
 
@@ -783,6 +772,33 @@ export const ExamBlueprintBuilder: React.FC = () => {
           </label>
         </div>
       </section>
+
+      <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="flex-1 text-xs font-bold text-slate-500">
+            {isEnglish ? 'Specification preset' : 'Preset theo bản đặc tả'}
+            <select value={presetId} onChange={event => setPresetId(event.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900">
+              <option value="">{isEnglish ? 'Custom blueprint' : 'Tự thiết kế ma trận'}</option>
+              {getBlueprintPresetsForGrade(blueprint.grade).map(preset => <option key={preset.id} value={preset.id}>{preset.title}</option>)}
+            </select>
+          </label>
+          <button type="button" disabled={!presetId} onClick={() => {
+            if (blueprint.rows.length && !window.confirm(isEnglish ? 'Replace blueprint rows with this preset? Generated review drafts will be reset.' : 'Thay các hàng ma trận bằng preset này? Bản nháp câu hỏi đang duyệt sẽ được đặt lại.')) return;
+            setBlueprint(current => createBlueprintFromPreset(presetId, current));
+          }} className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-40">
+            {isEnglish ? 'Load outcomes' : 'Nạp danh mục YCCĐ'}
+          </button>
+        </div>
+        <p className="mt-2 text-xs text-slate-500">{isEnglish ? 'Presets load source outcomes with zero allocations. Set counts and points for your exam. Current score settings are retained.' : 'Preset nạp YCCĐ với phân bổ bằng 0. Hãy chọn số câu và điểm cho đề. Thiết lập điểm hiện tại được giữ lại.'}</p>
+      </section>
+
+      <SpecificationCatalog grade={blueprint.grade} isEnglish={isEnglish} onAdd={record => {
+        setBlueprint(current => ({ ...current, rows: [...current.rows, {
+          id: `row-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, contentId: record.contentId,
+          competencyCode: record.competencyCode ?? '', outcomeId: record.id, allocations: emptyBlueprintAllocations(),
+        }] }));
+      }} />
 
       <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
         <h4 className="mb-3 text-sm font-bold text-slate-800 dark:text-white">
@@ -966,6 +982,11 @@ export const ExamBlueprintBuilder: React.FC = () => {
                   const competencies = getCompetenciesForContent(blueprint.grade, row.contentId);
                   const outcomes = getOutcomesForSelection(blueprint.grade, row.contentId, row.competencyCode);
                   const outcome = selectedOutcome(row);
+                  // Keep v1 saved selections visible without adding legacy examples to new menus.
+                  if (outcome && !competencies.some(item => item.code === row.competencyCode)) {
+                    competencies.push({ code: row.competencyCode, label: outcome.competencyLabel });
+                  }
+                  if (outcome && !outcomes.some(item => item.id === row.outcomeId)) outcomes.push(outcome);
 
                   return (
                     <tr key={row.id} className="border-b border-slate-100 align-top last:border-0 dark:border-slate-800">
@@ -975,6 +996,9 @@ export const ExamBlueprintBuilder: React.FC = () => {
                           onChange={(event) => updateRowSelection(row, 'contentId', event.target.value)}
                           className="w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs dark:border-slate-700 dark:bg-slate-900"
                         >
+                          {!getContentsForGrade(blueprint.grade).some(content => content.id === row.contentId) && outcome && (
+                            <option value={row.contentId}>{outcome.contentLabel}</option>
+                          )}
                           {getContentsForGrade(blueprint.grade).map((content) => (
                             <option key={content.id} value={content.id}>{content.label}</option>
                           ))}
@@ -1008,9 +1032,12 @@ export const ExamBlueprintBuilder: React.FC = () => {
                         {outcome && (
                           <div className="mt-1 flex items-center gap-1 text-[10px] text-slate-400">
                             <span className="rounded bg-slate-100 px-1.5 py-0.5 font-bold uppercase dark:bg-slate-800">
-                              {LEVELS.find((level) => level.key === outcome.level)?.vi}
+                              {LEVELS.find((level) => level.key === outcome.level)?.vi || (isEnglish ? 'Level absent in source' : 'Nguồn không ghi mức độ')}
                             </span>
-                            <span>{outcome.competencyCode}</span>
+                            <span>{outcome.competencyCode || (isEnglish ? 'Code absent in source' : 'Nguồn không ghi mã')}</span>
+                            {outcome.sourcePage && <a href={getSpecificationSourceUrl(outcome.sourcePage)} target="_blank" rel="noreferrer" className="text-sky-600 underline">
+                              PDF · {isEnglish ? 'Page' : 'Trang'} {outcome.sourcePages?.join(', ') || outcome.sourcePage}
+                            </a>}
                           </div>
                         )}
                       </td>
