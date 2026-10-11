@@ -83,7 +83,8 @@ const mcqOptionParagraphs = (item: GeneratedExamItem) => {
 
   const longest = Math.max(...options.map((option) => option.text.length), 0);
 
-  if (longest <= 28) {
+  // Leave room for the option label and spacing within each A4 column.
+  if (longest <= 18) {
     const runs: TextRun[] = [];
     options.forEach((option, index) => {
       runs.push(...optionRuns(option.label, option.text, correct === option.label, index === 0 ? '' : '\t'));
@@ -91,7 +92,7 @@ const mcqOptionParagraphs = (item: GeneratedExamItem) => {
     return [paragraph(runs, { after: 0, tabStops: TAB_4 })];
   }
 
-  if (longest <= 58) {
+  if (longest <= 40) {
     return [
       paragraph([
         ...optionRuns('A', options[0].text, correct === 'A'),
