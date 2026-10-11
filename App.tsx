@@ -51,19 +51,16 @@ const App: React.FC = () => {
     setUsageCount(storedUsage);
 
     const isBlueprintPreview = window.location.hostname === 'biogenai-blueprint-preview.onrender.com';
-    if (isBlueprintPreview) {
-      setUser(DEMO_USER);
-      setIsAuthLoading(false);
-      return;
-    }
-
     if (isConfigured && auth) {
+      let initialAuthState = true;
       const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-        setUser(currentUser);
+        setUser(currentUser || (initialAuthState && isBlueprintPreview ? DEMO_USER : null));
+        initialAuthState = false;
         setIsAuthLoading(false);
       });
       return () => unsubscribe();
     } else {
+      if (isBlueprintPreview) setUser(DEMO_USER);
       setIsAuthLoading(false);
     }
   }, []);
