@@ -19,15 +19,20 @@ export interface ExamBlueprintPreset {
   allocationMode: 'manual';
 }
 export const EXAM_BLUEPRINT_PRESETS: ExamBlueprintPreset[] = ([10, 11, 12] as const).flatMap(grade => {
-  const records = getSpecificationRecordsForGrade(grade);
+  const records = getSpecificationRecordsForGrade(grade).filter(record => record.scope !== 'elective');
+  const electiveRecords = getSpecificationRecordsForGrade(grade).filter(record => record.scope === 'elective');
+  const electives = Array.from(new Map(electiveRecords.map(record => [record.contentId, record.contentLabel])).entries());
   const allContents = Array.from(new Set(records.map(record => record.contentId)));
   const strands = Array.from(new Set(records.map(record => record.strand)));
   return [
-    { id: `g${grade}-all`, grade, title: `Sinh ${grade} · Toàn bộ YCCĐ`, contentIds: allContents, allocationMode: 'manual' as const },
+    { id: `g${grade}-all`, grade, title: `Sinh ${grade} · Toàn bộ nội dung chính`, contentIds: allContents, allocationMode: 'manual' as const },
     ...strands.map((strand, index) => ({
       id: `g${grade}-strand-${index + 1}`, grade, title: `Sinh ${grade} · ${strand}`,
       contentIds: Array.from(new Set(records.filter(record => record.strand === strand).map(record => record.contentId))),
       allocationMode: 'manual' as const,
+    })),
+    ...electives.map(([contentId, title]) => ({
+      id: `g${grade}-${contentId}`, grade, title, contentIds: [contentId], allocationMode: 'manual' as const,
     })),
   ];
 });

@@ -13,7 +13,26 @@ The Exam Builder catalog was transcribed against all 33 rendered pages of the or
 
 Run `npm run specification:ingest` after editing the transcription or outlines. `npm run specification:check` verifies the generated file is current and the source fingerprints match.
 
-## Coverage
+## Curriculum cross-check and supplementation
+
+The second user-provided source, `14. CT_Sinh hoc.pdf`, is the 65-page Ministry of Education and Training Biology curriculum issued with Circular 32/2018/TT-BGDĐT. Its original bytes are available at `/specification/biology-curriculum-2018.pdf`. The core YCCĐ tables for grades 10 (pages 13–21), 11 (24–38), and 12 (40–54) were compared with the existing catalog, including requirements split into several specification rows. The nine elective tables on pages 21–24, 38–40 and 54–56 were also transcribed after the user requested electives.
+
+`data/biologySpecification/curriculum.psv` stores stable ids, grade, topic, core/elective scope, source pages, and the missing requirement or clause. `curriculum.json` is generated separately from the first source, with its PDF fingerprint, nine elective topics, and the recovered ecosystem outline. The original `catalog.json`, transcription and all existing source row ids/text/codes/levels remain unchanged. Two complete curriculum requirements link back to the incomplete community-practical and succession fragments. Those original fragments remain visible as source issues and are not offered as new outcomes. Existing saved drafts continue to resolve their original ids.
+
+The curriculum does not provide specification competency codes, cognitive-level columns, question addresses or score allocations. Every supplemental record therefore has `null` code/level, empty question references and explicit source labels. No code or level is inferred from the requirement verb. Compound requirements are kept together unless only a particular clause was missing; for example, the Mendel regularity clause is added without duplicating the existing explanation of Mendel's experiment.
+
+| Grade | Added core YCCĐ | Elective YCCĐ | Complete core YCCĐ after supplementation | Complete YCCĐ including electives |
+| --- | ---: | ---: | ---: | ---: |
+| 10 | 1 | 17 | 104 | 121 |
+| 11 | 2 | 15 | 182 | 197 |
+| 12 | 19 | 18 | 175 | 193 |
+| Total | 22 | 50 | 461 | 511 |
+
+Core gaps filled: virus transmission/prevention (grade 10); the role of plant responses and meristems (grade 11); Mendel regularity, chromosome practical work, Hardy–Weinberg, community as a living level, Shannon practical work, and fourteen ecosystem/biosphere requirements (grade 12). These cover ecosystem concepts, food webs, energy flow, ecological efficiency and its calculation, biogeochemical cycles, ecosystem changes and succession, environmental phenomena, the biosphere and biomes.
+
+Each of the nine elective modules has its own preset. Existing `g10-all`, `g11-all`, `g12-all` and strand presets cover only the core curriculum. Electives are visible in the catalog and available through a scope filter and the nine dedicated presets. All preset allocations remain zero until the teacher chooses them.
+
+## Original specification coverage (before curriculum supplementation)
 
 | Grade | Content units | Source rows, including repeated/empty/partial cells | Complete canonical YCCĐ available in builder |
 | --- | ---: | ---: | ---: |
@@ -31,7 +50,7 @@ There are 33 repeated rows, 5 explicit “Ko có.” cells and 3 incomplete frag
 - The three final columns are **addresses of illustrative questions/statements**, not question counts or scoring allocations. They are retained verbatim apart from line wrapping, in `questionReferences`. A bare “Câu 4” in the T/F column is not silently expanded to four statements.
 - Page 28 repeats the 16 evolution outcomes on page 27. Both occurrences are retained, with `duplicateOf` links.
 - Page 31 repeats the grade-11 response/growth material on page 17, despite appearing inside the grade-12 section. These 15 records retain grade 11 and page 31 provenance; they do not enter grade-12 menus.
-- The end of a community practical requirement on page 30 and the start of the ecosystem section before page 32 are absent in the original PDF. Their remaining fragments are retained and marked incomplete. No replacement requirement is invented.
+- The end of a community practical requirement on page 30 and the start of the ecosystem section before page 32 are absent in the original PDF. Their remaining fragments are retained and marked incomplete. Complete requirements are now available separately from the curriculum source, with their own page links; the first source is not rewritten.
 - Blank cells and unusual combined codes (`NT2/NT6`, `NT4/NT6`, `TH2-5`, `NT5-H`, `VD/NT5`, etc.) remain explicit. “Không có” level cells are retained separately from learning outcomes.
 - This file does not establish a term/semester scope, exam duration or complete scoring matrix. No “Sinh 10 HKI” matrix is claimed to come from this source.
 
@@ -39,8 +58,12 @@ There are 33 repeated rows, 5 explicit “Ko có.” cells and 3 incomplete frag
 
 `npm test` checks source coverage, all grades, source anomalies, question references, preset isolation, legacy draft lookup, and the unchanged engine's matrix → 12 MCQ + 2 T/F (4 statements each) + 4 short-answer slots → mock generation → format validation → draft recovery flow for each grade.
 
+The 13 tests also verify the 72 supplemental records, null source code/level, original-id preservation, distinct PDF links, fragment recovery, exact coverage of all nine electives, separation from core presets, and the generation/draft flow for elective matrices in each grade.
+
 `npm run typecheck:exam-builder` checks the component and its complete import graph. Full-repository `tsc --noEmit` encounters a pre-existing `cconst` typo in the unused root `firebase.ts`; this task deliberately leaves Firebase files unchanged.
 
 `npm run build` builds the frontend. The application continues to use the existing Firebase/backend, generation, review, draft, scoring and DOCX services without edits.
 
 The built frontend was also exercised in a browser for grades 10, 11 and 12: lock a valid matrix, generate 18 mock questions, verify export is blocked before review, approve and lock all questions, reload and restore the draft, then download the mixer DOCX. Grade 12 additionally exported the full dossier. The three mixer files each contain exactly 12 underlined MCQ answer letters, four underlined true-statement letters across the two T/F questions, and four short numeric answers. A 390-pixel mobile viewport was checked for preset loading, searching and adding a source outcome. The original PDF endpoint returned a valid PDF.
+
+After supplementation, browser verification repeated the complete workflow for six cases (core and electives for each grade), including DOCX downloads and the grade-12 elective dossier. All nine elective presets were loaded individually and checked against their expected row counts. Catalog verification checked core/elective filters, searching and adding the Shannon requirement, both its curriculum page-51 link and original fragment page-30 link, the Hardy–Weinberg page-47 link, the 25 complete ecosystem/biosphere rows, and a mobile search for the vector requirement. Both original PDFs remain available from distinct endpoints.

@@ -10,6 +10,9 @@ export interface BiologySpecificationRecord {
   competencyCode: string | null;
   text: string;
   sourcePage: number;
+  sourceId?: 'specification' | 'curriculum';
+  scope?: 'core' | 'elective';
+  relatedSourceRecordIds?: string[];
   sourceNote?: string;
   sourceIncomplete?: boolean;
   sourceCodeMissing?: boolean;

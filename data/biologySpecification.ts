@@ -1,6 +1,6 @@
 import type { BiologyLearningOutcome } from '../types/examBlueprint';
 import { BIOLOGY_OUTCOMES as LEGACY_OUTCOMES } from './biologySpecification/legacyOutcomes';
-import { BIOLOGY_SPECIFICATION_RECORDS, isUsableSpecificationRecord } from './biologySpecification/catalog';
+import { BIOLOGY_SPECIFICATION_RECORDS, getSpecificationContentLabel, isUsableSpecificationRecord } from './biologySpecification/catalog';
 
 export const getCompetencyLabel = (code: string | null) => {
   if (!code) return 'Nguồn không ghi mã năng lực';
@@ -13,9 +13,10 @@ export const BIOLOGY_OUTCOMES: BiologyLearningOutcome[] = BIOLOGY_SPECIFICATION_
   .filter(isUsableSpecificationRecord)
   .map(record => ({
     id: record.id, grade: record.grade, contentId: record.contentId,
-    contentLabel: record.contentLabel, competencyCode: record.competencyCode ?? '',
+    contentLabel: getSpecificationContentLabel(record), competencyCode: record.competencyCode ?? '',
     competencyLabel: getCompetencyLabel(record.competencyCode), level: record.level,
     text: record.text, sourcePage: record.sourcePage, sourcePages: record.sourcePages,
+    sourceId: record.sourceId, scope: record.scope,
     sourceCodeMissing: record.sourceCodeMissing, sourceLevelMissing: record.sourceLevelMissing,
     sourceNote: record.sourceNote,
   }));

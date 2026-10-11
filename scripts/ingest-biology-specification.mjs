@@ -106,3 +106,60 @@ if (process.argv.includes('--check')) {
   if (readFileSync(outputPath, 'utf8') !== output) throw new Error('Catalog is stale. Run npm run specification:ingest.');
 } else writeFileSync(outputPath, output);
 console.log(JSON.stringify({ records: records.length, grades: [10, 11, 12].map(grade => ({ grade, records: records.filter(r => r.grade === grade).length, usable: records.filter(r => r.grade === grade && !r.sourceDuplicate && !r.sourceEmpty && !r.sourceIncomplete).length })), pages: sourcePages.length }));
+
+// Keep the first source immutable. Curriculum additions have their own provenance and stable ids.
+const additions = [];
+const electiveTopics = [];
+let curriculumTopic;
+for (const [index, line] of read('data/biologySpecification/curriculum.psv').toString('utf8').split(/\r?\n/).entries()) {
+  if (!line.trim() || line.startsWith('#')) continue;
+  if (line.startsWith('@')) {
+    const [gradeText, contentId, scope, label, outline] = line.slice(1).split('|');
+    const grade = Number(gradeText);
+    if (![10, 11, 12].includes(grade) || !['core', 'elective'].includes(scope)) throw new Error(`Invalid curriculum heading: ${line}`);
+    const original = topics.find(topic => topic.grade === grade && topic.contentId === contentId);
+    if (scope === 'core' && !original) throw new Error(`Unknown core topic: ${line}`);
+    if (scope === 'elective' && (!label || !outline || original)) throw new Error(`Invalid elective topic: ${line}`);
+    curriculumTopic = { grade, contentId, scope, contentLabel: label || original.contentLabel, strand: original?.strand || 'CHUYÊN ĐỀ HỌC TẬP' };
+    if (scope === 'elective') electiveTopics.push({ ...curriculumTopic, outline: outline.split(';') });
+    continue;
+  }
+  const [id, pageText, text, relatedId] = line.split('|');
+  const pages = pageText?.split(',').map(Number);
+  if (!curriculumTopic || !id?.startsWith(`curr-g${curriculumTopic.grade}-`) || !text || !pages?.every(page => Number.isInteger(page) && page >= 1 && page <= 65)) throw new Error(`Invalid curriculum row: ${index + 1}`);
+  if (additions.some(record => record.id === id) || records.some(record => record.id === id)) throw new Error(`Duplicate id: ${id}`);
+  if (relatedId && !records.some(record => record.id === relatedId && record.sourceIncomplete && record.grade === curriculumTopic.grade)) throw new Error(`Invalid fragment link: ${relatedId}`);
+  const { scope, ...topic } = curriculumTopic;
+  additions.push({
+    id, ...topic, sourceId: 'curriculum', scope, level: null, competencyCode: null,
+    text, sourcePage: pages[0], sourcePages: pages, sourceLocation: `curriculum.psv:${index + 1}`,
+    sourceCodeMissing: true, sourceLevelMissing: true,
+    sourceNote: 'Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.',
+    questionReferences: { mcq: '', tf: '', short: '' },
+    ...(relatedId ? { relatedSourceRecordIds: [relatedId] } : {}),
+  });
+}
+const curriculum = {
+  schemaVersion: 1,
+  source: {
+    title: 'Chương trình giáo dục phổ thông môn Sinh học (2018)',
+    documentId: '14. CT_Sinh hoc.pdf', pageCount: 65,
+    authority: 'Bộ Giáo dục và Đào tạo', issuedWith: 'Thông tư 32/2018/TT-BGDĐT, ngày 26/12/2018',
+    pdfUrl: '/specification/biology-curriculum-2018.pdf',
+    pdfSha256: sha256(read('public/specification/biology-curriculum-2018.pdf')),
+    allocations: null, scores: null,
+    notes: ['Đối chiếu phần YCCĐ lớp 10 (trang 13–21), lớp 11 (24–38), lớp 12 (40–54) và 9 chuyên đề (21–24, 38–40, 54–56).', 'Chỉ bổ sung yêu cầu hoặc vế yêu cầu chưa có; giữ nguyên nội dung, mã, mức độ và ID của bản đặc tả trước.', 'YCCĐ chương trình không có cột mã năng lực hoặc mức độ. Không suy từ động từ.'],
+  },
+  topicUpdates: [{
+    grade: 12, contentId: 'ecosystems_biosphere', contentLabel: 'Hệ sinh thái và Sinh quyển',
+    sourceId: 'curriculum', sourcePages: [51, 52, 53],
+    outline: ['Khái quát về hệ sinh thái', 'Dòng năng lượng và trao đổi vật chất trong hệ sinh thái', 'Chuỗi thức ăn', 'Lưới thức ăn', 'Hiệu suất sinh thái', 'Tháp sinh thái', 'Chu trình sinh – địa – hoá các chất', 'Sự biến động của hệ sinh thái', 'Diễn thế sinh thái', 'Sự ấm lên toàn cầu', 'Phì dưỡng', 'Sa mạc hoá', 'Sinh quyển', 'Khái niệm', 'Các khu sinh học (Biome) trên cạn', 'Các khu sinh học dưới nước'],
+  }],
+  topics: electiveTopics, records: additions,
+};
+const curriculumOutput = JSON.stringify(curriculum, null, 2) + '\n';
+const curriculumPath = resolve(dir, 'curriculum.json');
+if (process.argv.includes('--check')) {
+  if (readFileSync(curriculumPath, 'utf8') !== curriculumOutput) throw new Error('Curriculum supplement is stale. Run npm run specification:ingest.');
+} else writeFileSync(curriculumPath, curriculumOutput);
+console.log(JSON.stringify({ curriculumAdditions: additions.length, core: additions.filter(record => record.scope === 'core').length, elective: additions.filter(record => record.scope === 'elective').length, electiveTopics: electiveTopics.length }));

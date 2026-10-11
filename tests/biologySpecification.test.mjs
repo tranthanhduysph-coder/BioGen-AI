@@ -26,14 +26,63 @@ test('lossless source coverage, complete grade catalogs and reproducible import'
   assert.equal(new Set(doc.records.map(record => record.id)).size, 479);
   assert.equal(doc.source.allocations, null);
   assert.equal(doc.source.scores, null);
-  assert.deepEqual([10, 11, 12].map(grade => api.getSpecificationRecordsForGrade(grade).length), [104, 195, 180]);
-  assert.deepEqual([10, 11, 12].map(grade => api.getOutcomesForGrade(grade).length), [103, 180, 156]);
+  assert.deepEqual([10, 11, 12].map(grade => api.getSpecificationRecordsForGrade(grade).length), [122, 212, 217]);
+  assert.deepEqual([10, 11, 12].map(grade => api.getOutcomesForGrade(grade).length), [121, 197, 193]);
   for (const row of doc.records) {
     assert.ok(row.text.length > 0);
     assert.ok(row.sourcePages.every(page => page >= 1 && page <= 33));
     assert.ok(['know', 'understand', 'apply', null].includes(row.level));
   }
   execFileSync(process.execPath, ['scripts/ingest-biology-specification.mjs', '--check']);
+});
+
+test('curriculum supplementation preserves source identity and fills all identified core gaps', () => {
+  const supplement = JSON.parse(readFileSync('data/biologySpecification/curriculum.json', 'utf8'));
+  assert.equal(supplement.source.pageCount, 65);
+  assert.equal(supplement.records.length, 72);
+  assert.equal(supplement.records.filter(row => row.scope === 'core').length, 22);
+  assert.equal(supplement.records.filter(row => row.scope === 'elective').length, 50);
+  assert.deepEqual([10, 11, 12].map(grade => api.getOutcomesForGrade(grade).filter(row => row.scope === 'core').length), [104, 182, 175]);
+  for (const row of supplement.records) {
+    assert.equal(row.sourceId, 'curriculum');
+    assert.equal(row.competencyCode, null);
+    assert.equal(row.level, null);
+    assert.ok(row.sourceCodeMissing && row.sourceLevelMissing);
+    assert.deepEqual(row.questionReferences, { mcq: '', tf: '', short: '' });
+    assert.ok(row.sourcePages.every(page => page >= 21 && page <= 56));
+    assert.equal(api.getOutcomeById(row.id).sourceId, 'curriculum');
+  }
+  for (const original of doc.records) {
+    const row = api.getSpecificationRecordById(original.id);
+    for (const key of ['text', 'level', 'competencyCode', 'sourcePage']) assert.deepEqual(row[key], original[key]);
+    assert.equal(row.sourceId, 'specification');
+  }
+  const shannon = api.getSpecificationRecordById('curr-g12-community-shannon');
+  assert.ok(shannon.text.endsWith('theo chỉ số Shannon.'));
+  assert.deepEqual(shannon.relatedSourceRecordIds, ['spec-g12-p30-r15']);
+  assert.ok(api.getSpecificationRecordById('spec-g12-p30-r15').sourceIncomplete);
+  assert.ok(api.getSpecificationRecordById('curr-g12-succession-causes').relatedSourceRecordIds.includes('spec-g12-p32-r01'));
+  const hardy = api.getOutcomeById('curr-g12-hardy-weinberg');
+  assert.equal(hardy.sourcePage, 47);
+  assert.equal(api.getSpecificationSourceUrl(hardy.sourcePage, hardy.sourceId), '/specification/biology-curriculum-2018.pdf#page=47');
+  assert.equal(api.getSpecificationSourceUrl(22), '/specification/biology-thpt.pdf#page=22');
+  const ecosystem = api.BIOLOGY_SPECIFICATION_TOPICS.find(topic => topic.contentId === 'ecosystems_biosphere');
+  assert.equal(ecosystem.sourceLabelInferred, false);
+  assert.ok(ecosystem.outline.includes('Chuỗi thức ăn'));
+});
+
+test('all nine elective modules have complete, isolated presets and never enter core presets', () => {
+  const expected = { elective_10_1: 7, elective_10_2: 6, elective_10_3: 4, elective_11_1: 6, elective_11_2: 4, elective_11_3: 5, elective_12_1: 9, elective_12_2: 5, elective_12_3: 4 };
+  for (const [contentId, count] of Object.entries(expected)) {
+    const grade = Number(contentId.split('_')[1]);
+    const blueprint = api.createBlueprintFromPreset(`g${grade}-${contentId}`);
+    assert.equal(blueprint.rows.length, count);
+    assert.ok(blueprint.rows.every(row => row.contentId === contentId && api.getOutcomeById(row.outcomeId).scope === 'elective'));
+  }
+  for (const grade of [10, 11, 12]) {
+    const core = api.createBlueprintFromPreset(`g${grade}-all`);
+    assert.ok(core.rows.every(row => api.getOutcomeById(row.outcomeId).scope === 'core'));
+  }
 });
 
 test('source blanks, combined codes, duplicates, truncated text and addresses remain explicit', () => {
@@ -80,9 +129,9 @@ test('every preset has valid grade references, fresh zero allocations and preser
   }
 });
 
-const makeBlueprint = grade => {
+const makeBlueprint = (grade, scope = 'core') => {
   const blueprint = api.createDefaultBlueprint(grade);
-  const groups = api.getContentsForGrade(grade).map(content => api.getOutcomesForGrade(grade).filter(outcome => outcome.contentId === content.id)).filter(group => group.length >= 3);
+  const groups = api.getContentsForGrade(grade).map(content => api.getOutcomesForGrade(grade).filter(outcome => outcome.contentId === content.id && outcome.scope === scope)).filter(group => group.length >= 3);
   blueprint.rows = groups.slice(0, 2).flatMap((group, groupIndex) => group.slice(0, 3).map((outcome, i) => ({
     id: `fixture-${groupIndex}-${i}`, contentId: outcome.contentId, competencyCode: outcome.competencyCode, outcomeId: outcome.id,
     allocations: {
@@ -94,8 +143,9 @@ const makeBlueprint = grade => {
   return blueprint;
 };
 for (const grade of [10, 11, 12]) {
-  test(`grade ${grade}: matrix → 18 question slots → mock generation → format validation → draft recovery`, () => {
-    const blueprint = makeBlueprint(grade);
+  for (const scope of ['core', 'elective']) {
+  test(`grade ${grade}, ${scope}: matrix → 18 question slots → mock generation → format validation → draft recovery`, () => {
+    const blueprint = makeBlueprint(grade, scope);
     const slots = api.buildExamSlots(blueprint);
     assert.equal(api.validateExamSlots(blueprint, slots).valid, true);
     assert.deepEqual([slots.mcq.length, slots.tf.length, slots.short.length], [12, 2, 4]);
@@ -119,6 +169,7 @@ for (const grade of [10, 11, 12]) {
     broken.rows[0].allocations.tf.know += 1;
     assert.equal(api.validateExamSlots(broken, api.buildExamSlots(broken)).valid, false);
   });
+  }
 }
 
 test('v1 draft outcome ids remain resolvable but are not added to new source menus', () => {

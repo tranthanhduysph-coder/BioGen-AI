@@ -51,6 +51,8 @@ export interface BiologyLearningOutcome {
   level: CognitiveLevel | null;
   text: string;
   sourcePage?: number;
+  sourceId?: 'specification' | 'curriculum';
+  scope?: 'core' | 'elective';
   sourcePages?: number[];
   sourceNote?: string;
   sourceCodeMissing?: boolean;

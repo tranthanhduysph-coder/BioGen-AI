@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createDefaultBlueprint as defaultBlueprint, createBlueprintFromPreset, getBlueprintPresetsForGrade } from '../../data/examBlueprintPresets';
-import { getSpecificationSourceUrl } from '../../data/biologySpecification/catalog';
+import { getSpecificationSourceLabel, getSpecificationSourceUrl } from '../../data/biologySpecification/catalog';
 import { SpecificationCatalog } from './SpecificationCatalog';
 import {
   getCompetenciesForContent,
@@ -1035,8 +1035,8 @@ export const ExamBlueprintBuilder: React.FC = () => {
                               {LEVELS.find((level) => level.key === outcome.level)?.vi || (isEnglish ? 'Level absent in source' : 'Nguồn không ghi mức độ')}
                             </span>
                             <span>{outcome.competencyCode || (isEnglish ? 'Code absent in source' : 'Nguồn không ghi mã')}</span>
-                            {outcome.sourcePage && <a href={getSpecificationSourceUrl(outcome.sourcePage)} target="_blank" rel="noreferrer" className="text-sky-600 underline">
-                              PDF · {isEnglish ? 'Page' : 'Trang'} {outcome.sourcePages?.join(', ') || outcome.sourcePage}
+                            {outcome.sourcePage && <a href={getSpecificationSourceUrl(outcome.sourcePage, outcome.sourceId)} target="_blank" rel="noreferrer" className="text-sky-600 underline">
+                              {getSpecificationSourceLabel(outcome.sourceId)} · {isEnglish ? 'Page' : 'Trang'} {outcome.sourcePages?.join(', ') || outcome.sourcePage}
                             </a>}
                           </div>
                         )}
