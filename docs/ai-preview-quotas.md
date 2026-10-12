@@ -19,6 +19,10 @@ stop new batch requests and preserve already generated items. Structural AI
 output failures return 422 and leave only the affected slot missing. Existing
 draft recovery and retry-missing actions remain in use.
 
+True/False answers are normalized to the existing DOCX string form
+(`a) Đúng; b) Sai; c) Đúng; d) Sai`). Explicit four-letter boolean/text maps
+are accepted; missing, duplicate, or ambiguous truth values are rejected.
+
 The backend returns a structured error `detail` with `code`, `message`,
 `retryable`, and (for quota errors) `retryAfterSeconds`. CORS exposes `Retry-After`.
 Provider logs contain status codes only; prompts, credentials and raw SDK

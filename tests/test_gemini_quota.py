@@ -140,6 +140,21 @@ class QuotaTests(unittest.TestCase):
         self.assertEqual(response.json()['detail']['code'], 'ai_invalid_question')
         self.assertEqual(response.headers['access-control-allow-origin'], ORIGIN)
 
+    def test_true_false_answer_map_preserves_truths_in_docx_text_format(self):
+        question = {**QUESTION, 'answer': {'a': True, 'b': False, 'c': 'Đúng', 'd': 'False'}}
+        normalized = main._validate_and_normalize(question, 'tf')
+        self.assertEqual(normalized.answer, 'a) Đúng; b) Sai; c) Đúng; d) Sai')
+        manual = main._validate_manual_question({**question, 'type': 'True/ False'})
+        self.assertEqual(manual['answer'], normalized.answer)
+
+    def test_true_false_normalizes_text_but_rejects_missing_or_ambiguous_truths(self):
+        self.assertEqual(main._normalize_tf_answer('a True, b False, c True, d False'),
+                         'a) Đúng; b) Sai; c) Đúng; d) Sai')
+        for answer in ({'a': True}, {'a': True, 'b': False, 'c': True, 'd': 'maybe'},
+                       'a) Đúng; b) Sai; c) Đúng', 'a) Đúng; a) Sai; b) Sai; c) Đúng; d) Sai'):
+            with self.assertRaises(ValueError):
+                main._normalize_tf_answer(answer)
+
 
 if __name__ == '__main__':
     unittest.main()

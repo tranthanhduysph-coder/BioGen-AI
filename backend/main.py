@@ -247,6 +247,7 @@ Follow these four specifications in order:
 {spec_text}
 - One coherent shared stem/context in question.
 - Exactly four options a), b), c), d).
+- answer must be a STRING such as "a) True; b) False; c) True; d) False", covering all four statements.
 - Each statement matches its own outcome and level.
 - Use a meaningful mix of true and false statements.
 - Return ONLY valid JSON with keys question,type,options,answer,explanation.'''
@@ -256,6 +257,7 @@ Bốn ý lần lượt bám đúng đặc tả:
 {spec_text}
 - Một đoạn dẫn/ngữ cảnh chung trong question.
 - Đúng bốn ý a), b), c), d).
+- answer phải là CHUỖI, ví dụ "a) Đúng; b) Sai; c) Đúng; d) Sai", chỉ rõ đáp án cho đủ bốn ý.
 - Mỗi ý đúng YCCĐ và mức độ riêng.
 - Pha trộn hợp lí mệnh đề đúng và sai.
 - Chỉ trả về JSON hợp lệ với các khóa question,type,options,answer,explanation.'''
@@ -266,6 +268,38 @@ def _extract_json(text: str) -> dict[str, Any]:
     if not isinstance(data, dict):
         raise ValueError('AI response must be one JSON object.')
     return data
+
+def _normalize_tf_answer(raw: Any) -> str:
+    # Preserve the four explicit truth values; never infer missing answers.
+    true_tokens = {'đúng', 'dung', 'true', 't'}
+    false_tokens = {'sai', 'false', 'f'}
+    if isinstance(raw, dict):
+        values = {str(key).strip().lower(): value for key, value in raw.items()}
+        if set(values) != set('abcd') or len(raw) != 4:
+            raise ValueError('True/False answer must include exactly a, b, c, d.')
+    elif isinstance(raw, str):
+        values = {}
+        for match in re.finditer(r'\b([a-d])\s*[\)\.:\-]?\s*(Đúng|Dung|Sai|True|False|T|F)\b', raw, re.I):
+            letter, token = match.groups()
+            letter = letter.lower()
+            if letter in values:
+                raise ValueError('True/False answer contains duplicate statement letters.')
+            values[letter] = token
+        if set(values) != set('abcd'):
+            raise ValueError('True/False answer must include a, b, c, d with explicit truth values.')
+    else:
+        raise ValueError('True/False answer must be text or a four-letter answer map.')
+    result = []
+    for letter in 'abcd':
+        value = values[letter]
+        if isinstance(value, bool):
+            truth = value
+        elif isinstance(value, str) and value.strip().lower() in true_tokens | false_tokens:
+            truth = value.strip().lower() in true_tokens
+        else:
+            raise ValueError('True/False truth value must be explicit true/false.')
+        result.append(f'{letter}) {"Đúng" if truth else "Sai"}')
+    return '; '.join(result)
 
 def _validate_and_normalize(data: dict[str, Any], part: str) -> GeneratedQuestion:
     question = str(data.get('question', '')).strip()
@@ -295,10 +329,7 @@ def _validate_and_normalize(data: dict[str, Any], part: str) -> GeneratedQuestio
             clean = re.sub(r'^\s*[a-d][\.)]\s*', '', option, flags=re.I).strip()
             normalized.append(f'{letter}) {clean}')
         options = normalized
-        lower = answer.lower()
-        for letter in ('a', 'b', 'c', 'd'):
-            if not re.search(rf'\b{letter}\s*[\)\.:\-]', lower):
-                raise ValueError('True/False answer must include a, b, c, d.')
+        answer = _normalize_tf_answer(data.get('answer'))
         qtype = 'True/ False'
     else:
         options = []
@@ -376,6 +407,8 @@ def _validate_manual_question(data: dict[str, Any]) -> dict[str, Any]:
 
     if qtype == 'True/ False' and len(options) != 4:
         raise ValueError('True/False question must contain exactly four statements.')
+    if qtype == 'True/ False':
+        answer = _normalize_tf_answer(data.get('answer'))
 
     if qtype == 'Short response':
         options = []
