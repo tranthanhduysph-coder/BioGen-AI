@@ -1417,7 +1417,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
                 {isGeneratingExam
                   ? (isEnglish
                       ? (generationProgress.waitingSeconds
-                        ? `Waiting ${generationProgress.waitingSeconds}s for Gemini quota...`
+                        ? `Waiting ${generationProgress.waitingSeconds}s for Gemini...`
                         : `Generating ${generationProgress.completed}/${generationProgress.total}...`)
                       : (generationProgress.waitingSeconds
                         ? `Chờ ${generationProgress.waitingSeconds} giây để tiếp tục tạo bằng AI...`

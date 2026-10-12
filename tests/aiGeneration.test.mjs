@@ -46,6 +46,21 @@ test('daily and account quotas do not retry', async () => {
   }
 });
 
+test('explicit service overload waits and retries, ambiguous transport errors do not', async () => {
+  let calls = 0;
+  await api.requestAiJson('url', {}, 'vi', undefined, {
+    fetch: async () => ++calls === 1 ? response('gemini_unavailable', 503, { retryable: true }) : ok({}),
+    sleep: async ms => assert.equal(ms, 3000),
+  });
+  assert.equal(calls, 2);
+  calls = 0;
+  await assert.rejects(api.requestAiJson('url', {}, 'vi', undefined, {
+    fetch: async () => { calls++; return response('gemini_unavailable', 503, { retryable: false }); },
+    sleep: async () => assert.fail('ambiguous error must not replay'),
+  }));
+  assert.equal(calls, 1);
+});
+
 test('temporary retries are bounded', async () => {
   let calls = 0;
   await assert.rejects(api.requestAiJson('url', {}, 'en', undefined, {

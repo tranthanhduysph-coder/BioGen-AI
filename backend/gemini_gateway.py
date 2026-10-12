@@ -102,15 +102,15 @@ def generate_content(client, limiter: GeminiRateLimiter, on_admitted=None, **kwa
             code, seconds, retryable = _provider_quota(exc)
             limiter.defer(seconds, code, retryable)
             raise quota_error(code, seconds, retryable, "Gemini quota reached.") from exc
-        if exc.code in (400, 401, 403, 404):
+        if 400 <= exc.code < 500:
             raise HTTPException(status_code=503, detail={
                 "code": "gemini_configuration", "retryable": False,
                 "message": "Gemini key, model or project access needs to be checked.",
             }) from exc
         raise HTTPException(status_code=503, detail={
-            "code": "gemini_unavailable", "retryable": False,
+            "code": "gemini_unavailable", "retryable": True, "retryAfterSeconds": 10,
             "message": "Gemini is temporarily unavailable. Retry later.",
-        }) from exc
+        }, headers={"Retry-After": "10"}) from exc
     except httpx.RequestError as exc:
         logger.warning("Gemini provider transport error type=%s", type(exc).__name__)
         raise HTTPException(status_code=503, detail={

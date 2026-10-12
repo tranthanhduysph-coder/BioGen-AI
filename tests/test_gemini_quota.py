@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch
 import httpx
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
-from google.genai.errors import ClientError
+from google.genai.errors import ClientError, ServerError
 
 from backend import main
 from backend.gemini_gateway import GeminiRateLimiter, generate_content
@@ -86,6 +86,15 @@ class QuotaTests(unittest.TestCase):
             generate_content(self.provider, self.limiter)
         self.assertEqual(ctx.exception.status_code, 503)
         self.assertEqual(ctx.exception.detail['code'], 'gemini_unavailable')
+        self.assertFalse(ctx.exception.detail['retryable'])
+
+    def test_provider_service_error_can_retry_but_does_not_retry_inside_sdk(self):
+        self.provider.models.generate_content.side_effect = ServerError(503, {'message': 'busy'})
+        with self.assertRaises(HTTPException) as ctx:
+            generate_content(self.provider, self.limiter)
+        self.assertTrue(ctx.exception.detail['retryable'])
+        self.assertEqual(ctx.exception.headers['Retry-After'], '10')
+        self.assertEqual(self.provider.models.generate_content.call_count, 1)
 
     def test_exhausted_project_entitlement_is_terminal(self):
         self.provider.models.generate_content.side_effect = ClientError(429, {'message': 'quota limit: 0'})

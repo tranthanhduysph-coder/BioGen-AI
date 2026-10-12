@@ -12,8 +12,8 @@ the same Gemini project require a shared limiter. Restarting resets the local
 window; the provider's limits still apply and provider 429 responses set a shared
 cooldown. This does not increase Gemini's daily quota.
 
-The frontend sends exam requests sequentially. Only explicit temporary quota
-responses are retried, at most three times, after `Retry-After` plus one second.
+The frontend sends exam requests sequentially. Only explicit temporary quota or
+provider service responses are retried, at most three times, after `Retry-After` plus one second.
 Daily quota, account quota, credential/configuration and connection failures
 stop new batch requests and preserve already generated items. Structural AI
 output failures return 422 and leave only the affected slot missing. Existing

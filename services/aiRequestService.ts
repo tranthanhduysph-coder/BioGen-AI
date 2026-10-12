@@ -24,8 +24,8 @@ const messageFor = (code: string, lang: string, fallback: string) => {
       ? 'Gemini key, model or project access needs to be checked on the backend.'
       : 'Cần kiểm tra Gemini key, model hoặc quyền truy cập project trên backend.';
     case 'gemini_unavailable': return en
-      ? 'The connection from the backend to Gemini is unavailable. Retry later.'
-      : 'Kết nối từ backend đến Gemini đang gặp lỗi. Hãy thử lại sau.';
+      ? 'Gemini is temporarily unavailable. Retry later.'
+      : 'Dịch vụ Gemini tạm thời chưa sẵn sàng. Hãy thử lại sau.';
     case 'ai_invalid_question': return en
       ? `AI returned a question with invalid formatting. ${fallback}`
       : `AI trả về câu hỏi chưa đúng định dạng. ${fallback}`;
@@ -41,7 +41,7 @@ type RequestRuntime = {
   sleep: (milliseconds: number) => Promise<void>;
 };
 
-/** Retry only explicit, temporary quota responses; a lost response may have consumed AI quota. */
+/** Retry explicit temporary quota/service responses; do not replay lost responses. */
 export const requestAiJson = async <T>(
   url: string,
   init: RequestInit,
@@ -77,7 +77,9 @@ export const requestAiJson = async <T>(
     const fallback = typeof detail === 'string' ? detail
       : typeof detail?.message === 'string' ? detail.message : `BioGen HTTP ${response.status}`;
     const seconds = Math.ceil(Number(response.headers.get('Retry-After') ?? detail?.retryAfterSeconds));
-    if (response.status === 429 && code === 'gemini_rate_limit' && detail?.retryable === true
+    const temporary = (response.status === 429 && code === 'gemini_rate_limit')
+      || (response.status === 503 && code === 'gemini_unavailable');
+    if (temporary && detail?.retryable === true
       && Number.isFinite(seconds) && seconds > 0 && seconds <= 120 && attempt < 3) {
       onWait?.(seconds);
       try {
