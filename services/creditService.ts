@@ -6,7 +6,13 @@ import type { GeneratedExamItem } from '../types/generatedExam';
 
 export type CreditAccount = { enabled: boolean; uid: string; email: string; name: string;
   status: 'pending' | 'approved' | 'blocked'; balance: number; held: number;
-  activeExamId: string | null; isAdmin: boolean; trialGranted?: boolean };
+  activeExamId: string | null; isAdmin: boolean; trialGranted?: boolean;
+  manualBalance?: number; manualHeld?: number; activeManualRunId?: string | null };
+export type PurchaseRequest = { id: string; uid: string; email: string; name: string;
+  product: 'exam' | 'manual'; package: number; note: string;
+  status: 'pending' | 'fulfilled' | 'rejected'; updatedAt: number; reportedPaid?: boolean };
+export type ManualRun = { id: string; status: 'reserved' | 'completed' | 'cancelled';
+  batches: {prompt: string; expectedCount: number; lang: string; criteria?: any}[]; results: Record<string, any[]> };
 export type CloudExam = { id: string; blueprint: ExamBlueprint; slots: any[];
   items: Record<string, GeneratedExamItem>; status: 'reserved' | 'completed' | 'cancelled';
   units: number; replacedUnits: number; replacementLimit: number;
@@ -14,7 +20,7 @@ export type CloudExam = { id: string; blueprint: ExamBlueprint; slots: any[];
   review: { generatedItems?: GeneratedExamItem[]; approvedSlotIds?: string[]; lockedQuestionIds?: string[] } };
 export type ExamSummary = Pick<CloudExam, 'id' | 'status' | 'units' | 'usage'> & { title: string; completed: number };
 export type CreditEvent = { id: string; kind: string; balanceDelta: number; heldDelta: number;
-  updatedAt: number; note?: string; examId?: string };
+  updatedAt: number; note?: string; examId?: string; manualDelta?: number; manualHeldDelta?: number };
 
 export const creditRequest = async <T>(path: string, body?: unknown): Promise<T> => {
   const user = auth?.currentUser;

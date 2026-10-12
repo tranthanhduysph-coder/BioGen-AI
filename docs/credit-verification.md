@@ -36,3 +36,25 @@ the preview backend. Production/main and its services have not been modified.
 Runtime limitations remain documented in `exam-credits.md`: manual review is
 explicitly saved to the account, browser closure pauses the batch, provider quota
 still applies, and packages are granted manually after payment verification.
+
+## Sales and trial update — 12 October 2026
+
+- Owner authorized immediate two-credit exam trials for every account, with the
+  existing blocked state preserved, and three initial free manual actions followed
+  by 20,000 VND per three actions. The previous one-credit and manual daily limits
+  above describe the earlier preview and are superseded by these rules.
+- 40 backend and 33 frontend/data tests pass, including concurrent trial login,
+  old trial top-up, separate wallets, purchase/report ownership, no self-grant,
+  cross-product receipt replay, registered manual batch recovery and queue filtering.
+- Production frontend build and the required Exam Builder TypeScript check pass.
+  An additional whole-App TypeScript check still finds the pre-existing invalid
+  Paragraph options at `services/docxService.ts:89`; this file was not changed.
+- Real Firestore acceptance passed in `biogen_sales_test_1791816297`: eight
+  concurrent logins granted only two exam credits and three manual actions;
+  three completed runs exhausted manual allowance without changing exam credits;
+  reported payment did not grant; admin fulfillment and receipt replay granted
+  three actions once. The pending inbox query worked without a composite index.
+  All identities and payment references were synthetic, with no AI/provider calls.
+- Browser fixture verified the sales banner, manual balance 3 → 2 → 1 with a last
+  action warning, automatic purchase dialog at zero, QR/payment-report flow,
+  admin inbox and exactly three added actions after synthetic confirmation.

@@ -138,6 +138,8 @@ class GenerateItemRequest(BaseModel):
 class ManualGenerateRequest(BaseModel):
     prompt: str = Field(min_length=20, max_length=16000)
     expectedCount: int = Field(ge=1, le=40)
+    runId: str | None = Field(default=None, min_length=8, max_length=80)
+    batchIndex: int = Field(default=0, ge=0, le=39)
     lang: str = 'vi'
 
 class GeneratedQuestion(BaseModel):
@@ -439,8 +441,25 @@ def generate_manual_questions(
     payload: ManualGenerateRequest,
     user: dict[str, Any] = Depends(require_firebase_user),
 ):
-    if credit_api.enabled():
-        credit_api.service().manual_admission(user, payload.expectedCount)
+    if not credit_api.enabled():
+        return _generate_manual_questions(payload, user)
+    if not payload.runId:
+        raise HTTPException(403, detail={'code': 'manual_run_required', 'retryable': False,
+            'message': 'Hãy đăng ký lượt tạo câu hỏi lẻ trước khi gọi AI.'})
+    credits = credit_api.service()
+    batch = {'prompt': payload.prompt, 'expectedCount': payload.expectedCount, 'lang': payload.lang}
+    claim = credits.claim_manual(user, payload.runId, payload.batchIndex, batch)
+    if 'cached' in claim:
+        return claim['cached']
+    try:
+        result = _generate_manual_questions(payload, user)
+        return credits.finish_manual(user, payload.runId, claim['nonce'], result)
+    except Exception:
+        credits.finish_manual(user, payload.runId, claim['nonce'])
+        raise
+
+
+def _generate_manual_questions(payload, user):
     on_admitted = _charge_once(user, payload.expectedCount)
     client = _client()
     last_error = None

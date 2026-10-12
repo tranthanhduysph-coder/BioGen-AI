@@ -34,6 +34,13 @@ class MemoryStore:
                       if k.startswith(prefix) and '/' not in k[len(prefix):]]
             return sorted(values, key=lambda v: v.get('updatedAt', v.get('createdAt', 0)), reverse=True)[:limit]
 
+    def list_matching(self, collection, field, value, limit=100):
+        with self.lock:
+            prefix = collection + '/'
+            values = [copy.deepcopy(v) for k, v in self.documents.items()
+                      if k.startswith(prefix) and '/' not in k[len(prefix):] and v.get(field) == value]
+            return sorted(values, key=lambda v: v.get('updatedAt', 0))[:limit]
+
 
 class FirestoreStore:
     def __init__(self, project):
@@ -97,3 +104,11 @@ class FirestoreStore:
         # Single-field index, no composite index necessary.
         return [s.to_dict() for s in self.client.collection(collection)
                 .order_by('updatedAt', direction=self.firestore.Query.DESCENDING).limit(limit).stream()]
+
+    def list_matching(self, collection, field, value, limit=100):
+        from google.cloud.firestore_v1.base_query import FieldFilter
+        # Filter pending requests before limiting. Resolved requests must not
+        # displace pending teachers. A single-field index needs no setup.
+        rows = [s.to_dict() for s in self.client.collection(collection)
+                .where(filter=FieldFilter(field, '==', value)).limit(limit).stream()]
+        return sorted(rows, key=lambda row: row.get('updatedAt', 0))

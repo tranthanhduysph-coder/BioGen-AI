@@ -46,6 +46,27 @@ class AdminChange(BaseModel):
     trial: bool = False
     note: str = Field(min_length=1, max_length=500)
     paymentReference: str | None = Field(default=None, min_length=3, max_length=120)
+    manualPackage: Literal[3] | None = None
+    purchaseId: str | None = Field(default=None, min_length=8, max_length=80)
+
+
+class Purchase(BaseModel):
+    requestId: str = Field(min_length=8, max_length=80)
+    product: Literal['exam', 'manual']
+    package: Literal[3, 10, 20, 30]
+    note: str = Field(default='', max_length=500)
+
+
+class ManualBatch(BaseModel):
+    prompt: str = Field(min_length=20, max_length=16000)
+    expectedCount: int = Field(ge=1, le=40)
+    lang: Literal['vi', 'en'] = 'vi'
+    criteria: dict[str, Any] | None = None
+
+
+class ManualRun(BaseModel):
+    requestId: str = Field(min_length=8, max_length=80)
+    batches: list[ManualBatch] = Field(min_length=1, max_length=40)
 
 
 class ReviewItem(BaseModel):
@@ -85,6 +106,39 @@ def build_router(require_user, parse_slot, generate):
     @router.get('/history')
     def history(user=Depends(require_user)):
         return service().history(uid(user))
+
+    @router.get('/purchases')
+    def purchases(user=Depends(require_user)):
+        return service().purchases(uid(user))
+
+    @router.post('/purchases')
+    def purchase(payload: Purchase, user=Depends(require_user)):
+        return service().request_purchase(user, payload.requestId, payload.product, payload.package, payload.note)
+
+    @router.post('/purchases/{purchase_id}/report-payment')
+    def report_payment(purchase_id: str, user=Depends(require_user)):
+        return service().report_payment(user, purchase_id)
+
+    @router.post('/manual-runs')
+    def manual_run(payload: ManualRun, user=Depends(require_user)):
+        return service().create_manual_run(user, payload.requestId, [b.model_dump() for b in payload.batches])
+
+    @router.get('/manual-runs/{run_id}')
+    def get_manual_run(run_id: str, user=Depends(require_user)):
+        return service().get_manual_run(user, run_id)
+
+    @router.post('/manual-runs/{run_id}/cancel')
+    def cancel_manual(run_id: str, user=Depends(require_user)):
+        return service().cancel_manual(user, run_id)
+
+    @router.get('/admin/purchases')
+    def admin_purchases(user=Depends(admin)):
+        credits = service()
+        return credits.store.list_matching(f'{credits.namespace}_purchase_inbox', 'status', 'pending', 100)
+
+    @router.post('/admin/accounts/{account_uid}/purchases/{purchase_id}/reject')
+    def reject_purchase(account_uid: str, purchase_id: str, payload: Refund, user=Depends(admin)):
+        return service().reject_purchase(uid(user), account_uid, purchase_id, payload.note)
 
     @router.get('/exams')
     def exams(user=Depends(require_user)):
@@ -128,11 +182,11 @@ def build_router(require_user, parse_slot, generate):
 
     @router.post('/admin/change')
     def change(payload: AdminChange, user=Depends(admin)):
-        if payload.package and not (payload.paymentReference or '').strip():
+        if (payload.package or payload.manualPackage) and not (payload.paymentReference or '').strip():
             fail('payment_reference_required', 'Cần mã thanh toán riêng cho gói credit.', 422)
         return service().admin_change(uid(user), payload.uid, payload.requestId,
                                       payload.status, payload.package, payload.trial, payload.note,
-                                      payload.paymentReference)
+                                      payload.paymentReference, payload.manualPackage, payload.purchaseId)
 
     @router.get('/admin/accounts/{account_uid}/history')
     def account_history(account_uid: str, user=Depends(admin)):

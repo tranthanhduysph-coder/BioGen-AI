@@ -5,10 +5,14 @@ import { useTranslation } from 'react-i18next';
 import { ExamBlueprintBuilder } from './exam-builder/ExamBlueprintBuilder';
 import { CompetencySelect } from './CompetencySelect';
 import { getCompetencyDescription } from '../data/biologySpecification/competencies';
+import { ManualAccessPanel } from './CreditPurchase';
 
 interface CriteriaSelectorProps {
   onGenerate: (criteriaList: Criteria[]) => void;
   isLoading: boolean;
+  manualRefreshToken: number;
+  onResumeManual: () => void;
+  onBuyManual: () => void;
 }
 
 const SelectField: React.FC<{ label: string, value: string, onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void, disabled?: boolean, children: React.ReactNode }> = ({ label, value, onChange, disabled, children }) => (
@@ -58,7 +62,7 @@ const QueueItem: React.FC<{ criteria: Criteria, index: number, onRemove: () => v
     </div>
 )
 
-export const CriteriaSelector: React.FC<CriteriaSelectorProps> = ({ onGenerate, isLoading }) => {
+export const CriteriaSelector: React.FC<CriteriaSelectorProps> = ({ onGenerate, isLoading, manualRefreshToken, onResumeManual, onBuyManual }) => {
   const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState<'auto' | 'manual'>('auto');
   
@@ -128,6 +132,7 @@ export const CriteriaSelector: React.FC<CriteriaSelectorProps> = ({ onGenerate, 
         {/* TAB 2: MANUAL CONFIG */}
         {activeTab === 'manual' && (
             <div className="animate-fade-in space-y-4">
+                <ManualAccessPanel refreshToken={manualRefreshToken} onResume={onResumeManual} onBuy={onBuyManual} />
                 <SelectField label={t('criteria.label_chapter')} value={currentCriteria.chapter} onChange={e => handleChange('chapter', e.target.value)}>
                     {CHAPTERS_KEYS.map(key => (
                         <option key={key} value={key}>{t(`constants.chapters.${key}`, { defaultValue: key })}</option>

@@ -22,7 +22,7 @@ class CreditTests(unittest.TestCase):
     def setUp(self):
         self.now = 1000
         self.store = MemoryStore()
-        self.service = CreditService(self.store, admins=['admin'], clock=lambda: self.now)
+        self.service = CreditService(self.store, admins=['admin'], clock=lambda: self.now, automatic_trials=False)
         self.service.me(USER)
         self.service.admin_change('admin', 'teacher', 'approve-0001', status='approved')
         self.service.admin_change('admin', 'teacher', 'grant-00001', package=10)
@@ -71,7 +71,7 @@ class CreditTests(unittest.TestCase):
     def test_completion_is_charged_once_and_survives_process_restart(self):
         self.create(count=1)
         self.generate('exam-00001', 'mcq-q01', 'item-00001')
-        self.service = CreditService(self.store, admins=['admin'], clock=lambda: self.now)
+        self.service = CreditService(self.store, admins=['admin'], clock=lambda: self.now, automatic_trials=False)
         self.generate('exam-00001', 'mcq-q01', 'item-00001')
         self.generate('exam-00001', 'mcq-q01', 'item-00002')
         self.assertEqual(self.service.get_exam(USER, 'exam-00001')['status'], 'completed')
@@ -150,12 +150,6 @@ class CreditTests(unittest.TestCase):
         self.service.save_review(USER, 'exam-00001', {'generatedItems': [], 'approvedSlotIds': []})
         self.assertEqual(self.service.get_exam(USER, 'exam-00001')['status'], 'reserved')
 
-    def test_manual_quota_is_durable_and_does_not_spend_exam_credit(self):
-        self.service.manual_admission(USER, 20)
-        self.service = CreditService(self.store, admins=['admin'], clock=lambda: self.now)
-        self.assert_code('manual_daily_limit', lambda: self.service.manual_admission(USER, 1))
-        self.assertEqual(self.service.me(USER)['balance'], 10)
-
     def test_replacement_preserves_other_manual_edits_and_invalidates_only_its_approval(self):
         self.create()
         for i in range(1, 6):
@@ -182,7 +176,7 @@ class CreditTests(unittest.TestCase):
 class CreditApiTests(unittest.TestCase):
     def setUp(self):
         self.store = MemoryStore()
-        self.service = CreditService(self.store, admins=['admin'])
+        self.service = CreditService(self.store, admins=['admin'], automatic_trials=False)
         self.service.me(USER)
         self.service.admin_change('admin', 'teacher', 'grant-00001', package=10, status='approved')
         self.env = patch.dict(os.environ, {'CREDITS_ENABLED': 'true'})
@@ -200,6 +194,33 @@ class CreditApiTests(unittest.TestCase):
         self.assertEqual(self.client.post('/api/exam/generate-item', json={'slot': SLOT}).status_code, 403)
         self.assertEqual(self.client.post('/api/credits/admin/change', json={
             'uid': 'teacher', 'requestId': 'hack-000001', 'package': 30, 'note': 'hack'}).status_code, 403)
+
+    def test_manual_routes_cannot_bypass_payment_or_replay_ai(self):
+        batch = {'prompt': 'Create one biology MCQ question.', 'expectedCount': 1, 'lang': 'vi'}
+        self.assertEqual(self.client.post('/api/questions/generate-manual', json=batch).status_code, 403)
+        created = self.client.post('/api/credits/manual-runs', json={'requestId':'manual-api-1', 'batches':[batch]})
+        self.assertEqual(created.status_code, 200, created.text)
+        with patch.object(main, '_generate_manual_questions', return_value=[QUESTION]) as provider:
+            for _ in range(2):
+                result = self.client.post('/api/questions/generate-manual', json={**batch, 'runId':'manual-api-1', 'batchIndex':0})
+                self.assertEqual(result.status_code, 200, result.text)
+            self.assertEqual(provider.call_count, 1)
+        self.assertEqual(self.client.get('/api/credits/me').json()['manualBalance'], 2)
+
+    def test_teacher_can_request_and_report_payment_but_not_approve_it(self):
+        order = self.client.post('/api/credits/purchases', json={'requestId':'purchase-api-1','product':'manual','package':3})
+        self.assertEqual(order.status_code, 200, order.text)
+        self.assertEqual(self.client.post('/api/credits/purchases/purchase-api-1/report-payment', json={}).status_code, 200)
+        self.assertEqual(self.client.get('/api/credits/admin/purchases').status_code, 403)
+        self.assertEqual(self.client.post('/api/credits/admin/change', json={'uid':'teacher','requestId':'hack-pay-1','manualPackage':3,'note':'hack','paymentReference':'FORGED'}).status_code, 403)
+        self.assertEqual(self.client.get('/api/credits/me').json()['balance'], 10)
+
+    def test_resolved_requests_never_hide_pending_requests(self):
+        collection = f'{self.service.namespace}_purchase_inbox'
+        for i in range(110):
+            self.store.documents[f'{collection}/resolved-{i}'] = {'status':'fulfilled','updatedAt':i+100}
+        self.store.documents[f'{collection}/pending'] = {'status':'pending','updatedAt':1}
+        self.assertEqual(self.store.list_matching(collection, 'status', 'pending'), [{'status':'pending','updatedAt':1}])
 
     def test_route_resume_after_lost_response_does_not_call_provider_twice(self):
         created = self.client.post('/api/credits/exams', json={
@@ -245,6 +266,90 @@ class FirestoreRetryTests(unittest.TestCase):
         self.assertEqual(result['balance'], 9)
         self.assertEqual(store.client.transaction.call_count, 2)
         self.assertEqual(store.client.transaction.return_value.set.call_count, 1)
+
+
+class TrialAndSalesTests(unittest.TestCase):
+    def setUp(self):
+        self.store = MemoryStore()
+        self.service = CreditService(self.store, admins=['admin'])
+        self.batch = {'prompt': 'Create one biology MCQ question.', 'expectedCount': 1, 'lang': 'vi'}
+
+    def test_automatic_trials_concurrent_login_and_spent_balance(self):
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            accounts = list(pool.map(lambda _: self.service.me(USER), range(20)))
+        self.assertTrue(all(a['balance'] == 2 and a['manualBalance'] == 3 and a['status'] == 'approved' for a in accounts))
+        self.assertEqual(len(self.service.history('teacher')), 1)
+        self.service.create(USER, 'trial-exam-1', {}, [SLOT])
+        self.assertEqual(self.service.me(USER)['balance'], 1)
+        self.assert_code('trial_already_granted', lambda: self.service.admin_change('admin', 'teacher', 'trial-grant-2', trial=True))
+
+    def assert_code(self, code, function):
+        with self.assertRaises(HTTPException) as raised:
+            function()
+        self.assertEqual(raised.exception.detail['code'], code)
+
+    def test_old_one_credit_trial_topped_up_once_and_blocked_account_stays_blocked(self):
+        old = CreditService(self.store, admins=['admin'], automatic_trials=False)
+        old.me(USER)
+        path = self.service.account_path('teacher')
+        self.store.documents[path].update(trialGranted=True, balance=0)
+        for _ in range(2):
+            self.assertEqual(self.service.me(USER)['balance'], 1)
+        self.service.admin_change('admin', 'teacher', 'block-owner-1', status='blocked')
+        self.assertEqual(self.service.me(USER)['status'], 'blocked')
+        self.assert_code('account_not_approved', lambda: self.service.create_manual_run(USER, 'blocked-run-1', [self.batch]))
+
+    def finish_run(self, run_id, index=0):
+        claim = self.service.claim_manual(USER, run_id, index, self.batch)
+        if 'cached' in claim:
+            return claim['cached']
+        return self.service.finish_manual(USER, run_id, claim['nonce'], [QUESTION])
+
+    def test_three_free_actions_then_payment_and_retry_does_not_spend_exam_credits(self):
+        for i in range(3):
+            run_id = f'manual-run-{i}'
+            self.service.create_manual_run(USER, run_id, [self.batch, self.batch])
+            self.finish_run(run_id, 0)
+            self.finish_run(run_id, 0)
+            self.finish_run(run_id, 1)
+        a = self.service.me(USER)
+        self.assertEqual((a['manualBalance'], a['manualHeld'], a['balance']), (0, 0, 2))
+        self.assert_code('manual_credits_required', lambda: self.service.create_manual_run(USER, 'manual-run-4', [self.batch]))
+        self.service.admin_change('admin', 'teacher', 'manual-pay-1', manual_package=3, payment_reference='BANK-20000')
+        self.service.admin_change('admin', 'teacher', 'manual-pay-2', manual_package=3, payment_reference='bank-20000')
+        self.assertEqual(self.service.me(USER)['manualBalance'], 3)
+        self.assertEqual(self.service.me(USER)['balance'], 2)
+        self.assert_code('payment_reference_conflict', lambda: self.service.admin_change('admin', 'teacher', 'exam-pay-1', package=10, payment_reference='BANK-20000'))
+
+    def test_manual_failure_resume_tampering_and_cancel(self):
+        run = self.service.create_manual_run(USER, 'manual-run-1', [self.batch])
+        claim = self.service.claim_manual(USER, run['id'], 0, self.batch)
+        self.service.finish_manual(USER, run['id'], claim['nonce'])
+        self.assert_code('request_conflict', lambda: self.service.claim_manual(USER, run['id'], 0, {**self.batch, 'expectedCount': 2}))
+        self.assert_code('manual_run_missing', lambda: self.service.get_manual_run({'sub':'other'}, run['id']))
+        self.service.cancel_manual(USER, run['id'])
+        self.assertEqual(self.service.me(USER)['manualBalance'], 3)
+        self.service.create_manual_run(USER, 'manual-run-2', [self.batch, self.batch])
+        self.finish_run('manual-run-2')
+        self.assert_code('manual_cancel_denied', lambda: self.service.cancel_manual(USER, 'manual-run-2'))
+        self.finish_run('manual-run-2', 1)
+        self.assertEqual(self.service.me(USER)['manualHeld'], 0)
+
+    def test_purchase_request_reporting_never_grants_and_fulfillment_is_atomic(self):
+        order = self.service.request_purchase(USER, 'purchase-001', 'manual', 3)
+        self.service.report_payment(USER, order['id'])
+        self.assertEqual(self.service.me(USER)['manualBalance'], 3)
+        self.assertEqual(len(self.service.purchases('teacher')), 1)
+        self.assertEqual(self.service.request_purchase(USER, 'purchase-002', 'manual', 3)['id'], order['id'])
+        self.assert_code('purchase_pending', lambda: self.service.request_purchase(USER, 'purchase-003', 'exam', 10))
+        self.assert_code('purchase_conflict', lambda: self.service.admin_change('admin', 'teacher', 'fulfill-001', package=10, purchase_id=order['id']))
+        for _ in range(2):
+            self.service.admin_change('admin', 'teacher', 'fulfill-002', manual_package=3, purchase_id=order['id'], payment_reference='BANK-NEW-001')
+        self.assertEqual(self.service.me(USER)['manualBalance'], 6)
+        self.assertEqual(self.service.purchases('teacher')[0]['status'], 'fulfilled')
+        next_order = self.service.request_purchase(USER, 'purchase-004', 'exam', 10)
+        self.service.reject_purchase('admin', 'teacher', next_order['id'], 'Chưa thanh toán')
+        self.assertEqual(self.service.me(USER)['balance'], 2)
 
 
 if __name__ == '__main__':

@@ -1,11 +1,15 @@
 # Exam credits on the shared BioGen backend
 
 This preview adds account approval, packages of 10/20/30 credits, a server-owned
-ledger, cloud exam recovery and manual administrator grants. Gemini remains the
+ledger, cloud exam recovery, purchase requests and manual administrator grants. Gemini remains the
 shared provider for manual questions and exam slots. No payment gateway is added.
 
 ## Business rules
 
+- Every authenticated account receives two exam trial credits once and can use
+  them immediately. Existing one-credit trials receive only the missing one;
+  spent balance is never reset. Pending accounts become approved; blocked
+  accounts remain blocked. The server transaction owns this migration.
 - One credit buys an exam containing at most 40 assessment units. MCQ and numeric
   short response count as one; a four-statement True/False question counts as four.
 - Starting reserves one available credit atomically. Completion consumes that
@@ -26,9 +30,32 @@ shared provider for manual questions and exam slots. No payment gateway is added
 - Credit has no expiry. Unspent balance must remain backed by a future service
   budget. Prices stored for grants are provisional planning values (199k/349k/479k),
   not proof of an actual payment; administrator notes are required.
-- Approved users retain manual-question generation, capped at 20 questions per
-  UTC day, without spending exam credits. This is an initial bounded allowance,
-  not a separate paid-question product. The provider RPM and hourly limits remain.
+- Manual-question generation has a separate balance: three free generation
+  actions once per account, followed by 20,000 VND for each three-action package.
+  One button click with several criteria batches is one action, at most 40
+  questions total. The final available action is warned before it is used.
+  Exhaustion opens the purchase dialog. Exam credits cannot pay for this module.
+- Manual actions are registered with durable IDs, immutable prompts and saved
+  results, then reserved/completed once. Provider errors release the worker lease
+  while retaining the action and successful batches. Resume is available across
+  devices. A run with no saved result can be cancelled/refunded; a partial run is
+  continued. Paid retries do not call the provider for saved batches again.
+- The old local `biogen_usage_count` and Donate self-confirmation are no longer
+  payment authority. Existing accounts receive the new server-owned three-action
+  trial once, irrespective of that historical local counter. Provider RPM and
+  hourly quotas still apply to both products.
+- The sales banner links to packages and an authenticated purchase request.
+  Manual packages show the existing bank destination and a 20,000 VND VietQR,
+  with a reference derived from the durable request ID. A teacher can report a
+  transfer, but only an administrator verifying the bank receipt can grant turns.
+  Exam package prices must be confirmed by the administrator before payment.
+- Administrators see pending purchases (including email, product, note and
+  reported-transfer state), refreshed every 30 seconds while the exam module is
+  open. No emails or push notifications are sent. The queue shows up to 100
+  pending accounts; resolved purchases cannot hide pending ones. A user has at
+  most one pending purchase across products; administrators can close a request
+  to permit a different package. Fulfillment updates purchase, balance and receipt
+  atomically. Receipt uniqueness is shared by both products.
 
 ## Persistence and authority
 
@@ -36,6 +63,9 @@ Collections are `{CREDIT_NAMESPACE}_accounts/{sha256(uid)}` with `exams` and
 `ledger` subcollections, plus `{CREDIT_NAMESPACE}_receipts` for unique payment
 references. Re-entering the same bank/payment reference cannot grant a second
 package, even after a browser reload or through another administrator.
+`manual_runs` and `purchases` are account subcollections. The
+`{CREDIT_NAMESPACE}_purchase_inbox` mirrors the latest purchase per account,
+filtering pending requests before applying the queue limit. It is server-only.
 Preview and production MUST use different namespaces
 and preferably different databases/projects. Existing question-history data is
 not migrated or overwritten.
@@ -83,6 +113,9 @@ match /biogen_preview_accounts/{document=**} {
   allow read, write: if false;
 }
 match /biogen_preview_receipts/{document=**} {
+  allow read, write: if false;
+}
+match /biogen_preview_purchase_inbox/{document=**} {
   allow read, write: if false;
 }
 ```

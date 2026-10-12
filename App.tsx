@@ -11,7 +11,7 @@ import { DonateModal } from './components/DonateModal';
 import { Footer } from './components/Footer';
 import { BannerAd } from './components/BannerAd';
 import type { Criteria, GeneratedQuestion } from './types';
-import { generateManualQuestions } from './services/manualGenerationService';
+import { generateManualQuestions, resumeManualQuestions } from './services/manualGenerationService';
 import { getCreditAccount } from './services/creditService';
 import { auth, isConfigured } from './firebaseConfig';
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
@@ -45,19 +45,16 @@ const App: React.FC = () => {
   const [isLimitReached, setIsLimitReached] = useState<boolean>(false);
   
   const [isQuizMode, setIsQuizMode] = useState<boolean>(false);
-  const [usageCount, setUsageCount] = useState<number>(0);
+  const [manualRefresh, setManualRefresh] = useState(0);
 
   useEffect(() => {
     if (user && user.uid !== DEMO_USER.uid) {
-      // Register pending accounts for both modules. No credit is granted here.
+      // The server grants one-time trials and preserves blocked accounts.
       void getCreditAccount().catch(() => { /* Backend errors are shown on generation. */ });
     }
   }, [user?.uid]);
 
   useEffect(() => {
-    const storedUsage = parseInt(localStorage.getItem('biogen_usage_count') || '0', 10);
-    setUsageCount(storedUsage);
-
     const isBlueprintPreview = window.location.hostname === 'biogenai-blueprint-preview.onrender.com';
     if (isConfigured && auth) {
       let initialAuthState = true;
@@ -87,18 +84,8 @@ const App: React.FC = () => {
     document.documentElement.classList.toggle('dark');
   };
 
-  const incrementUsage = () => {
-      const newCount = usageCount + 1;
-      setUsageCount(newCount);
-      localStorage.setItem('biogen_usage_count', String(newCount));
-      if (newCount > 0 && newCount % 3 === 0) {
-          setIsLimitReached(false);
-          setShowDonate(true);
-      }
-  };
-
-  const handleGenerate = useCallback(async (criteriaList: Criteria[]) => {
-    if (criteriaList.length === 0) return;
+  const handleGenerate = useCallback(async (criteriaList: Criteria[], resume = false) => {
+    if (!resume && criteriaList.length === 0) return;
     setIsLoading(true);
     setError(null);
     setHasGenerated(true);
@@ -106,21 +93,25 @@ const App: React.FC = () => {
     setIsQuizMode(false);
 
     try {
-      const allQuestions = await generateManualQuestions(criteriaList, i18n.language);
+      const allQuestions = resume ? await resumeManualQuestions() : await generateManualQuestions(criteriaList, i18n.language);
 
       if (allQuestions.length === 0) {
         throw new Error(t('results.no_data'));
       }
 
       setGeneratedQuestions(allQuestions);
-      incrementUsage();
+      void getCreditAccount().then(account => {
+        if (account.enabled && account.manualBalance === 0) setShowDonate(true);
+      }).catch(() => { /* Keep successfully generated questions on a balance-refresh error. */ });
     } catch (err: any) {
       console.error('Generation error:', err);
       setError(err.message || t('error.title'));
+      if (err.code === 'manual_credits_required') setShowDonate(true);
     } finally {
       setIsLoading(false);
+      setManualRefresh(v => v + 1);
     }
-  }, [i18n.language, t, usageCount]);
+  }, [i18n.language, t]);
 
   if (isAuthLoading) return <LoadingSpinner />;
   if (!user) return <LoginScreen onDemoLogin={handleDemoLogin} />;
@@ -138,7 +129,7 @@ const App: React.FC = () => {
       
       {!isQuizMode && (
          <div className="container mx-auto px-4 pt-4">
-             <BannerAd onDonateClick={() => setShowDonate(true)} />
+             <BannerAd />
          </div>
       )}
 
@@ -149,6 +140,9 @@ const App: React.FC = () => {
             {!isQuizMode && (
                 <div className="lg:col-span-4 h-full">
                     <CriteriaSelector 
+                        manualRefreshToken={manualRefresh}
+                        onResumeManual={() => void handleGenerate([], true)}
+                        onBuyManual={() => setShowDonate(true)}
                         onGenerate={handleGenerate} 
                         isLoading={isLoading} 
                     />

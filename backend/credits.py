@@ -26,10 +26,11 @@ def request_id(value):
 
 
 class CreditService:
-    def __init__(self, store, namespace='biogen_preview', admins=(), clock=time.time):
+    def __init__(self, store, namespace='biogen_preview', admins=(), clock=time.time, automatic_trials=True):
         if not re.fullmatch(r'[a-z][a-z0-9_]{2,40}', namespace):
             raise ValueError('Invalid credit namespace')
         self.store, self.namespace, self.admins, self.clock = store, namespace, set(admins), clock
+        self.automatic_trials = automatic_trials
 
     def account_path(self, uid):
         return f'{self.namespace}_accounts/{fingerprint(uid)}'
@@ -45,10 +46,26 @@ class CreditService:
         account = tx.get(path)
         if not account:
             account = {'uid': uid, 'email': user.get('email', ''), 'name': user.get('name', ''),
-                       'status': 'approved' if uid in self.admins else 'pending',
+                       'status': 'approved' if self.automatic_trials or uid in self.admins else 'pending',
                        'balance': 0, 'held': 0, 'activeExamId': None,
                        'createdAt': self.clock(), 'updatedAt': self.clock()}
             tx.set(path, account)
+        if self.automatic_trials and account['status'] != 'blocked':
+            # Old accounts received one trial credit. Top up the grant, never reset
+            # their remaining balance or grant again after credits are spent.
+            granted = account.get('trialCreditsGranted', 1 if account.get('trialGranted') else 0)
+            delta = max(0, 2 - granted)
+            changed = bool(delta) or 'manualBalance' not in account or account['status'] == 'pending'
+            if changed:
+                account.update(balance=account['balance'] + delta, trialGranted=True,
+                    trialCreditsGranted=max(2, granted), status='approved', updatedAt=self.clock())
+                account.setdefault('manualBalance', 3)
+                account.setdefault('manualHeld', 0)
+                account.setdefault('activeManualRunId', None)
+                tx.set(path, account)
+                if delta:
+                    self.ledger(tx, uid, 'automatic-trial-v2', 'grant', balanceDelta=delta,
+                                heldDelta=0, note='Dùng thử: tổng cộng 2 credit tạo đề mỗi tài khoản.')
         return account
 
     def approved(self, account):
@@ -266,19 +283,21 @@ class CreditService:
             return exam
         return self.store.run(cancel)
 
-    def admin_change(self, admin_uid, uid, operation, status=None, package=None, trial=False, note='', payment_reference=None):
+    def admin_change(self, admin_uid, uid, operation, status=None, package=None, trial=False, note='', payment_reference=None, manual_package=None, purchase_id=None):
         if admin_uid not in self.admins:
             fail('admin_required', 'Chỉ quản trị được thay đổi credit.', 403)
         request_id(operation)
         if package is not None and package not in PACKAGES:
             fail('invalid_package', 'Gói phải là 10, 20 hoặc 30 credit.', 422)
-        if package and trial:
+        if manual_package not in (None, 3):
+            fail('invalid_package', 'Gói câu hỏi lẻ là 3 lượt, giá 20.000đ.', 422)
+        if sum(bool(v) for v in (package, trial, manual_package)) > 1:
             fail('invalid_package', 'Không gộp gói trả phí và credit dùng thử trong một thao tác.', 422)
         if status is not None and status not in ('pending', 'approved', 'blocked'):
             fail('invalid_status', 'Trạng thái tài khoản không hợp lệ.', 422)
-        reference = (payment_reference or operation).strip().upper() if package else None
+        reference = (payment_reference or operation).strip().upper() if package or manual_package else None
         intent = {'uid': uid, 'status': status, 'package': package, 'trial': trial, 'note': note,
-                  'paymentReference': reference}
+                  'paymentReference': reference, 'manualPackage': manual_package, 'purchaseId': purchase_id}
         def change(tx):
             path = self.account_path(uid)
             account = tx.get(path)
@@ -291,39 +310,216 @@ class CreditService:
                     fail('request_conflict', 'Mã giao dịch đã được dùng cho thao tác khác.')
                 return account
             receipt_path = f'{self.namespace}_receipts/{fingerprint(reference)}' if package else None
+            if manual_package:
+                receipt_path = f'{self.namespace}_receipts/{fingerprint(reference)}'
             receipt = tx.get(receipt_path) if receipt_path else None
+            purchase_path = f'{path}/purchases/{request_id(purchase_id)}' if purchase_id else None
+            purchase = tx.get(purchase_path) if purchase_path else None
+            if purchase_id and (not purchase or purchase['status'] != 'pending'
+                    or purchase['product'] != ('manual' if manual_package else 'exam')
+                    or purchase['package'] != (manual_package or package)):
+                fail('purchase_conflict', 'Yêu cầu mua không còn chờ xử lý hoặc không khớp gói.')
             if receipt:
-                if receipt['uid'] != uid or receipt['package'] != package:
+                if (receipt['uid'] != uid or receipt['package'] != (manual_package or package)
+                        or receipt.get('product', 'exam') != ('manual' if manual_package else 'exam')
+                        or purchase_id and receipt.get('purchaseId') != purchase_id):
                     fail('payment_reference_conflict', 'Mã thanh toán đã dùng cho tài khoản hoặc gói khác.')
                 return account
-            if trial and account.get('trialGranted'):
+            granted = account.get('trialCreditsGranted', 1 if account.get('trialGranted') else 0)
+            if trial and granted >= 2:
                 fail('trial_already_granted', 'Tài khoản đã nhận credit dùng thử.')
-            delta = package or (1 if trial else 0)
+            delta = package or (max(0, 2 - granted) if trial else 0)
             account['balance'] += delta
+            if manual_package:
+                account['manualBalance'] = account.get('manualBalance', 3) + manual_package
             if status:
                 account['status'] = status
             if trial:
                 account['trialGranted'] = True
+                account['trialCreditsGranted'] = 2
+            if purchase:
+                account['activePurchaseId'] = None
             account['updatedAt'] = self.clock()
             tx.set(path, account)
             if receipt_path:
-                tx.set(receipt_path, {'uid': uid, 'package': package, 'reference': reference,
+                tx.set(receipt_path, {'uid': uid, 'package': manual_package or package,
+                    'product': 'manual' if manual_package else 'exam', 'purchaseId': purchase_id, 'reference': reference,
                     'actorUid': admin_uid, 'updatedAt': self.clock()})
-            tx.set(op_path, {'id': fingerprint(operation), 'kind': 'grant' if delta else 'status',
+            if purchase:
+                purchase.update(status='fulfilled', paymentReference=reference, actorUid=admin_uid, updatedAt=self.clock())
+                tx.set(purchase_path, purchase)
+                tx.set(f'{self.namespace}_purchase_inbox/{fingerprint(uid)}', purchase)
+            tx.set(op_path, {'id': fingerprint(operation), 'kind': 'grant' if delta or manual_package else 'status',
                             'uid': uid, 'actorUid': admin_uid, 'intent': intent, 'note': note,
                             'balanceDelta': delta, 'heldDelta': 0,
-                            'priceVnd': PACKAGES.get(package, 0), 'updatedAt': self.clock()})
+                            'manualDelta': manual_package or 0,
+                            'priceVnd': 20000 if manual_package else PACKAGES.get(package, 0), 'updatedAt': self.clock()})
             return account
         return self.store.run(change)
 
-    def manual_admission(self, user, units):
-        def admit(tx):
+    def request_purchase(self, user, operation, product, package, note=''):
+        request_id(operation)
+        if (product == 'exam' and package not in PACKAGES) or (product == 'manual' and package != 3) or product not in ('exam', 'manual'):
+            fail('invalid_package', 'Gói mua không hợp lệ.', 422)
+        def create(tx):
             account = self.account(tx, user)
             self.approved(account)
-            day = time.strftime('%Y-%m-%d', time.gmtime(self.clock()))
-            used = account.get('manualUsed', 0) if account.get('manualDay') == day else 0
-            if used + units > 20:
-                fail('manual_daily_limit', 'Module câu lẻ giới hạn 20 câu/ngày; không trừ credit đề.', 429)
-            account.update(manualDay=day, manualUsed=used + units, updatedAt=self.clock())
+            path = f'{self.account_path(account["uid"])}/purchases/{operation}'
+            old = tx.get(path)
+            if old:
+                if old['product'] != product or old['package'] != package:
+                    fail('request_conflict', 'Mã yêu cầu đã dùng cho gói khác.')
+                return old
+            active = account.get('activePurchaseId')
+            pending = tx.get(f'{self.account_path(account["uid"])}/purchases/{active}') if active else None
+            if pending and pending['status'] == 'pending':
+                if pending['product'] == product and pending['package'] == package:
+                    return pending
+                fail('purchase_pending', 'Đã có yêu cầu mua đang chờ xử lý. Liên hệ quản trị để đổi gói.')
+            purchase = {'id': operation, 'uid': account['uid'], 'email': account['email'],
+                'name': account['name'], 'product': product, 'package': package, 'note': note,
+                'status': 'pending', 'createdAt': self.clock(), 'updatedAt': self.clock()}
+            account.update(activePurchaseId=operation, updatedAt=self.clock())
             tx.set(self.account_path(account['uid']), account)
-        self.store.run(admit)
+            tx.set(path, purchase)
+            tx.set(f'{self.namespace}_purchase_inbox/{fingerprint(account["uid"])}', purchase)
+            return purchase
+        return self.store.run(create)
+
+    def purchases(self, uid):
+        return self.store.list(f'{self.account_path(uid)}/purchases', 50)
+
+    def report_payment(self, user, purchase_id):
+        def report(tx):
+            account = self.account(tx, user)
+            path = f'{self.account_path(account["uid"])}/purchases/{request_id(purchase_id)}'
+            purchase = tx.get(path)
+            if not purchase or purchase['status'] != 'pending':
+                fail('purchase_conflict', 'Không tìm thấy yêu cầu mua đang chờ.', 404)
+            purchase.update(reportedPaid=True, updatedAt=self.clock())
+            tx.set(path, purchase)
+            tx.set(f'{self.namespace}_purchase_inbox/{fingerprint(account["uid"])}', purchase)
+            return purchase
+        return self.store.run(report)
+
+    def reject_purchase(self, admin_uid, uid, purchase_id, note):
+        if admin_uid not in self.admins:
+            fail('admin_required', 'Chỉ quản trị được xử lý yêu cầu.', 403)
+        def reject(tx):
+            path = f'{self.account_path(uid)}/purchases/{request_id(purchase_id)}'
+            account, purchase = tx.get(self.account_path(uid)), tx.get(path)
+            if not purchase or purchase['status'] == 'fulfilled':
+                fail('purchase_conflict', 'Yêu cầu không còn chờ xử lý.')
+            purchase.update(status='rejected', adminNote=note, actorUid=admin_uid, updatedAt=self.clock())
+            if account.get('activePurchaseId') == purchase_id:
+                account['activePurchaseId'] = None
+                tx.set(self.account_path(uid), account)
+            tx.set(path, purchase)
+            tx.set(f'{self.namespace}_purchase_inbox/{fingerprint(uid)}', purchase)
+            return purchase
+        return self.store.run(reject)
+
+    def manual_path(self, uid, run_id):
+        return f'{self.account_path(uid)}/manual_runs/{request_id(run_id)}'
+
+    def create_manual_run(self, user, operation, batches):
+        request_id(operation)
+        if not batches or sum(b['expectedCount'] for b in batches) > 40 or len(json.dumps(batches).encode()) > 160000:
+            fail('manual_capacity', 'Mỗi lượt tạo câu hỏi lẻ tối đa 40 câu.', 422)
+        signature = fingerprint(batches)
+        def create(tx):
+            account = self.account(tx, user)
+            self.approved(account)
+            path = self.manual_path(account['uid'], operation)
+            old = tx.get(path)
+            if old:
+                if old['signature'] != signature:
+                    fail('request_conflict', 'Mã lượt tạo đã dùng cho yêu cầu khác.')
+                return old
+            if account.get('activeManualRunId'):
+                fail('manual_run_active', 'Hãy tiếp tục lượt câu hỏi lẻ đang dở trước khi tạo lượt mới.')
+            if account.get('manualBalance', 3) < 1:
+                fail('manual_credits_required', 'Đã hết lượt câu hỏi lẻ. Mua 3 lượt tiếp theo với giá 20.000đ.', 402)
+            account.update(manualBalance=account.get('manualBalance', 3)-1,
+                manualHeld=account.get('manualHeld', 0)+1, activeManualRunId=operation, updatedAt=self.clock())
+            run = {'id': operation, 'signature': signature, 'batches': batches, 'results': {},
+                'status': 'reserved', 'lease': None, 'updatedAt': self.clock()}
+            tx.set(self.account_path(account['uid']), account)
+            tx.set(path, run)
+            self.ledger(tx, account['uid'], 'manual-reserve:'+operation, 'manual_reserve',
+                balanceDelta=0, heldDelta=0, manualDelta=-1, manualHeldDelta=1)
+            return run
+        return self.store.run(create)
+
+    def get_manual_run(self, user, run_id):
+        def read(tx):
+            account = self.account(tx, user)
+            run = tx.get(self.manual_path(account['uid'], run_id))
+            if not run:
+                fail('manual_run_missing', 'Không tìm thấy lượt câu hỏi lẻ.', 404)
+            return run
+        return self.store.run(read)
+
+    def claim_manual(self, user, run_id, index, batch):
+        nonce = uuid.uuid4().hex
+        def claim(tx):
+            account = self.account(tx, user)
+            self.approved(account)
+            path = self.manual_path(account['uid'], run_id)
+            run = tx.get(path)
+            if not run or run['status'] == 'cancelled' or index < 0 or index >= len(run['batches']):
+                fail('manual_run_missing', 'Lượt câu hỏi lẻ không hợp lệ.', 404)
+            registered = {k: run['batches'][index][k] for k in ('prompt', 'expectedCount', 'lang')}
+            if fingerprint(batch) != fingerprint(registered):
+                fail('request_conflict', 'Nội dung không khớp lượt đã đăng ký.')
+            if str(index) in run['results']:
+                return {'cached': run['results'][str(index)]}
+            if run['lease'] and run['lease']['expiresAt'] > self.clock():
+                fail('manual_busy', 'Lượt câu hỏi lẻ đang được tạo.')
+            run['lease'] = {'nonce': nonce, 'index': index, 'expiresAt': self.clock()+240}
+            tx.set(path, run)
+            return {'nonce': nonce}
+        return self.store.run(claim)
+
+    def finish_manual(self, user, run_id, nonce, results=None):
+        def finish(tx):
+            account = self.account(tx, user)
+            path = self.manual_path(account['uid'], run_id)
+            run = tx.get(path)
+            if not run or not run['lease'] or run['lease']['nonce'] != nonce:
+                fail('manual_stale', 'Lượt câu hỏi lẻ đã được thay thế.')
+            index = run['lease']['index']
+            if results is not None:
+                if len(results) != run['batches'][index]['expectedCount'] or any(len(json.dumps(q).encode()) > 6000 for q in results):
+                    fail('ai_invalid_question', 'Câu trả về quá dài hoặc không đủ số lượng.', 422)
+                run['results'][str(index)] = results
+                if len(run['results']) == len(run['batches']) and run['status'] == 'reserved':
+                    run['status'] = 'completed'
+                    account.update(manualHeld=account['manualHeld']-1, activeManualRunId=None, updatedAt=self.clock())
+                    tx.set(self.account_path(account['uid']), account)
+                    self.ledger(tx, account['uid'], 'manual-consume:'+run_id, 'manual_consume',
+                        balanceDelta=0, heldDelta=0, manualDelta=0, manualHeldDelta=-1)
+            run.update(lease=None, updatedAt=self.clock())
+            tx.set(path, run)
+            return results
+        return self.store.run(finish)
+
+    def cancel_manual(self, user, run_id):
+        def cancel(tx):
+            account = self.account(tx, user)
+            path = self.manual_path(account['uid'], run_id)
+            run = tx.get(path)
+            if not run:
+                fail('manual_run_missing', 'Không tìm thấy lượt tạo.', 404)
+            if run['status'] == 'cancelled':
+                return run
+            if run['status'] != 'reserved' or run['results'] or run['lease'] and run['lease']['expiresAt'] > self.clock():
+                fail('manual_cancel_denied', 'Lượt đang chạy hoặc đã có câu; hãy tiếp tục lượt đang dở.')
+            account.update(manualBalance=account['manualBalance']+1, manualHeld=account['manualHeld']-1, activeManualRunId=None)
+            run.update(status='cancelled', updatedAt=self.clock())
+            tx.set(path, run)
+            tx.set(self.account_path(account['uid']), account)
+            self.ledger(tx, account['uid'], 'manual-refund:'+run_id, 'manual_refund',
+                balanceDelta=0, heldDelta=0, manualDelta=1, manualHeldDelta=-1)
+            return run
+        return self.store.run(cancel)
