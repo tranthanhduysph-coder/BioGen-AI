@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createDefaultBlueprint as defaultBlueprint, createBlueprintFromPreset, getBlueprintPresetsForGrade } from '../../data/examBlueprintPresets';
 import { getSpecificationSourceLabel, getSpecificationSourceUrl } from '../../data/biologySpecification/catalog';
 import { SpecificationCatalog } from './SpecificationCatalog';
+import { CompetencyDetails } from './CompetencyDetails';
 import {
   getCompetenciesForContent,
   getContentsForGrade,
@@ -1064,6 +1065,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
                             </option>
                           ))}
                         </select>
+                        {outcome && <CompetencyDetails outcomeId={outcome.id} sourceCode={outcome.competencyCode || null} isEnglish={isEnglish} />}
                       </td>
 
                       <td className="p-2">

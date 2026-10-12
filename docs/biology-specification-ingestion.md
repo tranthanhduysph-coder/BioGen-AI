@@ -56,6 +56,16 @@ There are 33 repeated rows, 5 explicit “Ko có.” cells and 3 incomplete frag
 
 ## Verification
 
+### Competency descriptors and outcome mapping
+
+`data/biologySpecification/competencies.ts` defines the 15 competency expressions in curriculum section IV.2 (pages 5–7): NT1–NT8, TH1–TH5, VD1–VD2. Descriptions are paraphrases. Numbering follows the convention already used by the app and specification; the curriculum does not itself print these codes. Cognitive levels and competency groups remain distinct.
+
+`competencyMappings.ts` attaches a structured `competencySpecification` to each of the 511 usable outcomes. Exact codes, slash combinations and same-group ranges (`TH1-TH5`, `TH2-5`, `NT2-NT4`, `NT5-NT6`) link to individual descriptors. `NT5-H` retains its unexplained suffix while linking the known NT5 base. `VD/NT5` retains its unspecified VD component; no VD1/VD2 is invented. Mixed groups receive both group labels.
+
+`competencyProposals.json` holds 87 individually authored suggestions for all usable outcomes whose source code is absent. Each has stable outcome id, candidate codes and an outcome-specific rationale. They are professional interpretations of the complete requirement, not transcribed source facts and not a keyword classifier. Compound outcomes retain multiple candidates. Project outcomes explicitly leave the teacher to choose which inquiry stages are assessed. Every suggestion is visibly marked **Gợi ý · Chờ giáo viên xác nhận**. Source codes, source levels and the codes used in generation slots remain unchanged. Suggestions do not become approved codes automatically.
+
+The source catalog and matrix display expandable **Đặc tả năng lực** next to the selected outcome, with curriculum page links, proposal rationale and warnings for ambiguous notation. Catalog search also covers descriptor codes and descriptions, including suggestions. Original PDF bytes, transcriptions, catalog ids, preset allocations, backend, review and DOCX formats are unchanged.
+
 `npm test` checks source coverage, all grades, source anomalies, question references, preset isolation, legacy draft lookup, and the unchanged engine's matrix → 12 MCQ + 2 T/F (4 statements each) + 4 short-answer slots → mock generation → format validation → draft recovery flow for each grade.
 
 The 13 tests also verify the 72 supplemental records, null source code/level, original-id preservation, distinct PDF links, fragment recovery, exact coverage of all nine electives, separation from core presets, and the generation/draft flow for elective matrices in each grade.

@@ -5,6 +5,8 @@ import {
   getSpecificationContentLabel, getSpecificationSourceLabel, getSpecificationRecordById,
 } from '../../data/biologySpecification/catalog';
 import type { BiologySpecificationRecord } from '../../data/biologySpecification/types';
+import { CompetencyDetails } from './CompetencyDetails';
+import { getCompetencySpecification } from '../../data/biologySpecification/competencyMappings';
 
 const levelLabel = { know: 'Nhận biết', understand: 'Thông hiểu', apply: 'Vận dụng' };
 export const SpecificationCatalog: React.FC<{
@@ -23,7 +25,7 @@ export const SpecificationCatalog: React.FC<{
   const contents = Array.from(new Map(scopedRecords.map(record => [record.contentId, getSpecificationContentLabel(record)])).entries());
   const matches = scopedRecords.filter(record => (!contentId || record.contentId === contentId)
     && (showSourceIssues || isUsableSpecificationRecord(record))
-    && `${record.text} ${record.competencyCode || ''} ${record.contentLabel}`.toLocaleLowerCase('vi').includes(query.toLocaleLowerCase('vi')));
+    && `${record.text} ${record.competencyCode || ''} ${record.contentLabel} ${getCompetencySpecification(record.id, record.competencyCode).descriptors.map(item => `${item.code} ${item.title} ${item.description}`).join(' ')}`.toLocaleLowerCase('vi').includes(query.toLocaleLowerCase('vi')));
   return (
     <details className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
       <summary className="cursor-pointer text-sm font-bold text-slate-800 dark:text-white">
@@ -72,6 +74,7 @@ export const SpecificationCatalog: React.FC<{
             </a>
           </div>
           <p className="my-2 text-sm leading-relaxed">{record.text}</p>
+          {isUsableSpecificationRecord(record) && <CompetencyDetails outcomeId={record.id} sourceCode={record.competencyCode} isEnglish={isEnglish} />}
           {record.relatedSourceRecordIds?.map(id => <a key={id} href={getSpecificationSourceUrl(getSpecificationRecordById(id)!.sourcePage)}
             target="_blank" rel="noreferrer" className="mb-2 block text-xs text-sky-700 underline dark:text-sky-300">
             {isEnglish ? 'Compare the incomplete specification fragment' : 'Đối chiếu mảnh câu bị thiếu trong bản đặc tả'}

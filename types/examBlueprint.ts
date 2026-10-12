@@ -1,3 +1,5 @@
+import type { BiologyCompetencySpecification } from '../data/biologySpecification/competencyMappings';
+
 export type CognitiveLevel = 'know' | 'understand' | 'apply';
 export type ExamPartKey = 'mcq' | 'tf' | 'short';
 
@@ -48,6 +50,7 @@ export interface BiologyLearningOutcome {
   contentLabel: string;
   competencyCode: string;
   competencyLabel: string;
+  competencySpecification?: BiologyCompetencySpecification;
   level: CognitiveLevel | null;
   text: string;
   sourcePage?: number;

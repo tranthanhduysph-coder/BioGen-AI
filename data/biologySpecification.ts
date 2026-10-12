@@ -1,13 +1,15 @@
 import type { BiologyLearningOutcome } from '../types/examBlueprint';
 import { BIOLOGY_OUTCOMES as LEGACY_OUTCOMES } from './biologySpecification/legacyOutcomes';
 import { BIOLOGY_SPECIFICATION_RECORDS, getSpecificationContentLabel, isUsableSpecificationRecord } from './biologySpecification/catalog';
+import { COMPETENCY_GROUP_LABELS, resolveCompetencyCode } from './biologySpecification/competencies';
+import { getCompetencySpecification } from './biologySpecification/competencyMappings';
+export { BIOLOGY_COMPETENCY_DESCRIPTORS, resolveCompetencyCode } from './biologySpecification/competencies';
+export { getCompetencySpecification } from './biologySpecification/competencyMappings';
 
 export const getCompetencyLabel = (code: string | null) => {
   if (!code) return 'Nguồn không ghi mã năng lực';
-  if (code.startsWith('NT')) return 'Nhận thức sinh học';
-  if (code.startsWith('TH')) return 'Tìm hiểu thế giới sống';
-  if (/^VD\d/.test(code)) return 'Vận dụng kiến thức, kĩ năng';
-  return 'Mã theo bản đặc tả';
+  const { groups } = resolveCompetencyCode(code);
+  return groups.map(group => COMPETENCY_GROUP_LABELS[group]).join(' / ') || 'Mã theo bản đặc tả';
 };
 export const BIOLOGY_OUTCOMES: BiologyLearningOutcome[] = BIOLOGY_SPECIFICATION_RECORDS
   .filter(isUsableSpecificationRecord)
@@ -15,6 +17,7 @@ export const BIOLOGY_OUTCOMES: BiologyLearningOutcome[] = BIOLOGY_SPECIFICATION_
     id: record.id, grade: record.grade, contentId: record.contentId,
     contentLabel: getSpecificationContentLabel(record), competencyCode: record.competencyCode ?? '',
     competencyLabel: getCompetencyLabel(record.competencyCode), level: record.level,
+    competencySpecification: getCompetencySpecification(record.id, record.competencyCode),
     text: record.text, sourcePage: record.sourcePage, sourcePages: record.sourcePages,
     sourceId: record.sourceId, scope: record.scope,
     sourceCodeMissing: record.sourceCodeMissing, sourceLevelMissing: record.sourceLevelMissing,

@@ -104,6 +104,68 @@ test('source blanks, combined codes, duplicates, truncated text and addresses re
   assert.ok(doc.records.some(record => record.sourceIncomplete && record.questionReferences.short === 'Câu 6'));
 });
 
+test('all 15 competency descriptors link to curriculum pages and resolve exact and combined source codes', () => {
+  assert.equal(api.BIOLOGY_COMPETENCY_DESCRIPTORS.length, 15);
+  assert.equal(new Set(api.BIOLOGY_COMPETENCY_DESCRIPTORS.map(item => item.code)).size, 15);
+  for (const descriptor of api.BIOLOGY_COMPETENCY_DESCRIPTORS) {
+    assert.ok(descriptor.description.length > 40);
+    assert.ok(descriptor.sourcePages.every(page => page >= 5 && page <= 7));
+    assert.deepEqual(api.resolveCompetencyCode(descriptor.code).descriptors.map(item => item.code), [descriptor.code]);
+  }
+  for (const [code, expected] of Object.entries({
+    'NT2/NT6': ['NT2', 'NT6'], 'NT4/NT6': ['NT4', 'NT6'],
+    'TH1-TH5': ['TH1', 'TH2', 'TH3', 'TH4', 'TH5'], 'TH2-5': ['TH2', 'TH3', 'TH4', 'TH5'],
+    'NT2-NT4': ['NT2', 'NT3', 'NT4'], 'NT5-NT6': ['NT5', 'NT6'],
+  })) {
+    const resolved = api.resolveCompetencyCode(code);
+    assert.equal(resolved.status, 'mapped');
+    assert.equal(resolved.sourceCode, code);
+    assert.deepEqual(resolved.descriptors.map(item => item.code), expected);
+  }
+  assert.deepEqual(api.resolveCompetencyCode('VD/NT5').groups, ['VD', 'NT']);
+  assert.ok(api.getCompetencyLabel('VD/NT5').includes('Nhận thức sinh học'));
+  assert.ok(api.getCompetencyLabel('VD/NT5').includes('Vận dụng'));
+});
+
+test('ambiguous suffixes and unknown or reversed ranges never become invented competency codes', () => {
+  for (const code of ['NT5-H', 'VD/NT5', 'NT9', 'TH5-TH1', 'NT1-TH5', 'NT1-NT99']) {
+    const resolved = api.resolveCompetencyCode(code);
+    assert.equal(resolved.status, 'partial');
+    assert.ok(resolved.unresolvedTokens.length);
+    assert.equal(resolved.sourceCode, code);
+  }
+  assert.deepEqual(api.resolveCompetencyCode('NT5-H').descriptors.map(item => item.code), ['NT5']);
+  assert.deepEqual(api.resolveCompetencyCode('VD/NT5').descriptors.map(item => item.code), ['NT5']);
+  assert.equal(api.resolveCompetencyCode(null).status, 'missing');
+});
+
+test('all 511 usable outcomes have structured descriptors; all 87 missing codes have explicit proposals', () => {
+  const proposals = JSON.parse(readFileSync('data/biologySpecification/competencyProposals.json', 'utf8')).records;
+  const missing = api.BIOLOGY_OUTCOMES.filter(item => !item.competencyCode);
+  assert.equal(missing.length, 87);
+  assert.equal(proposals.length, 87);
+  assert.equal(new Set(proposals.map(item => item.outcomeId)).size, 87);
+  assert.deepEqual(proposals.map(item => item.outcomeId).sort(), missing.map(item => item.id).sort());
+  for (const outcome of api.BIOLOGY_OUTCOMES) {
+    const specification = outcome.competencySpecification;
+    assert.ok(specification.descriptors.length > 0, outcome.id);
+    if (!outcome.competencyCode) {
+      assert.equal(specification.origin, 'proposal');
+      assert.equal(specification.sourceCode, null);
+      assert.ok(specification.rationale.length > 20);
+      assert.ok(specification.proposedCodes.length > 0);
+      assert.equal(specification.status, 'mapped');
+      assert.equal(api.getSpecificationRecordById(outcome.id).competencyCode, null);
+    } else {
+      assert.equal(specification.origin, 'source');
+      assert.equal(specification.sourceCode, outcome.competencyCode);
+      assert.deepEqual(specification.proposedCodes, []);
+    }
+  }
+  assert.equal(api.getCompetencySpecification('unrecognised', null).origin, 'missing');
+  assert.equal(api.getCompetencySpecification(missing[0].id, 'NT6').origin, 'source');
+});
+
 test('every preset has valid grade references, fresh zero allocations and preserves teacher scores', () => {
   for (const preset of api.EXAM_BLUEPRINT_PRESETS) {
     const current = api.createDefaultBlueprint();
@@ -152,6 +214,7 @@ for (const grade of [10, 11, 12]) {
     assert.ok(slots.tf.every(slot => slot.statements.length === 4));
     for (const slot of [...slots.mcq, ...slots.short, ...slots.tf.flatMap(question => question.statements)]) {
       assert.equal(slot.outcomeText, api.getOutcomeById(slot.outcomeId).text);
+      assert.equal(slot.competencyCode, api.getOutcomeById(slot.outcomeId).competencyCode);
       assert.equal(api.getOutcomeById(slot.outcomeId).grade, grade);
     }
     const items = api.generateMockExamFromSlots(slots);
