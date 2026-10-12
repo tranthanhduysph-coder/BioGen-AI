@@ -1065,7 +1065,6 @@ export const ExamBlueprintBuilder: React.FC = () => {
                             </option>
                           ))}
                         </select>
-                        {outcome && <CompetencyDetails outcomeId={outcome.id} sourceCode={outcome.competencyCode || null} isEnglish={isEnglish} />}
                       </td>
 
                       <td className="p-2">
@@ -1089,6 +1088,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
                             </a>}
                           </div>
                         )}
+                        {outcome && <CompetencyDetails outcomeId={outcome.id} sourceCode={outcome.competencyCode || null} isEnglish={isEnglish} />}
                       </td>
 
                       {PARTS.flatMap((part) =>
