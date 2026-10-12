@@ -58,3 +58,12 @@ still applies, and packages are granted manually after payment verification.
 - Browser fixture verified the sales banner, manual balance 3 → 2 → 1 with a last
   action warning, automatic purchase dialog at zero, QR/payment-report flow,
   admin inbox and exactly three added actions after synthetic confirmation.
+- Preview backend deploy `dep-db6f6p3rjlhs7389o92g` is live at `91ec1b0`;
+  frontend deploy `dep-db6f8i8473hc73ea5qng` is live at `c840553`. The latter adds
+  a confirmation dialog before the last manual action and includes root App.tsx
+  in Tailwind scanning so the warning always overlays the results.
+- Live authenticated UI verified the new banner, two available exam credits,
+  three separate manual actions and the administrator pending-purchase counter.
+  Both previously authorized owner accounts were topped up to a total grant of
+  two exam trial credits, held zero. No real AI action or payment was performed;
+  no live test purchase was submitted. Production/main remain unchanged.
