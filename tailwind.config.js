@@ -2,6 +2,7 @@
 export default {
   content: [
     "./index.html",
+    "./App.tsx",
     "./src/**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}" // Add if you have components outside src (unlikely but safe)
   ],

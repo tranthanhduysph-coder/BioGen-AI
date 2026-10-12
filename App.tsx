@@ -46,6 +46,7 @@ const App: React.FC = () => {
   
   const [isQuizMode, setIsQuizMode] = useState<boolean>(false);
   const [manualRefresh, setManualRefresh] = useState(0);
+  const [lastManualAction, setLastManualAction] = useState<{ criteria: Criteria[]; resume: boolean } | null>(null);
 
   useEffect(() => {
     if (user && user.uid !== DEMO_USER.uid) {
@@ -84,15 +85,19 @@ const App: React.FC = () => {
     document.documentElement.classList.toggle('dark');
   };
 
-  const handleGenerate = useCallback(async (criteriaList: Criteria[], resume = false) => {
+  const handleGenerate = useCallback(async (criteriaList: Criteria[], resume = false, confirmedLast = false) => {
     if (!resume && criteriaList.length === 0) return;
     setIsLoading(true);
     setError(null);
-    setHasGenerated(true);
-    setGeneratedQuestions([]);
-    setIsQuizMode(false);
-
     try {
+      const before = await getCreditAccount();
+      if (before.enabled && before.manualBalance === 1 && !before.activeManualRunId && !confirmedLast) {
+        setLastManualAction({ criteria: criteriaList, resume });
+        return;
+      }
+      setHasGenerated(true);
+      setGeneratedQuestions([]);
+      setIsQuizMode(false);
       const allQuestions = resume ? await resumeManualQuestions() : await generateManualQuestions(criteriaList, i18n.language);
 
       if (allQuestions.length === 0) {
@@ -176,6 +181,19 @@ const App: React.FC = () => {
       <DisclaimerModal isOpen={showDisclaimer} onClose={() => setShowDisclaimer(false)} />
       <HistoryModal isOpen={showHistory} onClose={() => setShowHistory(false)} user={user} />
       <DonateModal isOpen={showDonate} onClose={() => setShowDonate(false)} onConfirmPayment={() => setShowDonate(false)} isLimitReached={isLimitReached} />
+      {lastManualAction && <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/60 p-4">
+        <section role="dialog" aria-label="Cảnh báo lượt câu hỏi lẻ cuối cùng" aria-modal="true" className="w-full max-w-md rounded-2xl bg-white p-5 text-slate-800 shadow-xl dark:bg-slate-900 dark:text-white">
+          <h3 className="font-bold text-amber-700">Đây là lượt câu hỏi lẻ cuối cùng</h3>
+          <p className="mt-2 text-sm">Sau lượt này, anh/chị cần mua gói 20.000đ / 3 lượt để tiếp tục. Credit tạo đề được tính riêng.</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button className="rounded-lg bg-sky-600 px-3 py-2 text-sm font-bold text-white" onClick={() => {
+              const pending = lastManualAction; setLastManualAction(null); void handleGenerate(pending.criteria, pending.resume, true);
+            }}>Dùng lượt cuối</button>
+            <button className="rounded-lg border px-3 py-2 text-sm font-semibold" onClick={() => { setLastManualAction(null); setShowDonate(true); }}>Mua thêm 3 lượt</button>
+            <button className="rounded-lg border px-3 py-2 text-sm" onClick={() => setLastManualAction(null)}>Để sau</button>
+          </div>
+        </section>
+      </div>}
     </div>
   );
 };
