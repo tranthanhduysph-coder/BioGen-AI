@@ -17,6 +17,9 @@ export * from './services/examMockService';
 export * from './services/examMixValidationService';
 export * from './services/examDraftService';
 export * from './services/examMixerFormatService';
+export * from './services/geminiService';
+export { vi } from './locales/vi';
+export { en } from './locales/en';
 `, resolveDir: process.cwd(), loader: 'ts' }, outfile: target, bundle: true, platform: 'node', format: 'esm' });
 const api = await import(pathToFileURL(target).href);
 const doc = JSON.parse(readFileSync('data/biologySpecification/catalog.json', 'utf8'));
@@ -137,6 +140,37 @@ test('ambiguous suffixes and unknown or reversed ranges never become invented co
   assert.deepEqual(api.resolveCompetencyCode('NT5-H').descriptors.map(item => item.code), ['NT5']);
   assert.deepEqual(api.resolveCompetencyCode('VD/NT5').descriptors.map(item => item.code), ['NT5']);
   assert.equal(api.resolveCompetencyCode(null).status, 'missing');
+});
+
+test('competency selections and manual prompts retain every full curriculum clause', () => {
+  const clauses = {
+    NT2: ['công thức, sơ đồ, biểu đồ'], NT7: ['chỉnh sửa được những điểm sai', 'nhận định có tính phê phán'],
+    NT8: ['lập được dàn ý', 'các hình thức ngôn ngữ biểu đạt khác nhau'],
+    TH1: ['dùng ngôn ngữ của mình'], TH3: ['hồi cứu tư liệu', 'triển khai hoạt động nghiên cứu'],
+    TH4: ['tham số thống kê đơn giản', 'so sánh được kết quả với giả thuyết', 'vấn đề nghiên cứu tiếp'],
+    TH5: ['lắng nghe tích cực', 'tôn trọng quan điểm', 'bảo vệ kết quả nghiên cứu một cách thuyết phục'],
+    VD1: ['phát triển bền vững', 'phản biện được một số mô hình công nghệ'],
+    VD2: ['gia đình và cộng đồng', 'thích ứng với biến đổi khí hậu', 'đáp ứng yêu cầu phát triển bền vững'],
+  };
+  for (const [code, required] of Object.entries(clauses)) for (const clause of required) {
+    assert.ok(api.getCompetencyDescription(code).includes(clause), `${code}: ${clause}`);
+  }
+  for (const descriptor of api.BIOLOGY_COMPETENCY_DESCRIPTORS) {
+    const key = descriptor.code.toLowerCase();
+    assert.ok(api.vi.translation.constants.competencies[key].includes(descriptor.description));
+    assert.ok(api.getCompetencyLabel(descriptor.code).includes(descriptor.description));
+    for (const lang of ['vi', 'en']) {
+      const prompt = api.generatePrompt({ chapter: 'g10_intro', difficulty: 'diff_2', competency: key,
+        setting: 'set_theory', questionType: 'type_mcq', questionCount: 1, customPrompt: '' }, lang);
+      assert.ok(prompt.includes(api.getCompetencyDescription(descriptor.code, lang === 'en')));
+      assert.ok(prompt.length <= 16000);
+    }
+  }
+  for (const code of ['NT2/NT6', 'TH1-TH5', 'NT2-NT4', 'NT5-H']) {
+    for (const descriptor of api.resolveCompetencyCode(code).descriptors) {
+      assert.ok(api.getCompetencyDescription(code).includes(descriptor.description));
+    }
+  }
 });
 
 test('all 511 usable outcomes have structured descriptors; all 87 missing codes have explicit proposals', () => {

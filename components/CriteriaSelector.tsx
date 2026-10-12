@@ -3,6 +3,8 @@ import type { Criteria } from '../types';
 import { CHAPTERS_KEYS, DIFFICULTIES_KEYS, COMPETENCIES_KEYS, SETTINGS_KEYS, QUESTION_TYPES_KEYS } from '../constants';
 import { useTranslation } from 'react-i18next';
 import { ExamBlueprintBuilder } from './exam-builder/ExamBlueprintBuilder';
+import { CompetencySelect } from './CompetencySelect';
+import { getCompetencyDescription } from '../data/biologySpecification/competencies';
 
 interface CriteriaSelectorProps {
   onGenerate: (criteriaList: Criteria[]) => void;
@@ -28,7 +30,7 @@ const SelectField: React.FC<{ label: string, value: string, onChange: (e: React.
     </div>
 );
 
-const QueueItem: React.FC<{ criteria: Criteria, index: number, onRemove: () => void, t: any }> = ({ criteria, index, onRemove, t }) => (
+const QueueItem: React.FC<{ criteria: Criteria, index: number, onRemove: () => void, t: any, isEnglish: boolean }> = ({ criteria, index, onRemove, t, isEnglish }) => (
     <div className="flex items-start justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 group animate-fade-in mb-2 hover:border-sky-200 dark:hover:border-sky-800 transition-colors">
         <div className="flex-1 mr-2 overflow-hidden">
             <div className="flex items-center gap-2 mb-1">
@@ -46,6 +48,9 @@ const QueueItem: React.FC<{ criteria: Criteria, index: number, onRemove: () => v
                 </span>
                 <span className="font-bold text-indigo-600">{criteria.questionCount} câu</span>
             </div>
+            <p className="mt-2 whitespace-pre-line text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+              {getCompetencyDescription(criteria.competency, isEnglish)}
+            </p>
         </div>
         <button onClick={onRemove} className="p-1 text-slate-300 hover:text-red-500 transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
@@ -54,7 +59,7 @@ const QueueItem: React.FC<{ criteria: Criteria, index: number, onRemove: () => v
 )
 
 export const CriteriaSelector: React.FC<CriteriaSelectorProps> = ({ onGenerate, isLoading }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState<'auto' | 'manual'>('auto');
   
   const defaultCriteria: Criteria = {
@@ -154,11 +159,11 @@ export const CriteriaSelector: React.FC<CriteriaSelectorProps> = ({ onGenerate, 
                     </div>
                 </div>
 
-                <SelectField label={t('criteria.label_competency')} value={currentCriteria.competency} onChange={e => handleChange('competency', e.target.value)}>
-                    {COMPETENCIES_KEYS.map(key => (
-                        <option key={key} value={key}>{t(`constants.competencies.${key}`, { defaultValue: key })}</option>
-                    ))}
-                </SelectField>
+                <div>
+                    <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-400">{t('criteria.label_competency')}</label>
+                    <CompetencySelect label={t('criteria.label_competency')} value={currentCriteria.competency}
+                        options={COMPETENCIES_KEYS} onChange={value => handleChange('competency', value)} isEnglish={i18n.language.startsWith('en')} />
+                </div>
 
                 <div>
                     <label className="block text-[11px] font-bold uppercase text-slate-400 dark:text-slate-500 mb-1 tracking-wider">{t('criteria.label_extra')}</label>
@@ -181,7 +186,7 @@ export const CriteriaSelector: React.FC<CriteriaSelectorProps> = ({ onGenerate, 
                 </div>
                 <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
                     {batchQueue.map((item, idx) => (
-                        <QueueItem key={idx} index={idx} criteria={item} onRemove={() => handleRemoveFromQueue(idx)} t={t} />
+                        <QueueItem key={idx} index={idx} criteria={item} onRemove={() => handleRemoveFromQueue(idx)} t={t} isEnglish={i18n.language.startsWith('en')} />
                     ))}
                 </div>
             </div>

@@ -3,6 +3,7 @@ import { createDefaultBlueprint as defaultBlueprint, createBlueprintFromPreset, 
 import { getSpecificationSourceLabel, getSpecificationSourceUrl } from '../../data/biologySpecification/catalog';
 import { SpecificationCatalog } from './SpecificationCatalog';
 import { CompetencyDetails } from './CompetencyDetails';
+import { CompetencySelect } from '../CompetencySelect';
 import {
   getCompetenciesForContent,
   getContentsForGrade,
@@ -995,11 +996,11 @@ export const ExamBlueprintBuilder: React.FC = () => {
           </button>
         ) : (
           <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
-            <table className="w-full min-w-[1450px] text-xs">
+            <table className="w-full min-w-[1650px] text-xs">
               <thead className="bg-slate-50 dark:bg-slate-800/80">
                 <tr className="border-b border-slate-200 dark:border-slate-700">
                   <th rowSpan={2} className="w-44 px-2 py-2 text-left">Nội dung</th>
-                  <th rowSpan={2} className="w-32 px-2 py-2 text-left">Năng lực</th>
+                  <th rowSpan={2} className="w-[340px] px-2 py-2 text-left">Năng lực</th>
                   <th rowSpan={2} className="w-[360px] px-2 py-2 text-left">Yêu cầu cần đạt</th>
                   {PARTS.map((part) => (
                     <th key={part.key} colSpan={3} className="border-l border-slate-200 px-2 py-2 text-center dark:border-slate-700">
@@ -1054,17 +1055,9 @@ export const ExamBlueprintBuilder: React.FC = () => {
                       </td>
 
                       <td className="p-2">
-                        <select
-                          value={row.competencyCode}
-                          onChange={(event) => updateRowSelection(row, 'competencyCode', event.target.value)}
-                          className="w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs dark:border-slate-700 dark:bg-slate-900"
-                        >
-                          {competencies.map((competency) => (
-                            <option key={competency.code} value={competency.code}>
-                              {competency.code} · {competency.label}
-                            </option>
-                          ))}
-                        </select>
+                        <CompetencySelect label={isEnglish ? `Competency, row ${blueprint.rows.indexOf(row) + 1}` : `Năng lực, dòng ${blueprint.rows.indexOf(row) + 1}`}
+                          value={row.competencyCode} options={competencies.map(item => item.code)}
+                          onChange={value => updateRowSelection(row, 'competencyCode', value)} isEnglish={isEnglish} />
                       </td>
 
                       <td className="p-2">

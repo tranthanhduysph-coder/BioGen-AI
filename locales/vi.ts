@@ -1,3 +1,5 @@
+import { getManualCompetencyTranslations } from '../data/biologySpecification/competencies';
+
 export const vi = {
   translation: {
     app: { name: "BioGen AI", subtitle: "Hệ thống tạo câu hỏi trắc nghiệm thông minh" },
@@ -101,23 +103,7 @@ export const vi = {
             diff_3: "Vận dụng (Mức 3)",
             diff_4: "Vận dụng cao (Mức 4)"
         },
-        competencies: {
-            nt1: "NT1: Nhận biết, kể tên, phát biểu, nêu khái niệm.",
-            nt2: "NT2: Trình bày đặc điểm, vai trò, cơ chế.",
-            nt3: "NT3: Phân loại đối tượng, hiện tượng.",
-            nt4: "NT4: Phân tích đặc điểm, cấu trúc, quá trình.",
-            nt5: "NT5: So sánh, lựa chọn đối tượng theo tiêu chí.",
-            nt6: "NT6: Giải thích mối quan hệ (Nguyên nhân-Kết quả).",
-            nt7: "NT7: Nhận ra điểm sai, tư duy phản biện.",
-            nt8: "NT8: Sử dụng thuật ngữ, kết nối thông tin.",
-            th1: "TH1: Đề xuất vấn đề liên quan đến thế giới sống.",
-            th2: "TH2: Đưa ra phán đoán và xây dựng giả thuyết.",
-            th3: "TH3: Lập kế hoạch thực hiện.",
-            th4: "TH4: Thực hiện kế hoạch (thu thập, xử lí dữ liệu).",
-            th5: "TH5: Viết báo cáo và thảo luận.",
-            vd1: "VD1: Giải thích, đánh giá hiện tượng thực tiễn.",
-            vd2: "VD2: Hành vi, thái độ bảo vệ môi trường."
-        },
+        competencies: getManualCompetencyTranslations(false),
         settings: {
             set_theory: "Lý thuyết hàn lâm",
             set_exp: "Phân tích thí nghiệm",

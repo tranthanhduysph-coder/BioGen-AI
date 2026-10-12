@@ -1,15 +1,14 @@
 import type { BiologyLearningOutcome } from '../types/examBlueprint';
 import { BIOLOGY_OUTCOMES as LEGACY_OUTCOMES } from './biologySpecification/legacyOutcomes';
 import { BIOLOGY_SPECIFICATION_RECORDS, getSpecificationContentLabel, isUsableSpecificationRecord } from './biologySpecification/catalog';
-import { COMPETENCY_GROUP_LABELS, resolveCompetencyCode } from './biologySpecification/competencies';
+import { getCompetencyDescription, getCompetencyGroupLabel } from './biologySpecification/competencies';
 import { getCompetencySpecification } from './biologySpecification/competencyMappings';
-export { BIOLOGY_COMPETENCY_DESCRIPTORS, resolveCompetencyCode } from './biologySpecification/competencies';
+export { BIOLOGY_COMPETENCY_DESCRIPTORS, resolveCompetencyCode, getCompetencyDescription, getManualCompetencyTranslations } from './biologySpecification/competencies';
 export { getCompetencySpecification } from './biologySpecification/competencyMappings';
 
 export const getCompetencyLabel = (code: string | null) => {
   if (!code) return 'Nguồn không ghi mã năng lực';
-  const { groups } = resolveCompetencyCode(code);
-  return groups.map(group => COMPETENCY_GROUP_LABELS[group]).join(' / ') || 'Mã theo bản đặc tả';
+  return `${getCompetencyGroupLabel(code)}: ${getCompetencyDescription(code)}`;
 };
 export const BIOLOGY_OUTCOMES: BiologyLearningOutcome[] = BIOLOGY_SPECIFICATION_RECORDS
   .filter(isUsableSpecificationRecord)
