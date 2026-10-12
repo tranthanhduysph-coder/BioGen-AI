@@ -416,7 +416,1238 @@ export const ExamBlueprintBuilder: React.FC = () => {
 
   const resetBlueprint = () => {
     if (window.confirm(isEnglish ? 'Reset the exam blueprint?' : 'Đặt lại toàn bộ bảng thiết kế đề?')) {
-      se…17049 tokens truncated…         <div className="flex flex-wrap items-center gap-2">
+      setBlueprint(defaultBlueprint());
+    }
+  };
+
+  const lockBlueprint = () => {
+    clearExamReviewDraft();
+    setRecoverableDraft(null);
+    const slots = buildExamSlots(blueprint);
+    const validation = validateExamSlots(blueprint, slots);
+    setSlotIssues(validation.issues);
+    setGeneratedItems([]);
+    setApprovedSlotIds([]);
+    setLockedQuestionIds([]);
+    setEditingSlotId(null);
+    setGenerationSource(null);
+    setGenerationError(null);
+    setGenerationFailures([]);
+    if (validation.valid) {
+      setLockedSlots(slots);
+    } else {
+      setLockedSlots(null);
+    }
+  };
+
+  const mergeGeneratedItem = (item: GeneratedExamItem) => {
+    setGeneratedItems((current) => {
+      const next = current.filter((candidate) => candidate.slotId !== item.slotId);
+      next.push(item);
+      const partOrder = { mcq: 0, tf: 1, short: 2 } as const;
+      next.sort((a, b) => {
+        const partDiff = partOrder[a.part] - partOrder[b.part];
+        return partDiff !== 0 ? partDiff : a.order - b.order;
+      });
+      return next;
+    });
+  };
+
+  const handleGenerateExam = async () => {
+    if (!lockedSlots) return;
+
+    clearExamReviewDraft();
+    setRecoverableDraft(null);
+    setIsGeneratingExam(true);
+    setGeneratedItems([]);
+    setGenerationFailures([]);
+    setApprovedSlotIds([]);
+    setLockedQuestionIds([]);
+    setEditingSlotId(null);
+    // Mark the draft as AI-backed before the first request finishes so that
+    // an interrupted/refresh recovery can retry only the missing slots.
+    setGenerationSource('ai');
+    setGenerationError(null);
+    const total = lockedSlots.mcq.length + lockedSlots.tf.length + lockedSlots.short.length;
+    setGenerationProgress({ completed: 0, total });
+
+    try {
+      const result = await generateExamFromSlots(
+        lockedSlots,
+        i18n.language,
+        setGenerationProgress,
+        mergeGeneratedItem,
+      );
+      setGeneratedItems(result.items);
+      setGenerationFailures(result.failures);
+      setGenerationSource('ai');
+
+      if (result.failures.length > 0) {
+        setGenerationError(
+          isEnglish
+            ? `${result.failures.length} question(s) were not generated. Keep the successful questions and retry only the missing ones.`
+            : `Có ${result.failures.length} câu chưa tạo được. Các câu thành công đã được giữ lại; chỉ cần tạo lại các câu còn thiếu.`,
+        );
+      }
+    } catch (error: any) {
+      console.error('Exam generation error:', error);
+      setGenerationError(error?.message || (isEnglish ? 'Exam generation failed.' : 'Không thể tạo đề.'));
+    } finally {
+      setIsGeneratingExam(false);
+    }
+  };
+
+  const handleGenerateMissingItems = async () => {
+    if (!lockedSlots || isGeneratingExam) return;
+
+    const allSlots = [
+      ...lockedSlots.mcq,
+      ...lockedSlots.tf,
+      ...lockedSlots.short,
+    ];
+    const generatedIds = new Set(generatedItems.map((item) => item.slotId));
+    const missingSlots = allSlots.filter((slot) => !generatedIds.has(slot.id));
+
+    if (missingSlots.length === 0) {
+      setGenerationFailures([]);
+      return;
+    }
+
+    setIsGeneratingExam(true);
+    setGenerationError(null);
+    setGenerationFailures([]);
+    setGenerationProgress({ completed: 0, total: missingSlots.length });
+
+    try {
+      const result = await generateExamItems(
+        missingSlots,
+        i18n.language,
+        setGenerationProgress,
+        mergeGeneratedItem,
+      );
+      setGenerationFailures(result.failures);
+      setGenerationSource('ai');
+
+      if (result.failures.length > 0) {
+        setGenerationError(
+          isEnglish
+            ? `${result.failures.length} question(s) are still missing. You can retry again later.`
+            : `Vẫn còn ${result.failures.length} câu chưa tạo được. Có thể thử lại riêng các câu này sau.`,
+        );
+      }
+    } catch (error: any) {
+      console.error('Missing-question generation error:', error);
+      setGenerationError(
+        error?.message ||
+          (isEnglish ? 'Could not generate the missing questions.' : 'Không thể tạo các câu còn thiếu.'),
+      );
+    } finally {
+      setIsGeneratingExam(false);
+    }
+  };
+
+  const handleGenerateMockExam = () => {
+    if (!lockedSlots) return;
+    clearExamReviewDraft();
+    setRecoverableDraft(null);
+    const items = generateMockExamFromSlots(lockedSlots);
+    setGeneratedItems(items);
+    setApprovedSlotIds([]);
+    setLockedQuestionIds([]);
+    setEditingSlotId(null);
+    setGenerationError(null);
+    setGenerationFailures([]);
+    setGenerationSource('mock');
+  };
+
+  const handleRegenerateItem = async (item: GeneratedExamItem) => {
+    if (!lockedSlots) return;
+
+    if (lockedQuestionIds.includes(item.slotId)) {
+      setGenerationError(
+        isEnglish
+          ? 'Unlock this question before regenerating it.'
+          : 'Hãy mở khóa câu này trước khi tạo lại.',
+      );
+      return;
+    }
+
+    const slot =
+      item.part === 'mcq'
+        ? lockedSlots.mcq.find((candidate) => candidate.id === item.slotId)
+        : item.part === 'tf'
+          ? lockedSlots.tf.find((candidate) => candidate.id === item.slotId)
+          : lockedSlots.short.find((candidate) => candidate.id === item.slotId);
+
+    if (!slot) return;
+
+    setRegeneratingSlotId(item.slotId);
+    setGenerationError(null);
+
+    try {
+      const replacement = await generateExamItem(slot, i18n.language);
+      setGeneratedItems((current) =>
+        current.map((candidate) => candidate.slotId === item.slotId ? replacement : candidate),
+      );
+      setApprovedSlotIds((current) => current.filter((id) => id !== item.slotId));
+      setEditingSlotId(null);
+      setGenerationFailures((current) => current.filter((failure) => failure.slotId !== item.slotId));
+    } catch (error: any) {
+      console.error('Regenerate question error:', error);
+      setGenerationError(error?.message || (isEnglish ? 'Could not regenerate this question.' : 'Không thể tạo lại câu này.'));
+    } finally {
+      setRegeneratingSlotId(null);
+    }
+  };
+
+  const toggleApproval = (slotId: string) => {
+    setApprovedSlotIds((current) =>
+      current.includes(slotId)
+        ? current.filter((id) => id !== slotId)
+        : [...current, slotId],
+    );
+  };
+
+  const toggleQuestionLock = (slotId: string) => {
+    const isLocked = lockedQuestionIds.includes(slotId);
+    if (isLocked) {
+      setLockedQuestionIds((current) => current.filter((id) => id !== slotId));
+      return;
+    }
+
+    setLockedQuestionIds((current) => [...current, slotId]);
+    setApprovedSlotIds((current) => current.includes(slotId) ? current : [...current, slotId]);
+    if (editingSlotId === slotId) setEditingSlotId(null);
+  };
+
+  const updateGeneratedQuestion = (
+    slotId: string,
+    field: 'question' | 'answer' | 'explanation',
+    value: string,
+  ) => {
+    if (lockedQuestionIds.includes(slotId)) return;
+    setGeneratedItems((current) =>
+      current.map((item) =>
+        item.slotId === slotId
+          ? { ...item, question: { ...item.question, [field]: value } }
+          : item,
+      ),
+    );
+    setApprovedSlotIds((current) => current.filter((id) => id !== slotId));
+  };
+
+  const updateGeneratedOption = (slotId: string, optionIndex: number, value: string) => {
+    if (lockedQuestionIds.includes(slotId)) return;
+    setGeneratedItems((current) =>
+      current.map((item) => {
+        if (item.slotId !== slotId) return item;
+        const options = [...item.question.options];
+        options[optionIndex] = value;
+        return { ...item, question: { ...item.question, options } };
+      }),
+    );
+    setApprovedSlotIds((current) => current.filter((id) => id !== slotId));
+  };
+
+  const restoreReviewDraft = () => {
+    if (!recoverableDraft) return;
+
+    const slots = buildExamSlots(blueprint);
+    const validation = validateExamSlots(blueprint, slots);
+    if (!validation.valid) {
+      setSlotIssues(validation.issues);
+      setRecoverableDraft(null);
+      clearExamReviewDraft();
+      return;
+    }
+
+    setLockedSlots(slots);
+    setGeneratedItems(recoverableDraft.generatedItems);
+    setApprovedSlotIds(recoverableDraft.approvedSlotIds);
+    setLockedQuestionIds(recoverableDraft.lockedQuestionIds);
+    setGenerationSource(recoverableDraft.generationSource);
+    setGenerationError(null);
+    setGenerationFailures([]);
+    setSlotIssues([]);
+    setRecoverableDraft(null);
+  };
+
+  const discardReviewDraft = () => {
+    clearExamReviewDraft();
+    setRecoverableDraft(null);
+  };
+
+  const approveAllQuestions = () => {
+    setApprovedSlotIds(generatedItems.map((item) => item.slotId));
+  };
+
+  const lockAllApprovedQuestions = () => {
+    setLockedQuestionIds((current) =>
+      Array.from(new Set([...current, ...approvedSlotIds])),
+    );
+    setEditingSlotId(null);
+  };
+
+  const unlockAllQuestions = () => {
+    setLockedQuestionIds([]);
+  };
+
+  const handleExportMixDocx = async () => {
+    if (!mixerExportReady) {
+      setGenerationError(
+        isEnglish
+          ? 'Approve every question and fix mixer-format issues before exporting the DOCX.'
+          : 'Hãy duyệt toàn bộ câu hỏi và sửa hết lỗi format trước khi xuất đề DOCX để trộn.',
+      );
+      return;
+    }
+
+    setIsExportingDocx(true);
+    try {
+      await exportMixReadyExamDocx(blueprint, generatedItems);
+    } catch (error: any) {
+      console.error('Mix-ready DOCX export error:', error);
+      setGenerationError(
+        error?.message ||
+          (isEnglish
+            ? 'Could not export the mixer-compatible DOCX file.'
+            : 'Không thể xuất file DOCX theo format trộn đề.'),
+      );
+    } finally {
+      setIsExportingDocx(false);
+    }
+  };
+
+  const handleExportDocx = async (includeExam: boolean) => {
+    if (includeExam && !allQuestionsGenerated) {
+      setGenerationError(
+        isEnglish
+          ? `The exam is incomplete (${generatedItems.length}/${expectedGeneratedCount} questions). Generate the missing questions before exporting the full dossier.`
+          : `Đề chưa đủ câu (${generatedItems.length}/${expectedGeneratedCount}). Hãy tạo đủ các câu còn thiếu trước khi xuất bộ hồ sơ đề.`,
+      );
+      return;
+    }
+
+    setIsExportingDocx(true);
+    try {
+      await exportExamPackageDocx(blueprint, includeExam ? generatedItems : []);
+    } catch (error) {
+      console.error('DOCX export error:', error);
+      setGenerationError(
+        isEnglish
+          ? 'Could not export the DOCX file.'
+          : 'Không thể xuất file DOCX.',
+      );
+    } finally {
+      setIsExportingDocx(false);
+    }
+  };
+
+  const partTitle = (part: ExamPartKey) => {
+    if (part === 'mcq') return isEnglish ? 'Part I · Multiple choice' : 'PHẦN I · Trắc nghiệm nhiều lựa chọn';
+    if (part === 'tf') return isEnglish ? 'Part II · True/False' : 'PHẦN II · Trắc nghiệm Đúng/Sai';
+    return isEnglish ? 'Part III · Short response' : 'PHẦN III · Trả lời ngắn';
+  };
+
+  return (
+    <div className="space-y-5 animate-fade-in">
+      <section className="rounded-xl border border-sky-100 bg-sky-50/70 p-4 dark:border-sky-900/60 dark:bg-sky-950/20">
+        <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h3 className="text-base font-bold text-slate-800 dark:text-white">
+              {isEnglish ? 'Exam blueprint' : 'Thiết kế đề kiểm tra'}
+            </h3>
+            <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+              {isEnglish
+                ? 'Build one combined specification + matrix, lock the blueprint, then generate and review the exam.'
+                : 'Ghép ma trận và bản đặc tả trong một bảng, khóa blueprint, sau đó tạo và duyệt đề.'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={resetBlueprint}
+            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+          >
+            {isEnglish ? 'Reset' : 'Đặt lại'}
+          </button>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-3">
+          <label className="text-xs font-bold uppercase tracking-wide text-slate-500">
+            {isEnglish ? 'Grade' : 'Lớp'}
+            <select
+              value={blueprint.grade}
+              onChange={(event) => changeGrade(Number(event.target.value) as 10 | 11 | 12)}
+              className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm normal-case text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+            >
+              <option value={10}>{isEnglish ? 'Grade 10' : 'Lớp 10'}</option>
+              <option value={11}>{isEnglish ? 'Grade 11' : 'Lớp 11'}</option>
+              <option value={12}>{isEnglish ? 'Grade 12' : 'Lớp 12'}</option>
+            </select>
+          </label>
+
+          <label className="text-xs font-bold uppercase tracking-wide text-slate-500">
+            {isEnglish ? 'Exam title' : 'Tên đề'}
+            <input
+              value={blueprint.title}
+              onChange={(event) => setBlueprint((current) => ({ ...current, title: event.target.value }))}
+              className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm normal-case text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+            />
+          </label>
+
+          <label className="text-xs font-bold uppercase tracking-wide text-slate-500">
+            {isEnglish ? 'Duration (min)' : 'Thời gian (phút)'}
+            <NumericInput
+              value={blueprint.durationMinutes}
+              onChange={(value) => setBlueprint((current) => ({ ...current, durationMinutes: value }))}
+            />
+          </label>
+        </div>
+      </section>
+
+      <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="flex-1 text-xs font-bold text-slate-500">
+            {isEnglish ? 'Specification preset' : 'Preset theo bản đặc tả'}
+            <select value={presetId} onChange={event => setPresetId(event.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900">
+              <option value="">{isEnglish ? 'Custom blueprint' : 'Tự thiết kế ma trận'}</option>
+              {getBlueprintPresetsForGrade(blueprint.grade).map(preset => <option key={preset.id} value={preset.id}>{preset.title}</option>)}
+            </select>
+          </label>
+          <button type="button" disabled={!presetId} onClick={() => {
+            if (blueprint.rows.length && !window.confirm(isEnglish ? 'Replace blueprint rows with this preset? Generated review drafts will be reset.' : 'Thay các hàng ma trận bằng preset này? Bản nháp câu hỏi đang duyệt sẽ được đặt lại.')) return;
+            setBlueprint(current => createBlueprintFromPreset(presetId, current));
+          }} className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-40">
+            {isEnglish ? 'Load outcomes' : 'Nạp danh mục YCCĐ'}
+          </button>
+        </div>
+        <p className="mt-2 text-xs text-slate-500">{isEnglish ? 'Presets load source outcomes with zero allocations. Set counts and points for your exam. Current score settings are retained.' : 'Preset nạp YCCĐ với phân bổ bằng 0. Hãy chọn số câu và điểm cho đề. Thiết lập điểm hiện tại được giữ lại.'}</p>
+      </section>
+
+      <SpecificationCatalog grade={blueprint.grade} isEnglish={isEnglish} onAdd={record => {
+        setBlueprint(current => ({ ...current, rows: [...current.rows, {
+          id: `row-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, contentId: record.contentId,
+          competencyCode: record.competencyCode ?? '', outcomeId: record.id, allocations: emptyBlueprintAllocations(),
+        }] }));
+      }} />
+
+      <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+        <h4 className="mb-3 text-sm font-bold text-slate-800 dark:text-white">
+          {isEnglish ? '1. Part scores' : '1. Thiết lập điểm từng phần'}
+        </h4>
+
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[660px] text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-left text-[11px] uppercase tracking-wide text-slate-400 dark:border-slate-700">
+                <th className="px-2 py-2">{isEnglish ? 'Part' : 'Phần'}</th>
+                <th className="px-2 py-2 text-center">{isEnglish ? 'Questions' : 'Số câu'}</th>
+                <th className="px-2 py-2 text-center">{isEnglish ? 'Total score' : 'Tổng điểm'}</th>
+                <th className="px-2 py-2 text-right">{isEnglish ? 'Auto score/question' : 'App tính điểm/câu'}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {PARTS.map((part) => (
+                <tr key={part.key} className="border-b border-slate-100 dark:border-slate-800">
+                  <td className="px-2 py-2 font-semibold text-slate-700 dark:text-slate-200">
+                    {isEnglish ? part.en : part.vi}
+                    {part.key === 'tf' && (
+                      <span className="mt-1 block text-xs font-normal text-slate-500">
+                        {isEnglish
+                          ? `${blueprint.scores.tf.questionCount} questions × 4 statements = ${targets.tf} statements to allocate`
+                          : `${blueprint.scores.tf.questionCount} câu × 4 ý = ${targets.tf} ý cần phân bổ`}
+                      </span>
+                    )}
+                  </td>
+                  <td className="w-28 px-2 py-2">
+                    <NumericInput
+                      value={blueprint.scores[part.key].questionCount}
+                      onChange={(value) => updateScorePart(part.key, 'questionCount', Math.floor(value))}
+                    />
+                  </td>
+                  <td className="w-28 px-2 py-2">
+                    <NumericInput
+                      value={blueprint.scores[part.key].totalScore}
+                      step={0.25}
+                      onChange={(value) => updateScorePart(part.key, 'totalScore', value)}
+                    />
+                  </td>
+                  <td className="px-2 py-2 text-right font-bold text-sky-700 dark:text-sky-300">
+                    {round(perQuestion[part.key], 3).toLocaleString(isEnglish ? 'en-US' : 'vi-VN')}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colSpan={2} className="px-2 pt-3 text-right text-xs font-bold uppercase text-slate-400">
+                  {isEnglish ? 'Total' : 'Tổng'}
+                </td>
+                <td className="px-2 pt-3 text-center text-lg font-extrabold text-slate-900 dark:text-white">
+                  {round(totalScore).toLocaleString(isEnglish ? 'en-US' : 'vi-VN')}
+                </td>
+                <td />
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div className="mt-4 rounded-xl border border-purple-100 bg-purple-50/60 p-3 dark:border-purple-900/50 dark:bg-purple-950/20">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <strong className="text-sm text-purple-800 dark:text-purple-200">
+                {isEnglish ? 'True/False scoring · percentage of each question' : 'Thang điểm câu Đúng/Sai · % điểm của mỗi câu'}
+              </strong>
+              <p className="mt-1 text-[11px] text-purple-600/80 dark:text-purple-300/80">
+                {isEnglish
+                  ? 'The four values below are percentages of the maximum score of one True/False question.'
+                  : 'Bốn mức dưới đây là tỷ lệ % của điểm tối đa một câu Đúng/Sai, không phải điểm tuyệt đối.'}
+              </p>
+            </div>
+            <span className="text-xs text-purple-600 dark:text-purple-300">
+              {isEnglish ? 'Max/question' : 'Điểm tối đa/câu'}: <b>{round(perQuestion.tf, 3)}</b>
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+            {(['correct1', 'correct2', 'correct3', 'correct4'] as const).map((key, index) => {
+              const correctCount = (index + 1) as 1 | 2 | 3 | 4;
+              const earned = getTrueFalseEarnedScore(blueprint, correctCount);
+
+              return (
+                <label key={key} className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                  {isEnglish ? `${index + 1}/4 correct (%)` : `Đúng ${index + 1}/4 ý (%)`}
+                  <NumericInput
+                    value={blueprint.scores.tf.scoreLevels[key]}
+                    step={1}
+                    onChange={(value) => updateTfLevel(key, Math.min(100, value))}
+                    className="mt-1"
+                  />
+                  <span className="mt-1 block text-center text-[10px] font-semibold normal-case text-purple-700 dark:text-purple-300">
+                    → {round(earned, 3).toLocaleString(isEnglish ? 'en-US' : 'vi-VN')} {isEnglish ? 'pts' : 'điểm'}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+
+          {!tfScaleOrdered && (
+            <p className="mt-2 text-xs font-semibold text-red-600">
+              {isEnglish
+                ? 'Percentages should increase from 1/4 to 4/4 correct.'
+                : 'Bốn mức phần trăm nên tăng dần từ đúng 1 ý đến đúng 4 ý.'}
+            </p>
+          )}
+
+          {!tfScaleWithinPercent && (
+            <p className="mt-2 text-xs font-semibold text-red-600">
+              {isEnglish
+                ? 'True/False scoring percentages must stay between 0% and 100%.'
+                : 'Tỷ lệ chấm Đúng/Sai phải nằm trong khoảng 0% đến 100%.'}
+            </p>
+          )}
+
+          {tfScale.correct4 !== 100 && (
+            <p className="mt-2 text-xs font-semibold text-amber-700 dark:text-amber-300">
+              {isEnglish
+                ? 'With 4/4 correct below 100%, the configured total score for Part II cannot be fully reached.'
+                : 'Nếu mức đúng 4/4 thấp hơn 100%, thí sinh sẽ không thể đạt đủ tổng điểm tối đa của Phần II.'}
+            </p>
+          )}
+        </div>
+      </section>
+
+      <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h4 className="text-sm font-bold text-slate-800 dark:text-white">
+              {isEnglish ? '2. Combined specification + matrix' : '2. Bảng đặc tả + ma trận'}
+            </h4>
+            <p className="mt-1 text-xs text-slate-500">
+              {isEnglish
+                ? 'Choose content → competency → learning outcome, then allocate items by level.'
+                : 'Chọn Nội dung → Năng lực → Yêu cầu cần đạt, sau đó nhập số câu/lệnh hỏi theo Biết – Hiểu – Vận dụng.'}
+            </p>
+            <p className="mt-1 text-xs font-semibold text-purple-700 dark:text-purple-300">
+              {isEnglish
+                ? 'Parts I and III: enter question counts. Part II: enter statement counts; each True/False question has 4 statements within the same content.'
+                : 'Phần I và III: nhập số câu. Phần II: nhập số ý; mỗi câu Đúng/Sai gồm 4 ý trong cùng một nội dung.'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setBlueprint((current) => ({ ...current, rows: [...current.rows, getDefaultRow(current.grade)] }))}
+            className="rounded-lg bg-sky-600 px-3 py-2 text-xs font-bold text-white shadow-sm hover:bg-sky-700"
+          >
+            + {isEnglish ? 'Add content' : 'Thêm nội dung'}
+          </button>
+        </div>
+
+        {blueprint.rows.length === 0 ? (
+          <button
+            type="button"
+            onClick={() => setBlueprint((current) => ({ ...current, rows: [getDefaultRow(current.grade)] }))}
+            className="w-full rounded-xl border-2 border-dashed border-slate-200 px-4 py-8 text-sm font-semibold text-slate-400 transition hover:border-sky-300 hover:text-sky-600 dark:border-slate-700"
+          >
+            + {isEnglish ? 'Add the first specification row' : 'Thêm dòng đặc tả đầu tiên'}
+          </button>
+        ) : (
+          <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+            <table className="w-full min-w-[1450px] text-xs">
+              <thead className="bg-slate-50 dark:bg-slate-800/80">
+                <tr className="border-b border-slate-200 dark:border-slate-700">
+                  <th rowSpan={2} className="w-44 px-2 py-2 text-left">Nội dung</th>
+                  <th rowSpan={2} className="w-32 px-2 py-2 text-left">Năng lực</th>
+                  <th rowSpan={2} className="w-[360px] px-2 py-2 text-left">Yêu cầu cần đạt</th>
+                  {PARTS.map((part) => (
+                    <th key={part.key} colSpan={3} className="border-l border-slate-200 px-2 py-2 text-center dark:border-slate-700">
+                      {isEnglish ? part.en : part.vi}
+                      <span className="mt-1 block text-[10px] font-normal text-slate-500">
+                        {part.key === 'tf' ? (isEnglish ? 'Statement counts' : 'Số ý') : (isEnglish ? 'Question counts' : 'Số câu')}
+                      </span>
+                    </th>
+                  ))}
+                  <th rowSpan={2} className="w-20 border-l border-slate-200 px-2 py-2 text-center dark:border-slate-700">
+                    {isEnglish ? 'Total' : 'Tổng'}
+                  </th>
+                  <th rowSpan={2} className="w-12 px-2 py-2" />
+                </tr>
+                <tr className="border-b border-slate-200 dark:border-slate-700">
+                  {PARTS.flatMap((part) =>
+                    LEVELS.map((level) => (
+                      <th key={`${part.key}-${level.key}`} className="border-l border-slate-200 px-1 py-2 text-center dark:border-slate-700">
+                        {isEnglish ? level.en : level.vi}
+                      </th>
+                    )),
+                  )}
+                </tr>
+              </thead>
+
+              <tbody>
+                {blueprint.rows.map((row) => {
+                  const competencies = getCompetenciesForContent(blueprint.grade, row.contentId);
+                  const outcomes = getOutcomesForSelection(blueprint.grade, row.contentId, row.competencyCode);
+                  const outcome = selectedOutcome(row);
+                  // Keep v1 saved selections visible without adding legacy examples to new menus.
+                  if (outcome && !competencies.some(item => item.code === row.competencyCode)) {
+                    competencies.push({ code: row.competencyCode, label: outcome.competencyLabel });
+                  }
+                  if (outcome && !outcomes.some(item => item.id === row.outcomeId)) outcomes.push(outcome);
+
+                  return (
+                    <tr key={row.id} className="border-b border-slate-100 align-top last:border-0 dark:border-slate-800">
+                      <td className="p-2">
+                        <select
+                          value={row.contentId}
+                          onChange={(event) => updateRowSelection(row, 'contentId', event.target.value)}
+                          className="w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs dark:border-slate-700 dark:bg-slate-900"
+                        >
+                          {!getContentsForGrade(blueprint.grade).some(content => content.id === row.contentId) && outcome && (
+                            <option value={row.contentId}>{outcome.contentLabel}</option>
+                          )}
+                          {getContentsForGrade(blueprint.grade).map((content) => (
+                            <option key={content.id} value={content.id}>{content.label}</option>
+                          ))}
+                        </select>
+                      </td>
+
+                      <td className="p-2">
+                        <select
+                          value={row.competencyCode}
+                          onChange={(event) => updateRowSelection(row, 'competencyCode', event.target.value)}
+                          className="w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs dark:border-slate-700 dark:bg-slate-900"
+                        >
+                          {competencies.map((competency) => (
+                            <option key={competency.code} value={competency.code}>
+                              {competency.code} · {competency.label}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+
+                      <td className="p-2">
+                        <select
+                          value={row.outcomeId}
+                          onChange={(event) => updateRowSelection(row, 'outcomeId', event.target.value)}
+                          className="w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs leading-relaxed dark:border-slate-700 dark:bg-slate-900"
+                        >
+                          {outcomes.map((item) => (
+                            <option key={item.id} value={item.id}>{item.text}</option>
+                          ))}
+                        </select>
+                        {outcome && (
+                          <div className="mt-1 flex items-center gap-1 text-[10px] text-slate-400">
+                            <span className="rounded bg-slate-100 px-1.5 py-0.5 font-bold uppercase dark:bg-slate-800">
+                              {LEVELS.find((level) => level.key === outcome.level)?.vi || (isEnglish ? 'Level absent in source' : 'Nguồn không ghi mức độ')}
+                            </span>
+                            <span>{outcome.competencyCode || (isEnglish ? 'Code absent in source' : 'Nguồn không ghi mã')}</span>
+                            {outcome.sourcePage && <a href={getSpecificationSourceUrl(outcome.sourcePage, outcome.sourceId)} target="_blank" rel="noreferrer" className="text-sky-600 underline">
+                              {getSpecificationSourceLabel(outcome.sourceId)} · {isEnglish ? 'Page' : 'Trang'} {outcome.sourcePages?.join(', ') || outcome.sourcePage}
+                            </a>}
+                          </div>
+                        )}
+                      </td>
+
+                      {PARTS.flatMap((part) =>
+                        LEVELS.map((level) => (
+                          <td key={`${row.id}-${part.key}-${level.key}`} className="w-16 border-l border-slate-100 p-1.5 dark:border-slate-800">
+                            <NumericInput
+                              value={row.allocations[part.key][level.key]}
+                              onChange={(value) => updateAllocation(row, part.key, level.key, value)}
+                            />
+                          </td>
+                        )),
+                      )}
+
+                      <td className="border-l border-slate-100 p-2 text-center text-base font-extrabold text-slate-700 dark:border-slate-800 dark:text-slate-200">
+                        {rowTotal(row)}
+                      </td>
+
+                      <td className="p-2 text-center">
+                        <button
+                          type="button"
+                          onClick={() => setBlueprint((current) => ({
+                            ...current,
+                            rows: current.rows.filter((item) => item.id !== row.id),
+                          }))}
+                          className="rounded p-1 text-slate-300 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/20"
+                          aria-label="Remove row"
+                        >
+                          ×
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+
+              <tfoot className="bg-slate-50 font-bold dark:bg-slate-800/80">
+                <tr className="border-t-2 border-slate-300 dark:border-slate-600">
+                  <td colSpan={3} className="px-3 py-3 text-right uppercase text-slate-500">
+                    {isEnglish ? 'Column totals' : 'Tổng theo cột'}
+                  </td>
+                  {PARTS.flatMap((part) =>
+                    LEVELS.map((level) => (
+                      <td key={`total-${part.key}-${level.key}`} className="border-l border-slate-200 px-2 py-3 text-center text-sm dark:border-slate-700">
+                        {totals[part.key][level.key]}
+                      </td>
+                    )),
+                  )}
+                  <td className="border-l border-slate-200 px-2 py-3 text-center text-base dark:border-slate-700">
+                    {partTotals.mcq + partTotals.tf + partTotals.short}
+                  </td>
+                  <td />
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+        <h4 className="mb-3 text-sm font-bold text-slate-800 dark:text-white">
+          {isEnglish ? '3. Live totals' : '3. Tổng hợp trực tiếp'}
+        </h4>
+
+        <div className="grid gap-3 md:grid-cols-3">
+          {PARTS.map((part) => {
+            const current = partTotals[part.key];
+            const target = targets[part.key];
+            const isMatch = current === target;
+            return (
+              <div
+                key={part.key}
+                className={`rounded-xl border p-3 ${isMatch
+                  ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-900/50 dark:bg-emerald-950/20'
+                  : 'border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-950/20'}`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <strong className="text-sm text-slate-800 dark:text-slate-100">
+                    {isEnglish ? part.en : part.vi}
+                  </strong>
+                  <span className={`text-xs font-extrabold ${isMatch ? 'text-emerald-700' : 'text-amber-700'}`}>
+                    {current}/{target}
+                    {part.key === 'tf' ? (isEnglish ? ' statements' : ' ý') : (isEnglish ? ' questions' : ' câu')}
+                  </span>
+                </div>
+                {part.key === 'tf' && (
+                  <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
+                    {isEnglish
+                      ? `${blueprint.scores.tf.questionCount} questions × 4 statements = ${target} statements required`
+                      : `${blueprint.scores.tf.questionCount} câu × 4 ý = ${target} ý cần phân bổ`}
+                  </p>
+                )}
+                <div className="mt-2 flex justify-between text-xs text-slate-500">
+                  <span>B {totals[part.key].know}</span>
+                  <span>H {totals[part.key].understand}</span>
+                  <span>VD {totals[part.key].apply}</span>
+                </div>
+                <div className="mt-2 text-right text-sm font-bold text-slate-700 dark:text-slate-200">
+                  {blueprint.scores[part.key].totalScore} {isEnglish ? 'pts' : 'điểm'}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-3 grid gap-3 sm:grid-cols-4">
+          <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800">
+            <span className="block text-[10px] font-bold uppercase text-slate-400">Biết</span>
+            <strong className="text-xl text-slate-800 dark:text-white">{cognitiveTotals.know}</strong>
+          </div>
+          <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800">
+            <span className="block text-[10px] font-bold uppercase text-slate-400">Hiểu</span>
+            <strong className="text-xl text-slate-800 dark:text-white">{cognitiveTotals.understand}</strong>
+          </div>
+          <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800">
+            <span className="block text-[10px] font-bold uppercase text-slate-400">Vận dụng</span>
+            <strong className="text-xl text-slate-800 dark:text-white">{cognitiveTotals.apply}</strong>
+          </div>
+          <div className="rounded-xl bg-slate-900 p-3 text-white dark:bg-sky-900">
+            <span className="block text-[10px] font-bold uppercase text-slate-300">{isEnglish ? 'Total score' : 'Tổng điểm'}</span>
+            <strong className="text-xl">{round(totalScore)}</strong>
+          </div>
+        </div>
+
+        <div id="blueprint-lock-status" role="status" className={`mt-4 rounded-xl border px-4 py-3 text-sm font-semibold ${canLockBlueprint
+          ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-200'
+          : 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200'}`}
+        >
+          {canLockBlueprint
+            ? (isEnglish
+                ? '✓ The blueprint is ready to lock.'
+                : '✓ Ma trận đã hợp lệ, có thể khóa.')
+            : (isEnglish
+                ? 'Cannot lock the blueprint yet:'
+                : 'Chưa thể khóa ma trận:')}
+          {lockIssues.length > 0 && (
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              {lockIssues.map((issue, index) => <li key={index}>{issue}</li>)}
+            </ul>
+          )}
+        </div>
+
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={lockBlueprint}
+            disabled={!canLockBlueprint}
+            aria-describedby="blueprint-lock-status"
+            className="w-full rounded-xl bg-sky-600 px-4 py-3 font-bold text-white shadow-sm transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700"
+          >
+            {isEnglish ? 'Lock blueprint & preview exam structure' : 'Khóa ma trận & xem cấu trúc đề'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleExportDocx(false)}
+            disabled={blueprint.rows.length === 0 || isExportingDocx}
+            className="w-full rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 font-bold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-emerald-900/60 dark:bg-emerald-950/20 dark:text-emerald-300"
+          >
+            {isExportingDocx
+              ? (isEnglish ? 'Exporting…' : 'Đang xuất…')
+              : (isEnglish ? 'Download matrix + specification DOCX' : 'Tải ma trận + đặc tả DOCX')}
+          </button>
+        </div>
+
+        {slotIssues.length > 0 && (
+          <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/20 dark:text-red-200">
+            <strong className="block mb-1">{isEnglish ? 'Please fix:' : 'Cần chỉnh:'}</strong>
+            <ul className="list-disc space-y-1 pl-5">
+              {slotIssues.map((issue) => <li key={issue}>{issue}</li>)}
+            </ul>
+          </div>
+        )}
+
+        {recoverableDraft && !lockedSlots && (
+          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/60 dark:bg-amber-950/20">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <strong className="text-sm text-amber-800 dark:text-amber-200">
+                  {isEnglish ? 'Saved review draft found' : 'Có bản nháp duyệt đề đã lưu'}
+                </strong>
+                <p className="mt-1 text-xs text-amber-700/80 dark:text-amber-300/80">
+                  {isEnglish
+                    ? 'Restore the generated/edited questions and their approval/lock status.'
+                    : 'Có thể khôi phục câu đã tạo/đã sửa cùng trạng thái duyệt và khóa trước khi refresh.'}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={restoreReviewDraft}
+                  className="rounded-lg bg-amber-600 px-3 py-2 text-xs font-bold text-white hover:bg-amber-700"
+                >
+                  {isEnglish ? 'Restore draft' : 'Khôi phục bản nháp'}
+                </button>
+                <button
+                  type="button"
+                  onClick={discardReviewDraft}
+                  className="rounded-lg border border-amber-300 bg-white px-3 py-2 text-xs font-bold text-amber-700 hover:bg-amber-100 dark:bg-slate-900 dark:text-amber-300"
+                >
+                  {isEnglish ? 'Discard' : 'Bỏ bản nháp'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {lockedSlots && (
+          <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 dark:border-emerald-900/60 dark:bg-emerald-950/20">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <strong className="text-sm text-emerald-800 dark:text-emerald-200">
+                  {isEnglish ? 'Blueprint locked' : 'Đã khóa blueprint'}
+                </strong>
+                <p className="mt-1 text-xs text-emerald-700/80 dark:text-emerald-300/80">
+                  {isEnglish
+                    ? 'The app has converted the matrix into deterministic question slots.'
+                    : 'App đã chuyển ma trận thành danh sách slot câu hỏi cố định trước khi gọi AI.'}
+                </p>
+              </div>
+              <span className="rounded-full bg-white px-3 py-1 text-xs font-extrabold text-emerald-700 shadow-sm dark:bg-slate-900 dark:text-emerald-300">
+                {lockedSlots.mcq.length + lockedSlots.tf.length + lockedSlots.short.length} {isEnglish ? 'questions' : 'câu'}
+              </span>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-3">
+              <div className="rounded-lg bg-white p-3 shadow-sm dark:bg-slate-900">
+                <div className="mb-2 text-xs font-bold uppercase text-slate-400">Phần I</div>
+                <div className="space-y-1">
+                  {lockedSlots.mcq.slice(0, 6).map((slot) => (
+                    <div key={slot.id} className="flex items-start justify-between gap-2 text-xs">
+                      <span><b>Câu {slot.order}</b> · {slot.contentLabel}</span>
+                      <span className="whitespace-nowrap text-slate-400">{LEVELS.find((l) => l.key === slot.level)?.vi}</span>
+                    </div>
+                  ))}
+                  {lockedSlots.mcq.length > 6 && <div className="text-[11px] text-slate-400">… +{lockedSlots.mcq.length - 6} câu</div>}
+                </div>
+              </div>
+
+              <div className="rounded-lg bg-white p-3 shadow-sm dark:bg-slate-900">
+                <div className="mb-2 text-xs font-bold uppercase text-slate-400">Phần II</div>
+                <div className="space-y-2">
+                  {lockedSlots.tf.map((slot) => (
+                    <div key={slot.id} className="rounded-lg border border-slate-100 p-2 dark:border-slate-800">
+                      <div className="mb-1 flex items-center justify-between text-xs">
+                        <b>Câu {slot.order}</b>
+                        <span className="text-slate-400">{round(slot.maxScore, 3)} điểm</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {slot.statements.map((statement) => (
+                          <span key={statement.id} className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] dark:bg-slate-800">
+                            {String.fromCharCode(96 + statement.statementOrder)}) {LEVELS.find((l) => l.key === statement.level)?.vi}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="mt-1 truncate text-[10px] text-slate-400">{slot.statements[0]?.contentLabel}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-lg bg-white p-3 shadow-sm dark:bg-slate-900">
+                <div className="mb-2 text-xs font-bold uppercase text-slate-400">Phần III</div>
+                <div className="space-y-1">
+                  {lockedSlots.short.map((slot) => (
+                    <div key={slot.id} className="flex items-start justify-between gap-2 text-xs">
+                      <span><b>Câu {slot.order}</b> · {slot.contentLabel}</span>
+                      <span className="whitespace-nowrap text-slate-400">{LEVELS.find((l) => l.key === slot.level)?.vi}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-3 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <span className={`rounded-full px-2.5 py-1 font-bold ${
+                    backendHealth
+                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+                      : 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300'
+                  }`}>
+                    {backendHealth
+                      ? (isEnglish ? 'Backend online' : 'Backend online')
+                      : (isEnglish ? 'Backend unavailable' : 'Backend chưa kết nối')}
+                  </span>
+                  {backendHealth?.authRequired && (
+                    <span className="rounded-full bg-sky-100 px-2.5 py-1 font-bold text-sky-700 dark:bg-sky-950 dark:text-sky-300">
+                      {isEnglish ? 'Firebase protected' : 'Đã bảo vệ bằng Firebase'}
+                    </span>
+                  )}
+                  {backendHealth && backendHealth.generationUnitsPerHour > 0 && (
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                      {backendHealth.generationUnitsPerHour} {isEnglish ? 'units/user/hour' : 'đơn vị/user/giờ'}
+                    </span>
+                  )}
+                  {backendHealth && (
+                    <span className={`rounded-full px-2.5 py-1 font-bold ${
+                      backendHealth.aiConfigured
+                        ? 'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300'
+                        : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
+                    }`}>
+                      {backendHealth.aiConfigured
+                        ? `AI: ${backendHealth.model}`
+                        : (isEnglish ? 'AI key not configured' : 'Chưa cấu hình AI key')}
+                    </span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={refreshBackendHealth}
+                  disabled={isCheckingBackend}
+                  className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-bold text-slate-500 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                >
+                  {isCheckingBackend
+                    ? (isEnglish ? 'Checking…' : 'Đang kiểm tra…')
+                    : (isEnglish ? 'Check again' : 'Kiểm tra lại')}
+                </button>
+              </div>
+            </div>
+
+            <div className={`mt-3 grid gap-2 ${isBlueprintPreview ? 'sm:grid-cols-2' : ''}`}>
+              <button
+                type="button"
+                onClick={handleGenerateExam}
+                disabled={isGeneratingExam}
+                className="w-full rounded-xl bg-purple-600 px-4 py-3 font-bold text-white shadow-sm transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isGeneratingExam
+                  ? (isEnglish
+                      ? (generationProgress.waitingSeconds
+                        ? `Waiting ${generationProgress.waitingSeconds}s for Gemini quota...`
+                        : `Generating ${generationProgress.completed}/${generationProgress.total}...`)
+                      : (generationProgress.waitingSeconds
+                        ? `Chờ ${generationProgress.waitingSeconds} giây để tiếp tục tạo bằng AI...`
+                        : `Đang tạo ${generationProgress.completed}/${generationProgress.total} câu...`))
+                  : (isEnglish ? 'Generate exam with AI' : 'Tạo đề bằng AI')}
+              </button>
+
+              {isBlueprintPreview && (
+                <button
+                  type="button"
+                  onClick={handleGenerateMockExam}
+                  disabled={isGeneratingExam}
+                  className="w-full rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 font-bold text-amber-800 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-amber-800 dark:bg-amber-950/20 dark:text-amber-300"
+                >
+                  {isEnglish ? 'Create demo exam for workflow testing' : 'Tạo đề mẫu để kiểm thử workflow'}
+                </button>
+              )}
+            </div>
+
+            {generationSource === 'ai' && missingQuestionCount > 0 && (
+              <button
+                type="button"
+                onClick={handleGenerateMissingItems}
+                disabled={isGeneratingExam}
+                className="mt-2 w-full rounded-xl border border-purple-300 bg-purple-50 px-4 py-2.5 text-sm font-bold text-purple-700 transition hover:bg-purple-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-purple-800 dark:bg-purple-950/20 dark:text-purple-300"
+              >
+                {isGeneratingExam
+                  ? (isEnglish ? 'Retrying missing questions…' : 'Đang tạo lại các câu còn thiếu…')
+                  : (isEnglish
+                      ? `Retry ${missingQuestionCount} missing question(s)`
+                      : `Tạo lại ${missingQuestionCount} câu còn thiếu`)}
+              </button>
+            )}
+
+            {isBlueprintPreview && (
+              <p className="mt-2 text-center text-[11px] text-amber-700 dark:text-amber-300">
+                {isEnglish
+                  ? 'Demo questions are placeholders only. They let you test review, editing, locking, and DOCX export without an API key.'
+                  : 'Đề mẫu chỉ là dữ liệu giả để kiểm thử Duyệt – Sửa – Khóa – Xuất DOCX, không dùng làm câu hỏi thật.'}
+              </p>
+            )}
+
+            {isGeneratingExam && generationProgress.total > 0 && (
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-purple-100 dark:bg-purple-950">
+                <div
+                  className="h-full bg-purple-600 transition-all"
+                  style={{ width: `${Math.round((generationProgress.completed / generationProgress.total) * 100)}%` }}
+                />
+              </div>
+            )}
+
+            {generationError && (
+              <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/20 dark:text-red-200">
+                {generationError}
+              </div>
+            )}
+
+            {generationFailures.length > 0 && (
+              <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/20 dark:text-amber-200">
+                <strong className="mb-1 block">
+                  {isEnglish ? 'Missing slots:' : 'Các slot chưa tạo được:'}
+                </strong>
+                <ul className="list-disc space-y-1 pl-5">
+                  {generationFailures.map((failure) => (
+                    <li key={failure.slotId}>
+                      {failure.part === 'mcq' ? 'Phần I' : failure.part === 'tf' ? 'Phần II' : 'Phần III'}
+                      {' · '}
+                      {isEnglish ? 'Question' : 'Câu'} {failure.order}
+                      {' · '}
+                      {failure.message}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {generatedItems.length > 0 && (
+              <div className="mt-5 space-y-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h5 className="text-sm font-bold text-slate-800 dark:text-white">
+                      {generationSource === 'mock'
+                        ? (isEnglish ? 'Demo exam workflow review' : 'Duyệt đề mẫu kiểm thử')
+                        : (isEnglish ? 'AI-generated exam review' : 'Duyệt đề AI đã tạo')}
+                    </h5>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {generationSource === 'mock'
+                        ? (isEnglish
+                            ? 'Demo content is tied to the locked slots so you can test the complete review and DOCX workflow.'
+                            : 'Dữ liệu mẫu vẫn gắn đúng slot đã khóa để anh kiểm thử đầy đủ quy trình duyệt và DOCX.')
+                        : (isEnglish
+                            ? 'Each question remains tied to its locked slot. Regenerate only the question that needs revision.'
+                            : 'Mỗi câu vẫn gắn với slot đã khóa. Chỉ tạo lại câu cần sửa, không sinh lại toàn bộ đề.')}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {generationSource === 'mock' && (
+                      <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-extrabold text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                        DEMO
+                      </span>
+                    )}
+                    <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-extrabold text-purple-700 dark:bg-purple-950 dark:text-purple-300">
+                      {generatedItems.length}/{expectedGeneratedCount} {isEnglish ? 'questions' : 'câu'}
+                    </span>
+                    <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-extrabold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                      ✓ {approvedSlotIds.length}/{expectedGeneratedCount} {isEnglish ? 'approved' : 'đã duyệt'}
+                    </span>
+                    <span className="rounded-full bg-slate-200 px-3 py-1 text-xs font-extrabold text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                      🔒 {lockedQuestionIds.length}/{expectedGeneratedCount}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={approveAllQuestions}
+                    disabled={generatedItems.length === 0 || allQuestionsApproved}
+                    className="rounded-lg border border-emerald-200 px-3 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-emerald-800 dark:text-emerald-300 dark:hover:bg-emerald-950/30"
+                  >
+                    ✓ {isEnglish ? 'Approve all' : 'Duyệt tất cả'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={lockAllApprovedQuestions}
+                    disabled={approvedSlotIds.length === 0}
+                    className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                  >
+                    🔒 {isEnglish ? 'Lock approved' : 'Khóa các câu đã duyệt'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={unlockAllQuestions}
+                    disabled={lockedQuestionIds.length === 0}
+                    className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+                  >
+                    🔓 {isEnglish ? 'Unlock all' : 'Mở khóa tất cả'}
+                  </button>
+                </div>
+
+                <div className="rounded-xl border border-sky-100 bg-sky-50/70 p-3 dark:border-sky-900/50 dark:bg-sky-950/20">
+                  <p className="text-xs leading-relaxed text-sky-800 dark:text-sky-200">
+                    {isEnglish
+                      ? 'Mixer DOCX contract: underline only the correct A/B/C/D letter in Part I; underline the a/b/c/d letters of TRUE statements in Part II; Part III answers use “A. number” with at most 4 characters.'
+                      : 'Format DOCX để trộn: Phần I chỉ gạch dưới ký tự A/B/C/D của đáp án đúng; Phần II chỉ gạch dưới ký tự a/b/c/d của các ý Đúng; Phần III ghi “A. số”, tối đa 4 ký tự.'}
+                  </p>
+                </div>
+
+                <div className={`rounded-xl border px-4 py-3 text-sm ${
+                  mixerExportReady
+                    ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-200'
+                    : 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200'
+                }`}>
+                  {mixerExportReady ? (
+                    <strong>✓ {isEnglish ? 'Exam is ready for mixer DOCX export.' : 'Đề đã sẵn sàng xuất DOCX để trộn.'}</strong>
+                  ) : (
+                    <>
+                      <strong className="block mb-1">
+                        {isEnglish ? 'Before mixer export:' : 'Trước khi xuất đề trộn:'}
+                      </strong>
+                      <ul className="list-disc space-y-1 pl-5 text-xs">
+                        {!allQuestionsGenerated && (
+                          <li>
+                            {isEnglish
+                              ? `Generate all questions (${generatedItems.length}/${expectedGeneratedCount} generated).`
+                              : `Tạo đủ tất cả câu (${generatedItems.length}/${expectedGeneratedCount} đã tạo).`}
+                          </li>
+                        )}
+                        {!allQuestionsApproved && (
+                          <li>
+                            {isEnglish
+                              ? `Approve all questions (${approvedSlotIds.length}/${expectedGeneratedCount} approved).`
+                              : `Duyệt đủ tất cả câu (${approvedSlotIds.length}/${expectedGeneratedCount} đã duyệt).`}
+                          </li>
+                        )}
+                        {!mixValidation.valid && mixValidation.issues.map((issue, index) => (
+                          <li key={`${issue.slotId}-${index}`}>
+                            {isEnglish ? 'Question' : 'Câu'} {issue.order} · {issue.message}
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </div>
+
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={handleExportMixDocx}
+                    disabled={isExportingDocx || !mixerExportReady}
+                    className="w-full rounded-xl bg-sky-700 px-4 py-3 font-bold text-white shadow-sm transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isExportingDocx
+                      ? (isEnglish ? 'Exporting DOCX…' : 'Đang xuất DOCX…')
+                      : (isEnglish ? 'Download mixer-ready DOCX' : 'Tải đề DOCX để trộn')}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleExportDocx(true)}
+                    disabled={isExportingDocx || !allQuestionsGenerated}
+                    className="w-full rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 font-bold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-900/60 dark:bg-emerald-950/20 dark:text-emerald-300"
+                  >
+                    {isExportingDocx
+                      ? (isEnglish ? 'Exporting…' : 'Đang xuất…')
+                      : (isEnglish ? 'Download full exam dossier' : 'Tải bộ hồ sơ đề')}
+                  </button>
+                </div>
+
+                {(['mcq', 'tf', 'short'] as ExamPartKey[]).map((part) => {
+                  const partItems = generatedItems.filter((item) => item.part === part);
+                  if (partItems.length === 0) return null;
+
+                  return (
+                    <div key={part} className="space-y-3">
+                      <div className="border-b border-slate-200 pb-2 text-sm font-extrabold text-slate-700 dark:border-slate-700 dark:text-slate-200">
+                        {partTitle(part)}
+                      </div>
+
+                      {partItems.map((item) => (
+                        <article key={item.slotId} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                          {(() => {
+                            const isApproved = approvedSlotIds.includes(item.slotId);
+                            const isLocked = lockedQuestionIds.includes(item.slotId);
+                            const isEditing = editingSlotId === item.slotId;
+
+                            return (
+                              <>
+                                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                                  <div className="flex flex-wrap items-center gap-2">
                                     <span className="rounded-full bg-slate-900 px-2.5 py-1 text-[11px] font-bold text-white dark:bg-sky-800">
                                       Câu {item.order}
                                     </span>
