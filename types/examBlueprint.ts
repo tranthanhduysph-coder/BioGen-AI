@@ -60,6 +60,15 @@ export interface BiologyLearningOutcome {
   sourceNote?: string;
   sourceCodeMissing?: boolean;
   sourceLevelMissing?: boolean;
+  curriculumAlignment?: CurriculumOutcomeAlignment;
+}
+
+export interface CurriculumOutcomeAlignment {
+  outcomeId: string;
+  pages: number[];
+  status: 'clause' | 'source_variant';
+  note?: string;
+  curriculumText?: string;
 }
 
 export interface ExamBlueprint {

@@ -2,5 +2,7 @@
 data/biologySpecification/source/biology-thpt.md -text
 data/biologySpecification/catalog.json text eol=lf
 data/biologySpecification/curriculum.json text eol=lf
+data/biologySpecification/curriculumAlignment.json text eol=lf
+data/biologySpecification/curriculumAlignment.psv text eol=lf
 public/specification/biology-thpt.pdf binary
 public/specification/biology-curriculum-2018.pdf binary

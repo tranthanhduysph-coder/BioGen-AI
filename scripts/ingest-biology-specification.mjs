@@ -163,3 +163,27 @@ if (process.argv.includes('--check')) {
   if (readFileSync(curriculumPath, 'utf8') !== curriculumOutput) throw new Error('Curriculum supplement is stale. Run npm run specification:ingest.');
 } else writeFileSync(curriculumPath, curriculumOutput);
 console.log(JSON.stringify({ curriculumAdditions: additions.length, core: additions.filter(record => record.scope === 'core').length, elective: additions.filter(record => record.scope === 'elective').length, electiveTopics: electiveTopics.length }));
+
+const alignmentRows = read('data/biologySpecification/curriculumAlignment.psv').toString('utf8')
+  .split(/\r?\n/).filter(line => line.trim() && !line.startsWith('#')).map(line => {
+    const [outcomeId, pageText, status, note, curriculumText] = line.split('|');
+    const pages = pageText.split(',').map(Number);
+    if (!['clause', 'source_variant'].includes(status) || !pages.every(page => Number.isInteger(page) && page >= 13 && page <= 56)) throw new Error(`Invalid curriculum alignment: ${line}`);
+    if (status === 'source_variant' && (!note || !curriculumText)) throw new Error(`Unexplained curriculum variant: ${outcomeId}`);
+    return { outcomeId, pages, status, ...(note ? { note } : {}), ...(curriculumText ? { curriculumText } : {}) };
+  });
+const usableIds = [...records.filter(record => !record.sourceDuplicate && !record.sourceIncomplete && !record.sourceEmpty), ...additions].map(record => record.id).sort();
+if (new Set(alignmentRows.map(row => row.outcomeId)).size !== alignmentRows.length || JSON.stringify(alignmentRows.map(row => row.outcomeId).sort()) !== JSON.stringify(usableIds)) throw new Error('Every usable outcome must have exactly one curriculum alignment.');
+const alignment = {
+  schemaVersion: 1, specificationPdfSha256: document.source.pdfSha256,
+  curriculumPdfSha256: curriculum.source.pdfSha256,
+  transcriptionSha256: sha256(read('data/biologySpecification/curriculumAlignment.psv')),
+  notes: ['Each row locates the exact curriculum clause or records a visually checked source variant. A clause can be part of a compound curriculum requirement.', 'Competency bindings come only from printed specification codes. Curriculum page references do not assign competency codes.'],
+  records: alignmentRows,
+};
+const alignmentOutput = JSON.stringify(alignment, null, 2) + '\n';
+const alignmentPath = resolve(dir, 'curriculumAlignment.json');
+if (process.argv.includes('--check')) {
+  if (readFileSync(alignmentPath, 'utf8') !== alignmentOutput) throw new Error('Curriculum alignment is stale. Run npm run specification:ingest.');
+} else writeFileSync(alignmentPath, alignmentOutput);
+console.log(JSON.stringify({ curriculumAlignments: alignmentRows.length, sourceVariants: alignmentRows.filter(row => row.status === 'source_variant').length }));

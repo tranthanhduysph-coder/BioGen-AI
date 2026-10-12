@@ -77,6 +77,13 @@ export const resolveCompetencyCode = (sourceCode: string | null | undefined): Co
   };
   for (const token of sourceCode.trim().toUpperCase().split('/')) {
     if (add(token)) continue;
+    // NT2-NT4 is a pair of printed NT codes, not NT2, NT3, NT4.
+    // Keep inquiry-step ranges (TH1-TH5 / TH2-5) as ranges.
+    const ntPair = /^(NT\d+)-(NT\d+)$/.exec(token);
+    if (ntPair && byCode.has(ntPair[1]) && byCode.has(ntPair[2]) && Number(ntPair[1].slice(2)) <= Number(ntPair[2].slice(2))) {
+      add(ntPair[1]); add(ntPair[2]);
+      continue;
+    }
     const range = /^(NT|TH|VD)(\d+)-(NT|TH|VD)?(\d+)$/.exec(token);
     if (range && (!range[3] || range[3] === range[1])) {
       const from = Number(range[2]), to = Number(range[4]);
@@ -102,7 +109,7 @@ export const getCompetencyDescription = (code: string | null, isEnglish = false)
   for (const group of resolved.groups.filter(group => !resolved.descriptors.some(item => item.group === group))) {
     texts.unshift(isEnglish ? groupLabelsEn[group] : COMPETENCY_GROUP_DESCRIPTIONS[group]);
   }
-  if (!texts.length) return isEnglish ? 'The source does not specify a competency expression; teacher confirmation is needed.' : 'Nguồn chưa xác định biểu hiện năng lực; cần giáo viên xác nhận.';
+  if (!texts.length) return isEnglish ? 'The source does not assign a competency to this outcome. No assignment is inferred.' : 'Nguồn chưa gán năng lực cho YCCĐ này. Không tự suy mã năng lực.';
   return texts.join('\n\n');
 };
 

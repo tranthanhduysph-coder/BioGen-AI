@@ -5,9 +5,10 @@ export const CompetencySelect: React.FC<{
   label: string;
   value: string;
   options: string[];
+  outcomeCounts?: Record<string, number>;
   onChange: (value: string) => void;
   isEnglish?: boolean;
-}> = ({ label, value, options, onChange, isEnglish = false }) => {
+}> = ({ label, value, options, outcomeCounts, onChange, isEnglish = false }) => {
   const id = useId();
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
@@ -26,6 +27,7 @@ export const CompetencySelect: React.FC<{
       <span className="block whitespace-pre-line break-words leading-relaxed">{getCompetencyDescription(code, isEnglish)}</span>
       <span className="mt-1 block text-[11px] font-semibold text-sky-700 dark:text-sky-300">
         {getCompetencyGroupLabel(code, isEnglish)}{code && ` · ${code.toUpperCase()}`}
+        {outcomeCounts?.[code] !== undefined && ` · ${outcomeCounts[code]} ${isEnglish ? 'outcomes' : 'YCCĐ'}`}
       </span>
       {resolution.status === 'partial' && <span className="mt-1 block text-[11px] text-amber-700 dark:text-amber-300">
         {isEnglish ? 'Source notation needs confirmation' : 'Kí hiệu nguồn cần xác nhận'}: {resolution.unresolvedTokens.join(', ')}

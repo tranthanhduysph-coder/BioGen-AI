@@ -1,0 +1,3613 @@
+{
+  "schemaVersion": 1,
+  "specificationPdfSha256": "9c82d8ae1330b18955a8831f811eaa0e2bc6ba83f3220aeb459afd5912a833f1",
+  "curriculumPdfSha256": "a2435d857b8c7988bc14f988ee4df51b5f5a30d5a9a1b15cf8bdc614c0159bae",
+  "transcriptionSha256": "6a451c9e01d4760e3aca59e8500af301adb2eead8cda684fdf8f220132b02bf6",
+  "notes": [
+    "Each row locates the exact curriculum clause or records a visually checked source variant. A clause can be part of a compound curriculum requirement.",
+    "Competency bindings come only from printed specification codes. Curriculum page references do not assign competency codes."
+  ],
+  "records": [
+    {
+      "outcomeId": "spec-g10-p01-r01",
+      "pages": [
+        13
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p01-r02",
+      "pages": [
+        13
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p01-r03",
+      "pages": [
+        13
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p01-r04",
+      "pages": [
+        13
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p01-r05",
+      "pages": [
+        13
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p01-r06",
+      "pages": [
+        13,
+        14
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p01-r07",
+      "pages": [
+        14
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p01-r08",
+      "pages": [
+        14
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p01-r09",
+      "pages": [
+        14
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p01-r10",
+      "pages": [
+        14
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p02-r01",
+      "pages": [
+        14
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p02-r02",
+      "pages": [
+        14
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p02-r03",
+      "pages": [
+        14
+      ],
+      "status": "source_variant",
+      "note": "Khác chính tả thuật ngữ tiếng Anh giữa hai nguồn.",
+      "curriculumText": "Giới thiệu được phương pháp tin sinh học (Bioinfomatics) như là công cụ trong nghiên cứu và học tập sinh học."
+    },
+    {
+      "outcomeId": "spec-g10-p02-r04",
+      "pages": [
+        14
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p02-r05",
+      "pages": [
+        14
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p02-r06",
+      "pages": [
+        15
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p02-r07",
+      "pages": [
+        15
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p02-r08",
+      "pages": [
+        15
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p03-r01",
+      "pages": [
+        15
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p03-r02",
+      "pages": [
+        15
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p03-r03",
+      "pages": [
+        15
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p03-r04",
+      "pages": [
+        15
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p03-r05",
+      "pages": [
+        15
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p03-r06",
+      "pages": [
+        15
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p03-r07",
+      "pages": [
+        15
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p03-r08",
+      "pages": [
+        16
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p03-r09",
+      "pages": [
+        15
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p03-r10",
+      "pages": [
+        15
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p03-r11",
+      "pages": [
+        15
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p03-r12",
+      "pages": [
+        16
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p04-r01",
+      "pages": [
+        16
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p04-r02",
+      "pages": [
+        16
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p04-r03",
+      "pages": [
+        16
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p04-r04",
+      "pages": [
+        16
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p04-r05",
+      "pages": [
+        16
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p04-r06",
+      "pages": [
+        16
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p04-r07",
+      "pages": [
+        16
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p04-r08",
+      "pages": [
+        16
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p04-r09",
+      "pages": [
+        16
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p04-r10",
+      "pages": [
+        16
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p04-r11",
+      "pages": [
+        17
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p04-r12",
+      "pages": [
+        17
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p04-r13",
+      "pages": [
+        17
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p04-r14",
+      "pages": [
+        18
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p04-r15",
+      "pages": [
+        18
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p04-r16",
+      "pages": [
+        18
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p04-r17",
+      "pages": [
+        18
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p04-r18",
+      "pages": [
+        17
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p04-r19",
+      "pages": [
+        17
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p05-r01",
+      "pages": [
+        17
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p05-r02",
+      "pages": [
+        17
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p05-r03",
+      "pages": [
+        17
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p05-r04",
+      "pages": [
+        17
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p05-r05",
+      "pages": [
+        17
+      ],
+      "status": "source_variant",
+      "note": "Khác chính tả: tích luỹ / tích lũy.",
+      "curriculumText": "Trình bày được quá trình tổng hợp và phân giải ATP gắn liền với quá trình tích lũy, giải phóng năng lượng."
+    },
+    {
+      "outcomeId": "spec-g10-p05-r06",
+      "pages": [
+        17
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p05-r07",
+      "pages": [
+        18
+      ],
+      "status": "source_variant",
+      "note": "Bản đặc tả tách vế lấy ví dụ và thêm cụm “về tổng hợp các chất”.",
+      "curriculumText": "Nêu được khái niệm tổng hợp các chất trong tế bào. Lấy được ví dụ minh hoạ (tổng hợp protein, lipid, carbohydrate,...)."
+    },
+    {
+      "outcomeId": "spec-g10-p05-r08",
+      "pages": [
+        18
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p05-r09",
+      "pages": [
+        18
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p05-r10",
+      "pages": [
+        18
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p05-r11",
+      "pages": [
+        17
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p05-r12",
+      "pages": [
+        17
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p05-r13",
+      "pages": [
+        17,
+        18
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p05-r14",
+      "pages": [
+        18
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p06-r01",
+      "pages": [
+        18
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p06-r02",
+      "pages": [
+        18
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p06-r03",
+      "pages": [
+        19
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p06-r04",
+      "pages": [
+        19
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p06-r05",
+      "pages": [
+        19
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p06-r06",
+      "pages": [
+        19
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p06-r07",
+      "pages": [
+        19
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p06-r08",
+      "pages": [
+        19
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p06-r09",
+      "pages": [
+        19
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p06-r10",
+      "pages": [
+        19
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p06-r11",
+      "pages": [
+        19
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p06-r12",
+      "pages": [
+        19
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p06-r13",
+      "pages": [
+        19
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p06-r14",
+      "pages": [
+        19
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p07-r01",
+      "pages": [
+        19
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p07-r02",
+      "pages": [
+        19
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p07-r03",
+      "pages": [
+        20
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p07-r04",
+      "pages": [
+        20
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p07-r05",
+      "pages": [
+        20
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p07-r06",
+      "pages": [
+        20
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p07-r07",
+      "pages": [
+        21
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p07-r08",
+      "pages": [
+        20
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p07-r09",
+      "pages": [
+        20
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p07-r10",
+      "pages": [
+        20
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p07-r11",
+      "pages": [
+        20
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p07-r12",
+      "pages": [
+        20
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p07-r13",
+      "pages": [
+        20
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p07-r15",
+      "pages": [
+        20
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p08-r01",
+      "pages": [
+        21
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p08-r02",
+      "pages": [
+        21
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p08-r03",
+      "pages": [
+        20
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p08-r04",
+      "pages": [
+        20
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p08-r05",
+      "pages": [
+        20
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p08-r06",
+      "pages": [
+        20
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p08-r07",
+      "pages": [
+        21
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p08-r08",
+      "pages": [
+        21
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p08-r09",
+      "pages": [
+        21
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p08-r10",
+      "pages": [
+        21
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p08-r11",
+      "pages": [
+        21
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g10-p08-r12",
+      "pages": [
+        21
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p09-r01",
+      "pages": [
+        24
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p09-r02",
+      "pages": [
+        25
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p09-r03",
+      "pages": [
+        25
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p09-r04",
+      "pages": [
+        24
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p09-r05",
+      "pages": [
+        24
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p09-r06",
+      "pages": [
+        25
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p09-r07",
+      "pages": [
+        24
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p09-r08",
+      "pages": [
+        25
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p09-r09",
+      "pages": [
+        25
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p09-r10",
+      "pages": [
+        25,
+        26
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p09-r11",
+      "pages": [
+        26
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p10-r01",
+      "pages": [
+        25
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p10-r02",
+      "pages": [
+        25
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p10-r03",
+      "pages": [
+        25
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p10-r04",
+      "pages": [
+        25
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p10-r05",
+      "pages": [
+        25
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p10-r06",
+      "pages": [
+        26
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p10-r07",
+      "pages": [
+        26
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p10-r08",
+      "pages": [
+        26
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p10-r09",
+      "pages": [
+        26
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p10-r10",
+      "pages": [
+        26
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p10-r11",
+      "pages": [
+        26
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p10-r12",
+      "pages": [
+        26
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p10-r13",
+      "pages": [
+        26
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p10-r14",
+      "pages": [
+        26
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p11-r01",
+      "pages": [
+        26
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p11-r02",
+      "pages": [
+        26
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p11-r03",
+      "pages": [
+        26
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p11-r04",
+      "pages": [
+        27
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p11-r05",
+      "pages": [
+        27
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p11-r06",
+      "pages": [
+        27
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p11-r07",
+      "pages": [
+        27
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p11-r08",
+      "pages": [
+        27
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p11-r09",
+      "pages": [
+        27
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p11-r10",
+      "pages": [
+        27
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p11-r11",
+      "pages": [
+        27
+      ],
+      "status": "source_variant",
+      "note": "Chỉ số 2 của CO₂ được xác nhận trực tiếp trên PDF.",
+      "curriculumText": "Phân tích được ảnh hưởng của các điều kiện đến quang hợp (ánh sáng, CO₂, nhiệt độ)."
+    },
+    {
+      "outcomeId": "spec-g11-p11-r12",
+      "pages": [
+        27
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p11-r13",
+      "pages": [
+        27
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p11-r14",
+      "pages": [
+        27
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p11-r15",
+      "pages": [
+        27
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p12-r01",
+      "pages": [
+        27
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p12-r02",
+      "pages": [
+        27
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p12-r03",
+      "pages": [
+        27
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p12-r04",
+      "pages": [
+        27
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p12-r05",
+      "pages": [
+        28
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p12-r06",
+      "pages": [
+        28
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p12-r07",
+      "pages": [
+        28
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p12-r08",
+      "pages": [
+        28
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p12-r09",
+      "pages": [
+        28
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p12-r10",
+      "pages": [
+        28
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p12-r11",
+      "pages": [
+        28
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p12-r12",
+      "pages": [
+        28
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p12-r13",
+      "pages": [
+        28
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p13-r01",
+      "pages": [
+        28
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p13-r02",
+      "pages": [
+        29
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p13-r03",
+      "pages": [
+        29
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p13-r04",
+      "pages": [
+        29
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p13-r05",
+      "pages": [
+        29
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p13-r06",
+      "pages": [
+        29
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p13-r07",
+      "pages": [
+        29
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p13-r08",
+      "pages": [
+        29
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p13-r09",
+      "pages": [
+        29
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p13-r10",
+      "pages": [
+        29
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p13-r11",
+      "pages": [
+        29
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p13-r12",
+      "pages": [
+        29
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p13-r13",
+      "pages": [
+        29
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p13-r14",
+      "pages": [
+        29
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p13-r15",
+      "pages": [
+        29
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p13-r16",
+      "pages": [
+        29
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p13-r17",
+      "pages": [
+        29,
+        30
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p14-r01",
+      "pages": [
+        30
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p14-r02",
+      "pages": [
+        30
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p14-r03",
+      "pages": [
+        29
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p14-r04",
+      "pages": [
+        29
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p14-r05",
+      "pages": [
+        29
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p14-r06",
+      "pages": [
+        30
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p14-r07",
+      "pages": [
+        30
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p14-r08",
+      "pages": [
+        30
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p14-r09",
+      "pages": [
+        30
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p14-r10",
+      "pages": [
+        30
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p14-r11",
+      "pages": [
+        30
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p14-r12",
+      "pages": [
+        30
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p14-r13",
+      "pages": [
+        30
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p14-r14",
+      "pages": [
+        30
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p14-r15",
+      "pages": [
+        30
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p14-r16",
+      "pages": [
+        30
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p15-r01",
+      "pages": [
+        30
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p15-r02",
+      "pages": [
+        31
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p15-r03",
+      "pages": [
+        31
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p15-r04",
+      "pages": [
+        30
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p15-r05",
+      "pages": [
+        31
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p15-r06",
+      "pages": [
+        31
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p15-r07",
+      "pages": [
+        31
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p15-r08",
+      "pages": [
+        31
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p15-r09",
+      "pages": [
+        31
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p15-r10",
+      "pages": [
+        31
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p15-r11",
+      "pages": [
+        31
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p15-r12",
+      "pages": [
+        31
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p15-r13",
+      "pages": [
+        31
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p15-r14",
+      "pages": [
+        31,
+        32
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p16-r01",
+      "pages": [
+        31
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p16-r02",
+      "pages": [
+        32
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p16-r03",
+      "pages": [
+        32
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p16-r04",
+      "pages": [
+        32
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p16-r05",
+      "pages": [
+        33
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p16-r06",
+      "pages": [
+        33
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p16-r07",
+      "pages": [
+        33
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p16-r08",
+      "pages": [
+        33
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p16-r09",
+      "pages": [
+        33
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p16-r10",
+      "pages": [
+        33
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p16-r11",
+      "pages": [
+        33,
+        34
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p16-r12",
+      "pages": [
+        34
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p16-r13",
+      "pages": [
+        32
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p16-r14",
+      "pages": [
+        32
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p16-r15",
+      "pages": [
+        32
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p16-r16",
+      "pages": [
+        32
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p16-r17",
+      "pages": [
+        33
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p17-r01",
+      "pages": [
+        33
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p17-r02",
+      "pages": [
+        33
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p17-r03",
+      "pages": [
+        33
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p17-r04",
+      "pages": [
+        33
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p17-r05",
+      "pages": [
+        34
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p17-r06",
+      "pages": [
+        34
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p17-r07",
+      "pages": [
+        33
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p17-r08",
+      "pages": [
+        33
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p17-r09",
+      "pages": [
+        33
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p17-r10",
+      "pages": [
+        34
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p17-r11",
+      "pages": [
+        34
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p17-r12",
+      "pages": [
+        34
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p17-r13",
+      "pages": [
+        34
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p17-r14",
+      "pages": [
+        34
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p17-r15",
+      "pages": [
+        34
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p18-r01",
+      "pages": [
+        34
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p18-r02",
+      "pages": [
+        34
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p18-r03",
+      "pages": [
+        35
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p18-r04",
+      "pages": [
+        35
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p18-r05",
+      "pages": [
+        35
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p18-r06",
+      "pages": [
+        35
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p18-r07",
+      "pages": [
+        35
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p18-r08",
+      "pages": [
+        35
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p18-r09",
+      "pages": [
+        35
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p18-r10",
+      "pages": [
+        35
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p18-r11",
+      "pages": [
+        35
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p18-r12",
+      "pages": [
+        34
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p18-r13",
+      "pages": [
+        35
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p18-r14",
+      "pages": [
+        36
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p18-r15",
+      "pages": [
+        36
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p19-r01",
+      "pages": [
+        35
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p19-r02",
+      "pages": [
+        35
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p19-r03",
+      "pages": [
+        35
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p19-r04",
+      "pages": [
+        35
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p19-r05",
+      "pages": [
+        36
+      ],
+      "status": "source_variant",
+      "note": "Bản đặc tả thêm từ “cơ chế”; chương trình không có từ này.",
+      "curriculumText": "Vận dụng hiểu biết về hormone để giải thích một số hiện tượng trong thực tiễn (ví dụ: không lạm dụng hormone trong chăn nuôi; thiến hoạn động vật;...)."
+    },
+    {
+      "outcomeId": "spec-g11-p19-r06",
+      "pages": [
+        36
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p19-r07",
+      "pages": [
+        36
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p19-r08",
+      "pages": [
+        36
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p19-r09",
+      "pages": [
+        36
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p19-r10",
+      "pages": [
+        35
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p19-r11",
+      "pages": [
+        36
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p19-r12",
+      "pages": [
+        36
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p19-r13",
+      "pages": [
+        36
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p19-r14",
+      "pages": [
+        36
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p20-r01",
+      "pages": [
+        36
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p20-r02",
+      "pages": [
+        36
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p20-r03",
+      "pages": [
+        37
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p20-r04",
+      "pages": [
+        37
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p20-r05",
+      "pages": [
+        37
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p20-r06",
+      "pages": [
+        37
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p20-r07",
+      "pages": [
+        37
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p20-r08",
+      "pages": [
+        37
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p20-r09",
+      "pages": [
+        37
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p20-r10",
+      "pages": [
+        37
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p20-r11",
+      "pages": [
+        37
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p20-r12",
+      "pages": [
+        37
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p20-r13",
+      "pages": [
+        37
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p20-r14",
+      "pages": [
+        37
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p20-r15",
+      "pages": [
+        37
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p21-r01",
+      "pages": [
+        37
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p21-r02",
+      "pages": [
+        37
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p21-r03",
+      "pages": [
+        37
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g11-p21-r04",
+      "pages": [
+        38
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p22-r01",
+      "pages": [
+        41
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p22-r02",
+      "pages": [
+        41
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p22-r03",
+      "pages": [
+        41
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p22-r04",
+      "pages": [
+        41
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p22-r05",
+      "pages": [
+        42
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p22-r06",
+      "pages": [
+        42
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p22-r07",
+      "pages": [
+        42
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p22-r08",
+      "pages": [
+        42
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p22-r09",
+      "pages": [
+        41
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p22-r10",
+      "pages": [
+        41
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p22-r11",
+      "pages": [
+        41
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p22-r12",
+      "pages": [
+        41
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p22-r13",
+      "pages": [
+        42
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p22-r14",
+      "pages": [
+        42
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p22-r15",
+      "pages": [
+        41
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p22-r16",
+      "pages": [
+        41
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p22-r17",
+      "pages": [
+        42
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p23-r01",
+      "pages": [
+        42
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p23-r02",
+      "pages": [
+        41
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p23-r03",
+      "pages": [
+        41
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p23-r04",
+      "pages": [
+        41
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p23-r05",
+      "pages": [
+        43
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p23-r06",
+      "pages": [
+        44
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p23-r07",
+      "pages": [
+        43
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p23-r08",
+      "pages": [
+        44
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p23-r09",
+      "pages": [
+        44
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p23-r10",
+      "pages": [
+        45
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p23-r11",
+      "pages": [
+        44
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p23-r12",
+      "pages": [
+        44
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p23-r13",
+      "pages": [
+        44
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p23-r14",
+      "pages": [
+        44
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p23-r15",
+      "pages": [
+        42
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p23-r16",
+      "pages": [
+        43
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p23-r17",
+      "pages": [
+        43
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p23-r18",
+      "pages": [
+        43
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p23-r19",
+      "pages": [
+        43
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p23-r20",
+      "pages": [
+        44
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p23-r21",
+      "pages": [
+        44
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p23-r22",
+      "pages": [
+        44
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p23-r23",
+      "pages": [
+        44
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p23-r24",
+      "pages": [
+        44
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p24-r01",
+      "pages": [
+        44
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p24-r02",
+      "pages": [
+        44
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p24-r03",
+      "pages": [
+        45
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p24-r04",
+      "pages": [
+        45
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p24-r05",
+      "pages": [
+        45
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p24-r06",
+      "pages": [
+        45
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p24-r07",
+      "pages": [
+        45
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p24-r08",
+      "pages": [
+        43
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p24-r09",
+      "pages": [
+        44
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p24-r10",
+      "pages": [
+        45
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p24-r11",
+      "pages": [
+        45
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p24-r12",
+      "pages": [
+        43
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p24-r13",
+      "pages": [
+        43
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p24-r14",
+      "pages": [
+        43
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p24-r15",
+      "pages": [
+        43
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p25-r01",
+      "pages": [
+        44
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p25-r02",
+      "pages": [
+        44
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p25-r04",
+      "pages": [
+        45
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p25-r05",
+      "pages": [
+        45
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p25-r06",
+      "pages": [
+        45
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p25-r07",
+      "pages": [
+        45
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p25-r08",
+      "pages": [
+        46
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p25-r09",
+      "pages": [
+        46
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p25-r10",
+      "pages": [
+        46
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p25-r11",
+      "pages": [
+        46
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p25-r12",
+      "pages": [
+        46
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p25-r14",
+      "pages": [
+        46
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p25-r15",
+      "pages": [
+        46
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p26-r01",
+      "pages": [
+        46
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p26-r02",
+      "pages": [
+        46
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p26-r03",
+      "pages": [
+        47
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p26-r04",
+      "pages": [
+        46
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p26-r05",
+      "pages": [
+        46
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p26-r06",
+      "pages": [
+        47
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p26-r08",
+      "pages": [
+        47
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p26-r10",
+      "pages": [
+        47
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p26-r11",
+      "pages": [
+        47
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p26-r12",
+      "pages": [
+        47
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p26-r13",
+      "pages": [
+        47
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p26-r14",
+      "pages": [
+        47
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p26-r15",
+      "pages": [
+        47
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p26-r16",
+      "pages": [
+        47
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p26-r17",
+      "pages": [
+        47
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p26-r18",
+      "pages": [
+        47
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p27-r01",
+      "pages": [
+        48
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p27-r02",
+      "pages": [
+        48
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p27-r03",
+      "pages": [
+        48
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p27-r04",
+      "pages": [
+        48
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p27-r05",
+      "pages": [
+        48
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p27-r06",
+      "pages": [
+        48
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p27-r07",
+      "pages": [
+        47
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p27-r08",
+      "pages": [
+        48
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p27-r09",
+      "pages": [
+        48
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p27-r10",
+      "pages": [
+        48
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p27-r11",
+      "pages": [
+        48
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p27-r12",
+      "pages": [
+        48
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p27-r13",
+      "pages": [
+        48
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p27-r14",
+      "pages": [
+        48
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p27-r15",
+      "pages": [
+        48
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p27-r16",
+      "pages": [
+        48
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p29-r01",
+      "pages": [
+        49
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p29-r02",
+      "pages": [
+        49
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p29-r03",
+      "pages": [
+        49
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p29-r04",
+      "pages": [
+        49
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p29-r05",
+      "pages": [
+        49
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p29-r06",
+      "pages": [
+        49
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p29-r07",
+      "pages": [
+        49
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p29-r08",
+      "pages": [
+        49
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p29-r09",
+      "pages": [
+        49
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p29-r10",
+      "pages": [
+        50
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p29-r11",
+      "pages": [
+        50
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p29-r12",
+      "pages": [
+        49
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p29-r13",
+      "pages": [
+        49,
+        50
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p29-r14",
+      "pages": [
+        50
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p29-r15",
+      "pages": [
+        50
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p29-r16",
+      "pages": [
+        50
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p30-r01",
+      "pages": [
+        50
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p30-r02",
+      "pages": [
+        50
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p30-r03",
+      "pages": [
+        50
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p30-r04",
+      "pages": [
+        50
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p30-r05",
+      "pages": [
+        50
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p30-r06",
+      "pages": [
+        50
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p30-r07",
+      "pages": [
+        51
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p30-r08",
+      "pages": [
+        51
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p30-r09",
+      "pages": [
+        50
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p30-r10",
+      "pages": [
+        50,
+        51
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p30-r11",
+      "pages": [
+        51
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p30-r12",
+      "pages": [
+        51
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p30-r13",
+      "pages": [
+        51
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p30-r14",
+      "pages": [
+        51
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p32-r02",
+      "pages": [
+        52
+      ],
+      "status": "source_variant",
+      "note": "Bản đặc tả tách vế giải thích và viết lại đối tượng được nhắc tới.",
+      "curriculumText": "Nêu được một số hiện tượng ảnh hưởng đến hệ sinh thái như: sự ấm lên toàn cầu; sự phì dưỡng; sa mạc hoá. Giải thích được vì sao các hiện tượng đó vừa tác động đến hệ sinh thái, vừa là nguyên nhân của sự mất cân bằng của hệ sinh thái."
+    },
+    {
+      "outcomeId": "spec-g12-p32-r03",
+      "pages": [
+        52
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p32-r04",
+      "pages": [
+        53
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p32-r05",
+      "pages": [
+        53
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p32-r06",
+      "pages": [
+        53
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p32-r07",
+      "pages": [
+        51
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p32-r08",
+      "pages": [
+        52
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p32-r09",
+      "pages": [
+        52
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p32-r10",
+      "pages": [
+        52
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p32-r11",
+      "pages": [
+        52
+      ],
+      "status": "source_variant",
+      "note": "Bản đặc tả tách vế đề xuất; “hệ sinh thái đó” chỉ hệ sinh thái tại địa phương ở vế trước.",
+      "curriculumText": "Phân tích được diễn thế sinh thái ở một hệ sinh thái tại địa phương. Đề xuất được một số biện pháp bảo tồn hệ sinh thái đó."
+    },
+    {
+      "outcomeId": "spec-g12-p32-r12",
+      "pages": [
+        53
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p32-r13",
+      "pages": [
+        53
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p32-r14",
+      "pages": [
+        53
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p32-r15",
+      "pages": [
+        54
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p32-r16",
+      "pages": [
+        54
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p33-r01",
+      "pages": [
+        53
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p33-r02",
+      "pages": [
+        53
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p33-r03",
+      "pages": [
+        53
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p33-r04",
+      "pages": [
+        53
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p33-r05",
+      "pages": [
+        54
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p33-r06",
+      "pages": [
+        54
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p33-r07",
+      "pages": [
+        53
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p33-r08",
+      "pages": [
+        53
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p33-r09",
+      "pages": [
+        54
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "spec-g12-p33-r10",
+      "pages": [
+        54
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g10-virus-prevention",
+      "pages": [
+        21
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g11-plant-response-role",
+      "pages": [
+        31
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g11-meristems",
+      "pages": [
+        34,
+        35
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-mendel-regularity",
+      "pages": [
+        43
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-chromosome-practical",
+      "pages": [
+        45
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-hardy-weinberg",
+      "pages": [
+        47
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-community-living-level",
+      "pages": [
+        51
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-community-shannon",
+      "pages": [
+        51
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-ecosystem-concept",
+      "pages": [
+        51
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-ecosystem-exchange",
+      "pages": [
+        51
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-food-web",
+      "pages": [
+        51
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-energy-flow",
+      "pages": [
+        52
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-ecological-efficiency-concept",
+      "pages": [
+        52
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-ecological-efficiency-calculation",
+      "pages": [
+        52
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-ecological-efficiency-meaning",
+      "pages": [
+        52
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-biogeochemical-cycles",
+      "pages": [
+        52
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-ecosystem-dynamics",
+      "pages": [
+        52
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-succession-concept",
+      "pages": [
+        52
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-succession-causes",
+      "pages": [
+        52
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-ecosystem-phenomena",
+      "pages": [
+        52
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-biosphere-concept",
+      "pages": [
+        53
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-biome-concept",
+      "pages": [
+        53
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g10-e10-1-01",
+      "pages": [
+        22
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g10-e10-1-02",
+      "pages": [
+        22
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g10-e10-1-03",
+      "pages": [
+        22
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g10-e10-1-04",
+      "pages": [
+        22
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g10-e10-1-05",
+      "pages": [
+        22
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g10-e10-1-06",
+      "pages": [
+        22
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g10-e10-1-07",
+      "pages": [
+        22
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g10-e10-2-01",
+      "pages": [
+        22
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g10-e10-2-02",
+      "pages": [
+        22
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g10-e10-2-03",
+      "pages": [
+        23
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g10-e10-2-04",
+      "pages": [
+        23
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g10-e10-2-05",
+      "pages": [
+        23
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g10-e10-2-06",
+      "pages": [
+        23
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g10-e10-3-01",
+      "pages": [
+        23
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g10-e10-3-02",
+      "pages": [
+        23
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g10-e10-3-03",
+      "pages": [
+        23
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g10-e10-3-04",
+      "pages": [
+        23,
+        24
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g11-e11-1-01",
+      "pages": [
+        38
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g11-e11-1-02",
+      "pages": [
+        38
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g11-e11-1-03",
+      "pages": [
+        38
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g11-e11-1-04",
+      "pages": [
+        38
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g11-e11-1-05",
+      "pages": [
+        38
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g11-e11-1-06",
+      "pages": [
+        38
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g11-e11-2-01",
+      "pages": [
+        39
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g11-e11-2-02",
+      "pages": [
+        39
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g11-e11-2-03",
+      "pages": [
+        39
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g11-e11-2-04",
+      "pages": [
+        39
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g11-e11-3-01",
+      "pages": [
+        40
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g11-e11-3-02",
+      "pages": [
+        40
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g11-e11-3-03",
+      "pages": [
+        40
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g11-e11-3-04",
+      "pages": [
+        40
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g11-e11-3-05",
+      "pages": [
+        40
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-e12-1-01",
+      "pages": [
+        54
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-e12-1-02",
+      "pages": [
+        54
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-e12-1-03",
+      "pages": [
+        54
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-e12-1-04",
+      "pages": [
+        54
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-e12-1-05",
+      "pages": [
+        55
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-e12-1-06",
+      "pages": [
+        55
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-e12-1-07",
+      "pages": [
+        55
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-e12-1-08",
+      "pages": [
+        55
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-e12-1-09",
+      "pages": [
+        55
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-e12-2-01",
+      "pages": [
+        55
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-e12-2-02",
+      "pages": [
+        55
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-e12-2-03",
+      "pages": [
+        55
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-e12-2-04",
+      "pages": [
+        55
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-e12-2-05",
+      "pages": [
+        55
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-e12-3-01",
+      "pages": [
+        56
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-e12-3-02",
+      "pages": [
+        56
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-e12-3-03",
+      "pages": [
+        56
+      ],
+      "status": "clause"
+    },
+    {
+      "outcomeId": "curr-g12-e12-3-04",
+      "pages": [
+        56
+      ],
+      "status": "clause"
+    }
+  ]
+}

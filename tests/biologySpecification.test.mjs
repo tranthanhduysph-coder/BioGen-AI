@@ -5,6 +5,7 @@ import { mkdirSync, readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 
 mkdirSync('tmp/tests', { recursive: true });
 const target = resolve('tmp/tests/subject.mjs');
@@ -118,7 +119,7 @@ test('all 15 competency descriptors link to curriculum pages and resolve exact a
   for (const [code, expected] of Object.entries({
     'NT2/NT6': ['NT2', 'NT6'], 'NT4/NT6': ['NT4', 'NT6'],
     'TH1-TH5': ['TH1', 'TH2', 'TH3', 'TH4', 'TH5'], 'TH2-5': ['TH2', 'TH3', 'TH4', 'TH5'],
-    'NT2-NT4': ['NT2', 'NT3', 'NT4'], 'NT5-NT6': ['NT5', 'NT6'],
+    'NT2-NT4': ['NT2', 'NT4'], 'NT5-NT6': ['NT5', 'NT6'],
   })) {
     const resolved = api.resolveCompetencyCode(code);
     assert.equal(resolved.status, 'mapped');
@@ -173,24 +174,20 @@ test('competency selections and manual prompts retain every full curriculum clau
   }
 });
 
-test('all 511 usable outcomes have structured descriptors; all 87 missing codes have explicit proposals', () => {
-  const proposals = JSON.parse(readFileSync('data/biologySpecification/competencyProposals.json', 'utf8')).records;
+test('all 87 missing competency codes remain source gaps, without proposed bindings', () => {
   const missing = api.BIOLOGY_OUTCOMES.filter(item => !item.competencyCode);
   assert.equal(missing.length, 87);
-  assert.equal(proposals.length, 87);
-  assert.equal(new Set(proposals.map(item => item.outcomeId)).size, 87);
-  assert.deepEqual(proposals.map(item => item.outcomeId).sort(), missing.map(item => item.id).sort());
   for (const outcome of api.BIOLOGY_OUTCOMES) {
     const specification = outcome.competencySpecification;
-    assert.ok(specification.descriptors.length > 0, outcome.id);
     if (!outcome.competencyCode) {
-      assert.equal(specification.origin, 'proposal');
+      assert.equal(specification.origin, 'missing');
       assert.equal(specification.sourceCode, null);
-      assert.ok(specification.rationale.length > 20);
-      assert.ok(specification.proposedCodes.length > 0);
-      assert.equal(specification.status, 'mapped');
+      assert.deepEqual(specification.descriptors, []);
+      assert.deepEqual(specification.proposedCodes, []);
+      assert.equal(specification.status, 'missing');
       assert.equal(api.getSpecificationRecordById(outcome.id).competencyCode, null);
     } else {
+      assert.ok(specification.descriptors.length > 0, outcome.id);
       assert.equal(specification.origin, 'source');
       assert.equal(specification.sourceCode, outcome.competencyCode);
       assert.deepEqual(specification.proposedCodes, []);
@@ -198,6 +195,60 @@ test('all 511 usable outcomes have structured descriptors; all 87 missing codes 
   }
   assert.equal(api.getCompetencySpecification('unrecognised', null).origin, 'missing');
   assert.equal(api.getCompetencySpecification(missing[0].id, 'NT6').origin, 'source');
+});
+
+test('Evolution exposes the complete atomic competency → outcome relation, including compound source codes', () => {
+  const codes = api.getCompetenciesForContent(12, 'evolution').map(item => item.code);
+  assert.deepEqual(codes, ['NT1', 'NT2', 'NT4', 'NT5', 'NT8', 'VD1']);
+  assert.deepEqual(codes.map(code => api.getOutcomesForSelection(12, 'evolution', code).length), [6, 8, 1, 2, 1, 1]);
+  const tree = api.BIOLOGY_OUTCOMES.find(item => item.grade === 12 && item.text.startsWith('Dựa vào sơ đồ cây sự sống'));
+  assert.equal(tree.competencyCode, 'NT2-NT4');
+  for (const code of ['NT2', 'NT4']) assert.ok(api.getOutcomesForSelection(12, 'evolution', code).includes(tree));
+  assert.deepEqual(api.getOutcomesForSelection(12, 'evolution', 'NT3'), []);
+  assert.ok(api.getOutcomesForSelection(12, 'evolution', 'NT2/NT5').some(item => item.text.startsWith('Phân biệt được tiến hoá lớn')));
+});
+
+test('all content menus cover every printed binding without crossing grades, topics or empty-code gaps', () => {
+  for (const grade of [10, 11, 12]) for (const content of api.getContentsForGrade(grade)) {
+    const outcomes = api.getOutcomesForGrade(grade).filter(item => item.contentId === content.id);
+    const codes = api.getCompetenciesForContent(grade, content.id).map(item => item.code);
+    for (const outcome of outcomes) {
+      const resolution = api.resolveCompetencyCode(outcome.competencyCode);
+      for (const descriptor of resolution.descriptors) {
+        assert.ok(codes.includes(descriptor.code), `${content.id}: ${descriptor.code}`);
+        assert.ok(api.getOutcomesForSelection(grade, content.id, descriptor.code).includes(outcome));
+      }
+      if (!outcome.competencyCode) assert.ok(api.getOutcomesForSelection(grade, content.id, '').includes(outcome));
+    }
+    for (const code of codes) for (const outcome of api.getOutcomesForSelection(grade, content.id, code)) {
+      assert.equal(outcome.grade, grade);
+      assert.equal(outcome.contentId, content.id);
+      if (code) assert.ok(outcome.competencyCode === code || api.resolveCompetencyCode(outcome.competencyCode).descriptors.some(item => item.code === code));
+      else assert.equal(outcome.competencyCode, '');
+    }
+  }
+});
+
+test('every usable outcome is located in the curriculum, with original PDF fingerprints and explicit wording variants', () => {
+  const alignment = JSON.parse(readFileSync('data/biologySpecification/curriculumAlignment.json', 'utf8'));
+  for (const [file, fingerprint] of [['biology-thpt.pdf', alignment.specificationPdfSha256], ['biology-curriculum-2018.pdf', alignment.curriculumPdfSha256]]) {
+    assert.equal(createHash('sha256').update(readFileSync(`public/specification/${file}`)).digest('hex'), fingerprint);
+  }
+  assert.equal(alignment.records.length, 511);
+  assert.equal(new Set(alignment.records.map(item => item.outcomeId)).size, 511);
+  assert.equal(alignment.records.filter(item => item.status === 'source_variant').length, 7);
+  for (const outcome of api.BIOLOGY_OUTCOMES) {
+    const reference = api.getCurriculumAlignment(outcome.id);
+    assert.ok(reference);
+    assert.deepEqual(outcome.curriculumAlignment, reference);
+    assert.ok(reference.pages.every(page => page >= 13 && page <= 56));
+    if (outcome.grade === 10) assert.ok(reference.pages.every(page => page <= 24));
+    if (outcome.grade === 11) assert.ok(reference.pages.every(page => page >= 24 && page <= 40));
+    if (outcome.grade === 12) assert.ok(reference.pages.every(page => page >= 40));
+    if (reference.status === 'source_variant') assert.ok(reference.note && reference.curriculumText);
+  }
+  assert.deepEqual(api.getCurriculumAlignment('spec-g12-p27-r07').pages, [47]);
+  assert.deepEqual(api.getCurriculumAlignment('spec-g12-p27-r11').pages, [48]);
 });
 
 test('every preset has valid grade references, fresh zero allocations and preserves teacher scores', () => {

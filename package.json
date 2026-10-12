@@ -10,6 +10,7 @@
     "typecheck:exam-builder": "tsc --noEmit --target ES2022 --module ESNext --moduleResolution bundler --jsx react-jsx --resolveJsonModule --esModuleInterop --skipLibCheck components/exam-builder/ExamBlueprintBuilder.tsx",
     "specification:ingest": "node scripts/ingest-biology-specification.mjs",
     "specification:check": "node scripts/ingest-biology-specification.mjs --check",
+    "specification:audit": "node scripts/audit-content-competencies.mjs",
     "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {

@@ -3,6 +3,7 @@ import { createDefaultBlueprint as defaultBlueprint, createBlueprintFromPreset, 
 import { getSpecificationSourceLabel, getSpecificationSourceUrl } from '../../data/biologySpecification/catalog';
 import { SpecificationCatalog } from './SpecificationCatalog';
 import { CompetencyDetails } from './CompetencyDetails';
+import { CompetencyOutcomeList, CurriculumOutcomeReference } from './CompetencyOutcomeList';
 import { CompetencySelect } from '../CompetencySelect';
 import {
   getCompetenciesForContent,
@@ -1057,7 +1058,10 @@ export const ExamBlueprintBuilder: React.FC = () => {
                       <td className="p-2">
                         <CompetencySelect label={isEnglish ? `Competency, row ${blueprint.rows.indexOf(row) + 1}` : `Năng lực, dòng ${blueprint.rows.indexOf(row) + 1}`}
                           value={row.competencyCode} options={competencies.map(item => item.code)}
+                          outcomeCounts={Object.fromEntries(competencies.map(item => [item.code, getOutcomesForSelection(blueprint.grade, row.contentId, item.code).length]))}
                           onChange={value => updateRowSelection(row, 'competencyCode', value)} isEnglish={isEnglish} />
+                        <CompetencyOutcomeList outcomes={outcomes} competencyCode={row.competencyCode} selectedOutcomeId={row.outcomeId}
+                          onSelect={outcomeId => updateRowSelection(row, 'outcomeId', outcomeId)} isEnglish={isEnglish} />
                       </td>
 
                       <td className="p-2">
@@ -1082,6 +1086,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
                           </div>
                         )}
                         {outcome && <CompetencyDetails outcomeId={outcome.id} sourceCode={outcome.competencyCode || null} isEnglish={isEnglish} />}
+                        {outcome && <CurriculumOutcomeReference outcome={outcome} isEnglish={isEnglish} />}
                       </td>
 
                       {PARTS.flatMap((part) =>
