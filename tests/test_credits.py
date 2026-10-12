@@ -2,7 +2,7 @@ import copy
 import os
 import unittest
 from concurrent.futures import ThreadPoolExecutor
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from backend.credits import CreditService
@@ -223,6 +223,28 @@ class CreditApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 503)
         self.assertIsNone(self.service.get_exam(USER, 'exam-00001')['lease'])
         self.assertEqual(self.service.me(USER)['held'], 1)
+
+
+class FirestoreRetryTests(unittest.TestCase):
+    def test_aborted_read_retries_fresh_transaction_without_duplicate_write(self):
+        from google.api_core.exceptions import Aborted
+        store = FirestoreStore.__new__(FirestoreStore)
+        store.firestore = Mock()
+        store.firestore.transactional.side_effect = lambda function: function
+        store.client = Mock()
+        snapshot = Mock(exists=True)
+        snapshot.to_dict.return_value = {'balance': 10}
+        store.client.document.return_value.get.side_effect = [Aborted('contention'), snapshot]
+        def change(tx):
+            account = tx.get('accounts/teacher')
+            account['balance'] -= 1
+            tx.set('accounts/teacher', account)
+            return account
+        with patch('backend.credit_store.time.sleep'):
+            result = store.run(change)
+        self.assertEqual(result['balance'], 9)
+        self.assertEqual(store.client.transaction.call_count, 2)
+        self.assertEqual(store.client.transaction.return_value.set.call_count, 1)
 
 
 if __name__ == '__main__':
