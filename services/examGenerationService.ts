@@ -1,4 +1,5 @@
 import { auth } from '../firebaseConfig';
+import { AiRequestError, requestAiJson } from './aiRequestService';
 import type {
   GeneratedExamItem,
   GenerationBatchResult,
@@ -18,16 +19,6 @@ const apiBase = () => {
   return String(value).replace(/\/$/, '');
 };
 
-const parseError = async (response: Response) => {
-  try {
-    const data = await response.json();
-    if (typeof data?.detail === 'string') return data.detail;
-    return JSON.stringify(data);
-  } catch {
-    return response.statusText || 'BioGen backend request failed.';
-  }
-};
-
 const getFirebaseIdToken = async (lang: string) => {
   const currentUser = auth?.currentUser;
   if (!currentUser) {
@@ -45,6 +36,7 @@ const requestExamItem = async (
   slot: AnyExamSlot,
   lang: string,
   idToken: string,
+  onWait?: (seconds: number) => void,
 ): Promise<GeneratedExamItem> => {
   const base = apiBase();
   if (!base) {
@@ -55,46 +47,15 @@ const requestExamItem = async (
     );
   }
 
-  const response = await fetch(`${base}/api/exam/generate-item`, {
+  const data = await requestAiJson<GeneratedExamItem>(`${base}/api/exam/generate-item`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${idToken}`,
     },
     body: JSON.stringify({ slot, lang }),
-  });
+  }, lang, onWait);
 
-  if (!response.ok) {
-    const detail = await parseError(response);
-
-    if (response.status === 401) {
-      throw new Error(
-        lang === 'en'
-          ? 'Your login session is invalid or expired. Sign in again.'
-          : 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn. Hãy đăng nhập lại.',
-      );
-    }
-
-    if (response.status === 429) {
-      throw new Error(
-        lang === 'en'
-          ? 'AI generation quota for this account has been reached. Please try again later.'
-          : 'Tài khoản đã đạt giới hạn tạo câu hỏi AI trong giờ này. Hãy thử lại sau.',
-      );
-    }
-
-    if (response.status === 503) {
-      throw new Error(
-        lang === 'en'
-          ? 'The BioGen backend is ready, but GEMINI_API_KEY has not been configured yet.'
-          : 'Backend BioGen đã hoạt động nhưng chưa được cấu hình GEMINI_API_KEY.',
-      );
-    }
-
-    throw new Error(detail);
-  }
-
-  const data = await response.json();
   if (
     !data ||
     typeof data !== 'object' ||
@@ -133,40 +94,33 @@ export const generateExamItems = async (
   const idToken = await getFirebaseIdToken(lang);
   const items: GeneratedExamItem[] = [];
   const failures: GenerationFailure[] = [];
-  let cursor = 0;
   let completed = 0;
+  let stoppedError: Error | null = null;
 
-  const runners = Array.from(
-    { length: Math.min(3, slots.length) },
-    async () => {
-      while (cursor < slots.length) {
-        const index = cursor;
-        cursor += 1;
-        const slot = slots[index];
-
-        try {
-          const item = await requestExamItem(slot, lang, idToken);
-          items.push(item);
-          onItem?.(item);
-        } catch (error) {
-          failures.push({
-            slotId: slot.id,
-            part: slot.part,
-            order: slot.order,
-            message:
-              error instanceof Error
-                ? error.message
-                : (lang === 'en' ? 'Question generation failed.' : 'Không thể tạo câu hỏi.'),
-          });
-        } finally {
-          completed += 1;
-          onProgress?.({ completed, total: slots.length });
-        }
-      }
-    },
-  );
-
-  await Promise.all(runners);
+  // A quota applies to the project, so a fatal quota/network error stops new requests.
+  // Successful items are delivered immediately and remain available for draft recovery.
+  for (const slot of slots) {
+    try {
+      if (stoppedError) throw stoppedError;
+      const item = await requestExamItem(slot, lang, idToken, (waitingSeconds) => {
+        onProgress?.({ completed, total: slots.length, waitingSeconds });
+      });
+      items.push(item);
+      onItem?.(item);
+    } catch (error) {
+      if (error instanceof AiRequestError && error.stopBatch) stoppedError = error;
+      failures.push({
+        slotId: slot.id,
+        part: slot.part,
+        order: slot.order,
+        message: error instanceof Error ? error.message
+          : (lang === 'en' ? 'Question generation failed.' : 'Không thể tạo câu hỏi.'),
+      });
+    } finally {
+      completed += 1;
+      onProgress?.({ completed, total: slots.length });
+    }
+  }
 
   const partOrder = { mcq: 0, tf: 1, short: 2 } as const;
   items.sort((a, b) => {

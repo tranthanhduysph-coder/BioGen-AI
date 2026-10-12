@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
 from pydantic import BaseModel, Field
+from backend.gemini_gateway import GeminiRateLimiter, generate_content, quota_error
 
 try:
     from google import genai
@@ -22,6 +23,8 @@ FIREBASE_PROJECT_ID = os.getenv('FIREBASE_PROJECT_ID', 'biogen-ai').strip()
 AI_GENERATION_UNITS_PER_HOUR = int(os.getenv('AI_GENERATION_UNITS_PER_HOUR', '120'))
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '').strip()
 GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash').strip()
+GEMINI_REQUESTS_PER_MINUTE = max(1, int(os.getenv('GEMINI_REQUESTS_PER_MINUTE', '4')))
+_gemini_limiter = GeminiRateLimiter(GEMINI_REQUESTS_PER_MINUTE)
 CORS_ORIGINS = [
     item.strip()
     for item in os.getenv(
@@ -44,6 +47,7 @@ app.add_middleware(
     allow_credentials=False,
     allow_methods=['GET', 'POST', 'OPTIONS'],
     allow_headers=['Content-Type', 'Authorization'],
+    expose_headers=['Retry-After'],
 )
 
 _firebase_request = google_requests.Request()
@@ -90,14 +94,8 @@ def consume_ai_quota(user: dict[str, Any], units: int = 1) -> None:
 
         if len(bucket) + units > AI_GENERATION_UNITS_PER_HOUR:
             retry_after = max(1, int(3600 - (now - bucket[0]))) if bucket else 3600
-            raise HTTPException(
-                status_code=429,
-                detail=(
-                    f'AI generation quota exceeded. '
-                    f'Limit: {AI_GENERATION_UNITS_PER_HOUR} units/hour. '
-                    f'Retry in about {retry_after} seconds.'
-                ),
-            )
+            raise quota_error('user_hourly_quota', retry_after, False,
+                              'Account hourly AI generation quota reached.')
 
         for _ in range(units):
             bucket.append(now)
@@ -171,6 +169,7 @@ def health():
         'firebaseProjectId': FIREBASE_PROJECT_ID,
         'generationUnitsPerHour': AI_GENERATION_UNITS_PER_HOUR,
         'model': GEMINI_MODEL,
+        'geminiRequestsPerMinute': GEMINI_REQUESTS_PER_MINUTE,
     }
 
 def _client():
@@ -178,7 +177,10 @@ def _client():
         raise HTTPException(status_code=503, detail='GEMINI_API_KEY is not configured on the BioGen backend.')
     if genai is None:
         raise HTTPException(status_code=500, detail='google-genai is unavailable.')
-    return genai.Client(api_key=GEMINI_API_KEY)
+    # All retries must pass through our project limiter, including SDK retries.
+    return genai.Client(api_key=GEMINI_API_KEY, http_options={
+        'timeout': 90000, 'retry_options': {'attempts': 1},
+    })
 
 def _mcq_prompt(slot: SimpleSlot, lang: str) -> str:
     if lang == 'en':
@@ -309,7 +311,16 @@ def _validate_and_normalize(data: dict[str, Any], part: str) -> GeneratedQuestio
         qtype = 'Short response'
     return GeneratedQuestion(question=question, type=qtype, options=options, answer=answer, explanation=explanation)
 
-def _generate(slot, lang: str) -> GeneratedExamItem:
+def _charge_once(user: dict[str, Any], units: int = 1):
+    charged = False
+    def charge():
+        nonlocal charged
+        if not charged:
+            consume_ai_quota(user, units)
+            charged = True
+    return charge
+
+def _generate(slot, lang: str, on_admitted=None) -> GeneratedExamItem:
     client = _client()
     if isinstance(slot, TfSlot):
         prompt = _tf_prompt(slot, lang)
@@ -323,7 +334,7 @@ def _generate(slot, lang: str) -> GeneratedExamItem:
     last_error = None
     for attempt in range(2):
         try:
-            response = client.models.generate_content(
+            response = generate_content(client, _gemini_limiter, on_admitted=on_admitted,
                 model=GEMINI_MODEL,
                 contents=prompt + ('\nIMPORTANT: Fix structural errors and follow the JSON schema exactly.' if attempt else ''),
                 config={'response_mime_type': 'application/json'},
@@ -333,11 +344,16 @@ def _generate(slot, lang: str) -> GeneratedExamItem:
             return GeneratedExamItem(slotId=slot.id, part=part, order=slot.order, question=question)
         except HTTPException:
             raise
-        except Exception as exc:
+        except (ValueError, TypeError) as exc:
             last_error = exc
-    raise HTTPException(status_code=502, detail=f'AI generation failed after validation: {last_error}')
+    raise HTTPException(status_code=422, detail={
+        'code': 'ai_invalid_question', 'retryable': False,
+        'message': f'AI question format validation failed: {last_error}',
+    })
 
 def _validate_manual_question(data: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(data, dict):
+        raise ValueError('Manual question must be a JSON object.')
     question = str(data.get('question', '')).strip()
     qtype = str(data.get('type', '')).strip()
     answer = str(data.get('answer', '')).strip()
@@ -383,13 +399,13 @@ def generate_manual_questions(
     payload: ManualGenerateRequest,
     user: dict[str, Any] = Depends(require_firebase_user),
 ):
-    consume_ai_quota(user, payload.expectedCount)
+    on_admitted = _charge_once(user, payload.expectedCount)
     client = _client()
     last_error = None
 
     for attempt in range(2):
         try:
-            response = client.models.generate_content(
+            response = generate_content(client, _gemini_limiter, on_admitted=on_admitted,
                 model=GEMINI_MODEL,
                 contents=payload.prompt + (
                     '\nIMPORTANT: Return the exact requested number of questions and valid JSON only.'
@@ -408,12 +424,13 @@ def generate_manual_questions(
             return [_validate_manual_question(item) for item in data]
         except HTTPException:
             raise
-        except Exception as exc:
+        except (ValueError, TypeError) as exc:
             last_error = exc
 
     raise HTTPException(
-        status_code=502,
-        detail=f'Manual AI generation failed after validation: {last_error}',
+        status_code=422,
+        detail={'code': 'ai_invalid_question', 'retryable': False,
+                'message': f'AI question format validation failed: {last_error}'},
     )
 
 @app.post('/api/exam/generate-item', response_model=GeneratedExamItem)
@@ -421,7 +438,6 @@ def generate_item(
     payload: GenerateItemRequest,
     user: dict[str, Any] = Depends(require_firebase_user),
 ):
-    consume_ai_quota(user, 1)
     part = payload.slot.get('part')
     try:
         if part == 'tf':
@@ -432,4 +448,4 @@ def generate_item(
             raise ValueError('Unsupported slot part.')
     except Exception as exc:
         raise HTTPException(status_code=422, detail=f'Invalid exam slot: {exc}') from exc
-    return _generate(slot, payload.lang)
+    return _generate(slot, payload.lang, on_admitted=_charge_once(user))

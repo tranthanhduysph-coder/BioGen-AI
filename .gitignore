@@ -25,3 +25,4 @@ dist-ssr
 # Local verification artifacts
 tmp/
 tmp-page*.png
+__pycache__/

@@ -11,6 +11,7 @@ export interface GeneratedExamItem {
 export interface GenerationProgress {
   completed: number;
   total: number;
+  waitingSeconds?: number;
 }
 
 export interface GenerationFailure {
