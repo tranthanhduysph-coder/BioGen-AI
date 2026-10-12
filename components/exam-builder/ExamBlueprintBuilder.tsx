@@ -5,6 +5,10 @@ import { SpecificationCatalog } from './SpecificationCatalog';
 import { CompetencyDetails } from './CompetencyDetails';
 import { CompetencyOutcomeList, CurriculumOutcomeReference } from './CompetencyOutcomeList';
 import { CompetencySelect } from '../CompetencySelect';
+import { CreditPanel } from './CreditPanel';
+import { auth } from '../../firebaseConfig';
+import { cloudSlots, createCreditExam, creditRequest, forgetCreditCreation, getCloudExam,
+  type CloudExam, type CreditAccount } from '../../services/creditService';
 import {
   getCompetenciesForContent,
   getContentsForGrade,
@@ -120,7 +124,13 @@ export const ExamBlueprintBuilder: React.FC = () => {
   });
 
   const initialBlueprintEffect = useRef(true);
-  const [recoverableDraft, setRecoverableDraft] = useState(() => loadExamReviewDraft(blueprint));
+  const restoringCloudExam = useRef<CloudExam | null>(null);
+  const [creditAccount, setCreditAccount] = useState<CreditAccount | null>(null);
+  const [creditExamId, setCreditExamId] = useState<string | null>(null);
+  const [creditRefresh, setCreditRefresh] = useState(0);
+  const [creditExamInfo, setCreditExamInfo] = useState<CloudExam | null>(null);
+  const [cloudSaveMessage, setCloudSaveMessage] = useState('');
+  const [recoverableDraft, setRecoverableDraft] = useState(() => loadExamReviewDraft(blueprint, auth?.currentUser?.uid));
 
   const [lockedSlots, setLockedSlots] = useState<ExamSlotPackage | null>(null);
   const [slotIssues, setSlotIssues] = useState<string[]>([]);
@@ -142,12 +152,27 @@ export const ExamBlueprintBuilder: React.FC = () => {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(blueprint));
 
+    const cloud = restoringCloudExam.current;
+    if (cloud) {
+      restoringCloudExam.current = null;
+      setCreditExamId(cloud.id);
+      setLockedSlots(cloudSlots(cloud));
+      setGeneratedItems(Object.values(cloud.items).map(item =>
+        cloud.review.generatedItems?.find(i => i.slotId === item.slotId) || item));
+      setApprovedSlotIds(cloud.review.approvedSlotIds || []);
+      setLockedQuestionIds(cloud.review.lockedQuestionIds || []);
+      setGenerationSource('ai'); setGenerationError(null); setGenerationFailures([]);
+      setRecoverableDraft(null); setEditingSlotId(null); setSlotIssues([]);
+      return;
+    }
+
     if (initialBlueprintEffect.current) {
       initialBlueprintEffect.current = false;
       return;
     }
 
     clearExamReviewDraft();
+    setCreditExamId(null);
     setRecoverableDraft(null);
     setLockedSlots(null);
     setSlotIssues([]);
@@ -170,6 +195,8 @@ export const ExamBlueprintBuilder: React.FC = () => {
       approvedSlotIds,
       lockedQuestionIds,
       generationSource,
+      creditExamId || undefined,
+      auth?.currentUser?.uid,
     );
   }, [
     blueprint,
@@ -177,6 +204,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
     approvedSlotIds,
     lockedQuestionIds,
     generationSource,
+    creditExamId,
   ]);
 
   const refreshBackendHealth = async () => {
@@ -189,6 +217,18 @@ export const ExamBlueprintBuilder: React.FC = () => {
   useEffect(() => {
     refreshBackendHealth();
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!creditExamId) { setCreditExamInfo(null); return; }
+    void getCloudExam(creditExamId).then(exam => { if (!cancelled) {
+      setCreditExamInfo(exam);
+      if (exam.status === 'cancelled') { setCreditExamId(null); setGeneratedItems([]);
+        setApprovedSlotIds([]); setLockedQuestionIds([]); setGenerationSource(null); clearExamReviewDraft(); }
+    } })
+      .catch(() => { /* Generation routes report persistence errors. */ });
+    return () => { cancelled = true; };
+  }, [creditExamId, creditRefresh]);
 
   const changeGrade = (grade: 10 | 11 | 12) => {
     setPresetId('');
@@ -424,6 +464,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
   };
 
   const lockBlueprint = () => {
+    setCreditExamId(null);
     clearExamReviewDraft();
     setRecoverableDraft(null);
     const slots = buildExamSlots(blueprint);
@@ -458,6 +499,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
 
   const handleGenerateExam = async () => {
     if (!lockedSlots) return;
+    if (creditExamId && generatedItems.length) { await handleGenerateMissingItems(); return; }
 
     clearExamReviewDraft();
     setRecoverableDraft(null);
@@ -475,11 +517,19 @@ export const ExamBlueprintBuilder: React.FC = () => {
     setGenerationProgress({ completed: 0, total });
 
     try {
+      let examId = creditExamId || undefined;
+      if (creditAccount?.enabled) {
+        if (!examId) {
+          const exam = await createCreditExam(blueprint, lockedSlots);
+          examId = exam.id; setCreditExamId(exam.id);
+        }
+      }
       const result = await generateExamFromSlots(
         lockedSlots,
         i18n.language,
         setGenerationProgress,
         mergeGeneratedItem,
+        examId,
       );
       setGeneratedItems(result.items);
       setGenerationFailures(result.failures);
@@ -497,6 +547,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
       setGenerationError(error?.message || (isEnglish ? 'Exam generation failed.' : 'Không thể tạo đề.'));
     } finally {
       setIsGeneratingExam(false);
+      setCreditRefresh(n => n + 1);
     }
   };
 
@@ -527,6 +578,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
         i18n.language,
         setGenerationProgress,
         mergeGeneratedItem,
+        creditExamId || undefined,
       );
       setGenerationFailures(result.failures);
       setGenerationSource('ai');
@@ -546,6 +598,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
       );
     } finally {
       setIsGeneratingExam(false);
+      setCreditRefresh(n => n + 1);
     }
   };
 
@@ -561,6 +614,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
     setGenerationError(null);
     setGenerationFailures([]);
     setGenerationSource('mock');
+    setCreditExamId(null);
   };
 
   const handleRegenerateItem = async (item: GeneratedExamItem) => {
@@ -588,7 +642,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
     setGenerationError(null);
 
     try {
-      const replacement = await generateExamItem(slot, i18n.language);
+      const replacement = await generateExamItem(slot, i18n.language, creditExamId || undefined);
       setGeneratedItems((current) =>
         current.map((candidate) => candidate.slotId === item.slotId ? replacement : candidate),
       );
@@ -600,6 +654,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
       setGenerationError(error?.message || (isEnglish ? 'Could not regenerate this question.' : 'Không thể tạo lại câu này.'));
     } finally {
       setRegeneratingSlotId(null);
+      setCreditRefresh(n => n + 1);
     }
   };
 
@@ -669,6 +724,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
     setApprovedSlotIds(recoverableDraft.approvedSlotIds);
     setLockedQuestionIds(recoverableDraft.lockedQuestionIds);
     setGenerationSource(recoverableDraft.generationSource);
+    setCreditExamId(recoverableDraft.creditExamId || null);
     setGenerationError(null);
     setGenerationFailures([]);
     setSlotIssues([]);
@@ -754,6 +810,19 @@ export const ExamBlueprintBuilder: React.FC = () => {
 
   return (
     <div className="space-y-5 animate-fade-in">
+      <CreditPanel onAccount={setCreditAccount} refreshToken={creditRefresh}
+        busy={isGeneratingExam || !!regeneratingSlotId}
+        onRestore={exam => { restoringCloudExam.current = exam; setBlueprint({ ...exam.blueprint }); }} />
+      {creditExamId && <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 text-sm dark:bg-slate-900">
+        <span>Đề trên tài khoản · {creditExamInfo?.status === 'completed' ? 'Đã dùng 1 credit' : 'Đang giữ 1 credit'}
+          {creditExamInfo && ` · Đã thay ${creditExamInfo.replacedUnits}/${creditExamInfo.replacementLimit} câu/ý`}</span>
+        <button className="rounded-lg border px-3 py-2 font-semibold" disabled={isGeneratingExam || !!regeneratingSlotId}
+          onClick={async () => { try { await creditRequest(`/exams/${creditExamId}/review`, { generatedItems, approvedSlotIds, lockedQuestionIds }); setCloudSaveMessage('Đã lưu bản duyệt trên tài khoản.'); } catch (e: any) { setCloudSaveMessage(e.message); } }}>Lưu bản duyệt lên tài khoản</button>
+        <button className="rounded-lg border px-3 py-2 font-semibold" disabled={isGeneratingExam || !!regeneratingSlotId}
+          onClick={async () => { try { const exam = await getCloudExam(creditExamId); if (exam.status !== 'completed') throw new Error('Hãy hoàn tất hoặc hủy đề đang dở trước.'); if (window.confirm('Tạo đề mới từ ma trận này sẽ dùng thêm 1 credit. Tiếp tục?')) { forgetCreditCreation(); clearExamReviewDraft(); setCreditExamId(null); setGeneratedItems([]); setApprovedSlotIds([]); setLockedQuestionIds([]); setGenerationSource(null); } } catch (e: any) { setCloudSaveMessage(e.message); } }}>Bắt đầu đề mới từ ma trận này</button>
+        {cloudSaveMessage && <span role="status">{cloudSaveMessage}</span>}
+      </div>}
+      <fieldset disabled={isGeneratingExam || !!regeneratingSlotId} className="space-y-5 min-w-0">
       <section className="rounded-xl border border-sky-100 bg-sky-50/70 p-4 dark:border-sky-900/60 dark:bg-sky-950/20">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -1799,6 +1868,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
           </div>
         )}
       </section>
+      </fieldset>
     </div>
   );
 };

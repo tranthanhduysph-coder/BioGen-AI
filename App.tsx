@@ -12,6 +12,7 @@ import { Footer } from './components/Footer';
 import { BannerAd } from './components/BannerAd';
 import type { Criteria, GeneratedQuestion } from './types';
 import { generateManualQuestions } from './services/manualGenerationService';
+import { getCreditAccount } from './services/creditService';
 import { auth, isConfigured } from './firebaseConfig';
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { LoginScreen } from './components/LoginScreen';
@@ -45,6 +46,13 @@ const App: React.FC = () => {
   
   const [isQuizMode, setIsQuizMode] = useState<boolean>(false);
   const [usageCount, setUsageCount] = useState<number>(0);
+
+  useEffect(() => {
+    if (user && user.uid !== DEMO_USER.uid) {
+      // Register pending accounts for both modules. No credit is granted here.
+      void getCreditAccount().catch(() => { /* Backend errors are shown on generation. */ });
+    }
+  }, [user?.uid]);
 
   useEffect(() => {
     const storedUsage = parseInt(localStorage.getItem('biogen_usage_count') || '0', 10);

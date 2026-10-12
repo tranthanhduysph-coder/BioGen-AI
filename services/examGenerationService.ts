@@ -1,5 +1,6 @@
 import { auth } from '../firebaseConfig';
 import { AiRequestError, requestAiJson } from './aiRequestService';
+import { requestCreditItem } from './creditService';
 import type {
   GeneratedExamItem,
   GenerationBatchResult,
@@ -75,7 +76,9 @@ const requestExamItem = async (
 export const generateExamItem = async (
   slot: AnyExamSlot,
   lang: string = 'vi',
+  creditExamId?: string,
 ): Promise<GeneratedExamItem> => {
+  if (creditExamId) return requestCreditItem(creditExamId, slot.id, lang, true);
   const idToken = await getFirebaseIdToken(lang);
   return requestExamItem(slot, lang, idToken);
 };
@@ -85,6 +88,7 @@ export const generateExamItems = async (
   lang: string = 'vi',
   onProgress?: (progress: GenerationProgress) => void,
   onItem?: (item: GeneratedExamItem) => void,
+  creditExamId?: string,
 ): Promise<GenerationBatchResult> => {
   if (slots.length === 0) {
     onProgress?.({ completed: 0, total: 0 });
@@ -102,9 +106,12 @@ export const generateExamItems = async (
   for (const slot of slots) {
     try {
       if (stoppedError) throw stoppedError;
-      const item = await requestExamItem(slot, lang, idToken, (waitingSeconds) => {
+      const wait = (waitingSeconds: number) => {
         onProgress?.({ completed, total: slots.length, waitingSeconds });
-      });
+      };
+      const item = creditExamId
+        ? await requestCreditItem(creditExamId, slot.id, lang, false, wait)
+        : await requestExamItem(slot, lang, idToken, wait);
       items.push(item);
       onItem?.(item);
     } catch (error) {
@@ -140,6 +147,7 @@ export const generateExamFromSlots = async (
   lang: string = 'vi',
   onProgress?: (progress: GenerationProgress) => void,
   onItem?: (item: GeneratedExamItem) => void,
+  creditExamId?: string,
 ): Promise<GenerationBatchResult> => {
   const orderedSlots: AnyExamSlot[] = [
     ...slots.mcq,
@@ -147,5 +155,5 @@ export const generateExamFromSlots = async (
     ...slots.short,
   ];
 
-  return generateExamItems(orderedSlots, lang, onProgress, onItem);
+  return generateExamItems(orderedSlots, lang, onProgress, onItem, creditExamId);
 };

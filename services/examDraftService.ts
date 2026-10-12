@@ -10,6 +10,8 @@ export interface ExamReviewDraft {
   approvedSlotIds: string[];
   lockedQuestionIds: string[];
   generationSource: 'ai' | 'mock' | null;
+  creditExamId?: string;
+  ownerUid?: string;
 }
 
 export const getBlueprintSignature = (blueprint: ExamBlueprint) =>
@@ -21,7 +23,7 @@ export const getBlueprintSignature = (blueprint: ExamBlueprint) =>
     rows: blueprint.rows,
   });
 
-export const loadExamReviewDraft = (blueprint: ExamBlueprint): ExamReviewDraft | null => {
+export const loadExamReviewDraft = (blueprint: ExamBlueprint, ownerUid?: string): ExamReviewDraft | null => {
   try {
     const raw = localStorage.getItem(DRAFT_KEY);
     if (!raw) return null;
@@ -31,6 +33,7 @@ export const loadExamReviewDraft = (blueprint: ExamBlueprint): ExamReviewDraft |
       parsed?.version !== 1 ||
       parsed.blueprintSignature !== getBlueprintSignature(blueprint) ||
       !Array.isArray(parsed.generatedItems)
+      || (parsed.ownerUid && parsed.ownerUid !== ownerUid)
     ) {
       return null;
     }
@@ -42,6 +45,8 @@ export const loadExamReviewDraft = (blueprint: ExamBlueprint): ExamReviewDraft |
       approvedSlotIds: Array.isArray(parsed.approvedSlotIds) ? parsed.approvedSlotIds : [],
       lockedQuestionIds: Array.isArray(parsed.lockedQuestionIds) ? parsed.lockedQuestionIds : [],
       generationSource: parsed.generationSource ?? null,
+      creditExamId: parsed.creditExamId,
+      ownerUid: parsed.ownerUid,
     };
   } catch {
     return null;
@@ -54,6 +59,8 @@ export const saveExamReviewDraft = (
   approvedSlotIds: string[],
   lockedQuestionIds: string[],
   generationSource: 'ai' | 'mock' | null,
+  creditExamId?: string,
+  ownerUid?: string,
 ) => {
   if (generatedItems.length === 0) {
     localStorage.removeItem(DRAFT_KEY);
@@ -67,6 +74,8 @@ export const saveExamReviewDraft = (
     approvedSlotIds,
     lockedQuestionIds,
     generationSource,
+    creditExamId,
+    ownerUid: creditExamId ? ownerUid : undefined,
   };
 
   localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));

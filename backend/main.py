@@ -12,6 +12,7 @@ from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
 from pydantic import BaseModel, Field
 from backend.gemini_gateway import GeminiRateLimiter, generate_content, quota_error
+from backend import credit_api
 
 try:
     from google import genai
@@ -170,6 +171,7 @@ def health():
         'generationUnitsPerHour': AI_GENERATION_UNITS_PER_HOUR,
         'model': GEMINI_MODEL,
         'geminiRequestsPerMinute': GEMINI_REQUESTS_PER_MINUTE,
+        'creditsEnabled': credit_api.enabled(),
     }
 
 def _client():
@@ -351,7 +353,7 @@ def _charge_once(user: dict[str, Any], units: int = 1):
             charged = True
     return charge
 
-def _generate(slot, lang: str, on_admitted=None) -> GeneratedExamItem:
+def _generate(slot, lang: str, on_admitted=None, usage_sink=None) -> GeneratedExamItem:
     client = _client()
     if isinstance(slot, TfSlot):
         prompt = _tf_prompt(slot, lang)
@@ -370,6 +372,11 @@ def _generate(slot, lang: str, on_admitted=None) -> GeneratedExamItem:
                 contents=prompt + ('\nIMPORTANT: Fix structural errors and follow the JSON schema exactly.' if attempt else ''),
                 config={'response_mime_type': 'application/json'},
             )
+            if usage_sink:
+                meta = getattr(response, 'usage_metadata', None)
+                usage_sink({'calls': 1, 'inputTokens': getattr(meta, 'prompt_token_count', 0) or 0,
+                            'outputTokens': getattr(meta, 'candidates_token_count', 0) or 0,
+                            'thinkingTokens': getattr(meta, 'thoughts_token_count', 0) or 0})
             data = _extract_json(response.text or '')
             question = _validate_and_normalize(data, part)
             return GeneratedExamItem(slotId=slot.id, part=part, order=slot.order, question=question)
@@ -432,6 +439,8 @@ def generate_manual_questions(
     payload: ManualGenerateRequest,
     user: dict[str, Any] = Depends(require_firebase_user),
 ):
+    if credit_api.enabled():
+        credit_api.service().manual_admission(user, payload.expectedCount)
     on_admitted = _charge_once(user, payload.expectedCount)
     client = _client()
     last_error = None
@@ -471,6 +480,9 @@ def generate_item(
     payload: GenerateItemRequest,
     user: dict[str, Any] = Depends(require_firebase_user),
 ):
+    if credit_api.enabled():
+        raise HTTPException(403, detail={'code': 'credit_exam_required', 'retryable': False,
+                            'message': 'Hãy tạo hoặc tiếp tục đề bằng credit trước khi gọi AI.'})
     part = payload.slot.get('part')
     try:
         if part == 'tf':
@@ -482,3 +494,25 @@ def generate_item(
     except Exception as exc:
         raise HTTPException(status_code=422, detail=f'Invalid exam slot: {exc}') from exc
     return _generate(slot, payload.lang, on_admitted=_charge_once(user))
+
+
+def _parse_credit_slot(raw):
+    try:
+        if raw.get('part') == 'tf':
+            slot = TfSlot.model_validate(raw)
+        elif raw.get('part') in ('mcq', 'short'):
+            slot = SimpleSlot.model_validate(raw)
+        else:
+            raise ValueError('Unsupported part')
+        if not 1 <= len(slot.id) <= 150:
+            raise ValueError('Invalid slot ID')
+        return slot
+    except Exception:
+        raise HTTPException(422, detail='Vị trí câu hỏi không hợp lệ.')
+
+
+app.include_router(credit_api.build_router(
+    require_firebase_user, _parse_credit_slot,
+    lambda slot, lang, user, usage_sink: _generate(slot, lang, on_admitted=_charge_once(user),
+                                                usage_sink=usage_sink),
+))

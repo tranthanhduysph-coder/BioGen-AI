@@ -90,7 +90,7 @@ export const requestAiJson = async <T>(
       }
       continue;
     }
-    const stopBatch = response.status === 401 || response.status === 429 || response.status >= 500;
+    const stopBatch = [401, 402, 403, 409, 429].includes(response.status) || response.status >= 500;
     throw new AiRequestError(messageFor(code, lang, fallback), code, stopBatch);
   }
 };
