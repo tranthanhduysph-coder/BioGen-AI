@@ -28,7 +28,7 @@ export const BannerAd: React.FC = () => {
                     🚀 Ủng hộ BioGen AI phát triển!
                 </h3>
                 <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                    Trải nghiệm tạo đề thi không giới hạn với công nghệ AI mới nhất.
+                    Thiết kế ma trận, tạo câu hỏi Sinh học, duyệt đề và xuất Word.
                 </p>
             </div>
         </div>

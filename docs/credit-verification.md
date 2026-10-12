@@ -28,8 +28,10 @@ Implementation: `feature/exam-blueprint-builder`, shared Gemini backend.
   never in Git, a client bundle, test output or screenshot.
 
 Preview backend and frontend were deployed with enforcement initially disabled.
-Real-account administrator/trial assignment requires the owner's separate
-selection. Production/main and its services have not been modified.
+The owner subsequently authorized both administrator accounts and one trial
+credit for each. Both accounts were initialized idempotently with balance 1,
+held 0; the runtime UID allowlist and credit enforcement were then enabled on
+the preview backend. Production/main and its services have not been modified.
 
 Runtime limitations remain documented in `exam-credits.md`: manual review is
 explicitly saved to the account, browser closure pauses the batch, provider quota

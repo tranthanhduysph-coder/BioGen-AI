@@ -59,7 +59,7 @@ export const DonateModal: React.FC<DonateModalProps> = ({ isOpen, onClose, onCon
                     </div>
                     <h3 className="text-lg font-bold text-red-600 dark:text-red-400 mb-1">Hết lượt miễn phí!</h3>
                     <p className="text-xs text-slate-600 dark:text-slate-300">
-                        Vui lòng Donate để mở khóa tính năng không giới hạn vĩnh viễn.
+                        Vui lòng liên hệ quản trị khi cần thêm lượt sử dụng. Đóng góp hỗ trợ duy trì BioGen AI.
                     </p>
                 </div>
             ) : (
