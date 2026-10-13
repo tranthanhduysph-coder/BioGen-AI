@@ -535,3 +535,5 @@ app.include_router(credit_api.build_router(
     lambda slot, lang, user, usage_sink: _generate(slot, lang, on_admitted=_charge_once(user),
                                                 usage_sink=usage_sink),
 ))
+from backend.payments import build_payment_router
+app.include_router(build_payment_router(lambda: credit_api.service()))

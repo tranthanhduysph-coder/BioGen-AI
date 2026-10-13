@@ -10,7 +10,11 @@ export type CreditAccount = { enabled: boolean; uid: string; email: string; name
   manualBalance?: number; manualHeld?: number; activeManualRunId?: string | null };
 export type PurchaseRequest = { id: string; uid: string; email: string; name: string;
   product: 'exam' | 'manual'; package: number; note: string;
-  status: 'pending' | 'fulfilled' | 'rejected'; updatedAt: number; reportedPaid?: boolean };
+  status: 'pending' | 'fulfilled' | 'rejected'; updatedAt: number; reportedPaid?: boolean;
+  paymentCode?: string; expectedAmount?: number; paymentIssue?: string; bank?: PaymentConfig['bank'] };
+export type PaymentConfig = { automaticPaymentReady: boolean; currency: string;
+  exam: { credits: number; priceVnd: number }[]; manual: { turns: number; priceVnd: number };
+  bank: { id: string; name: string; accountNumber: string; accountName: string } };
 export type ManualRun = { id: string; status: 'reserved' | 'completed' | 'cancelled';
   batches: {prompt: string; expectedCount: number; lang: string; criteria?: any}[]; results: Record<string, any[]> };
 export type CloudExam = { id: string; blueprint: ExamBlueprint; slots: any[];
@@ -35,6 +39,7 @@ export const creditRequest = async <T>(path: string, body?: unknown): Promise<T>
 };
 
 export const getCreditAccount = () => creditRequest<CreditAccount>('/me');
+export const getPaymentConfig = () => requestAiJson<PaymentConfig>(`${String((import.meta as any).env?.VITE_API_BASE_URL || '').replace(/\/$/, '')}/api/payment-plans`, { method: 'GET' }, 'vi');
 export const getCloudExam = (id: string) => creditRequest<CloudExam>(`/exams/${encodeURIComponent(id)}`);
 export const cloudSlots = (exam: CloudExam): ExamSlotPackage => ({
   mcq: exam.slots.filter(s => s.part === 'mcq'), tf: exam.slots.filter(s => s.part === 'tf'),

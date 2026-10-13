@@ -1,0 +1,10 @@
+{
+  "currency": "VND",
+  "exam": [
+    { "credits": 10, "priceVnd": 199000 },
+    { "credits": 20, "priceVnd": 349000 },
+    { "credits": 30, "priceVnd": 479000 }
+  ],
+  "manual": { "turns": 3, "priceVnd": 20000 },
+  "bank": { "id": "TCB", "name": "Techcombank", "accountNumber": "84907276901", "accountName": "TRAN THANH DUY" }
+}

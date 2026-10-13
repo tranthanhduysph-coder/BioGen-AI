@@ -1,8 +1,9 @@
 # Exam credits on the shared BioGen backend
 
 This preview adds account approval, packages of 10/20/30 credits, a server-owned
-ledger, cloud exam recovery, purchase requests and manual administrator grants. Gemini remains the
-shared provider for manual questions and exam slots. No payment gateway is added.
+ledger, cloud exam recovery, purchase requests and optional authenticated SePay
+bank notifications. Gemini remains the shared provider for both modules.
+Automatic payment is disabled until the bank connection and server secret are configured.
 
 ## Business rules
 
@@ -28,8 +29,9 @@ shared provider for manual questions and exam slots. No payment gateway is added
   An incomplete exam with questions requires administrator review for a refund.
   Completed exams cannot be refunded through this cancellation endpoint.
 - Credit has no expiry. Unspent balance must remain backed by a future service
-  budget. Prices stored for grants are provisional planning values (199k/349k/479k),
-  not proof of an actual payment; administrator notes are required.
+  budget. The owner confirmed exam prices of 199k/349k/479k for 10/20/30 credits,
+  and 20k for three manual actions. `data/paymentPlans.json` is the public price
+  and existing QR-recipient source. Each QR order snapshots its amount and recipient.
 - Manual-question generation has a separate balance: three free generation
   actions once per account, followed by 20,000 VND for each three-action package.
   One button click with several criteria batches is one action, at most 40
@@ -45,14 +47,19 @@ shared provider for manual questions and exam slots. No payment gateway is added
   trial once, irrespective of that historical local counter. Provider RPM and
   hourly quotas still apply to both products.
 - The sales banner links to packages and an authenticated purchase request.
-  Manual packages show the existing bank destination and a 20,000 VND VietQR,
-  with a reference derived from the durable request ID. A teacher can report a
-  transfer, but only an administrator verifying the bank receipt can grant turns.
-  Exam package prices must be confirmed by the administrator before payment.
+  Both products show the existing bank destination and VietQR with the exact
+  package price and a server-generated random payment code. A verified bank
+  notification atomically fulfills the order, grants the correct wallet and
+  records the receipt once; routine purchases do not require admin approval.
+  Teacher payment reports never grant turns and are retained only for legacy
+  compatibility. The checkout polls every five seconds while pending/foreground
+  and refreshes wallet views when fulfillment is detected.
 - Administrators see pending purchases (including email, product, note and
   reported-transfer state), refreshed every 30 seconds while the exam module is
   open. No emails or push notifications are sent. The queue shows up to 100
-  pending accounts; resolved purchases cannot hide pending ones. A user has at
+  pending accounts; resolved purchases cannot hide pending ones. Automatic payment
+  event history records matched-transfer exceptions for administrator reconciliation.
+  A user has at
   most one pending purchase across products; administrators can close a request
   to permit a different package. Fulfillment updates purchase, balance and receipt
   atomically. Receipt uniqueness is shared by both products.
@@ -66,6 +73,10 @@ package, even after a browser reload or through another administrator.
 `manual_runs` and `purchases` are account subcollections. The
 `{CREDIT_NAMESPACE}_purchase_inbox` mirrors the latest purchase per account,
 filtering pending requests before applying the queue limit. It is server-only.
+`{CREDIT_NAMESPACE}_payment_codes` maps random QR codes to server-owned orders;
+`{CREDIT_NAMESPACE}_payment_events` deduplicates bank transaction IDs and records
+matched transfer outcomes. The unique bank-reference receipt is shared with
+manual admin grants, preventing replay across products or grant paths.
 Preview and production MUST use different namespaces
 and preferably different databases/projects. Existing question-history data is
 not migrated or overwritten.
@@ -96,6 +107,10 @@ CREDIT_NAMESPACE=biogen_preview
 CREDIT_ADMIN_UIDS=<verified Firebase UID of the owner>
 CREDIT_FIRESTORE_DATABASE=(default)
 GOOGLE_APPLICATION_CREDENTIALS=/etc/secrets/biogen-firestore.json
+AUTOMATIC_PAYMENTS_ENABLED=false
+SEPAY_WEBHOOK_AUTH=hmac
+# Backend secret only; never put its value into frontend/Git/chat:
+SEPAY_WEBHOOK_SECRET=<a dedicated 32+ character signing secret>
 ```
 
 Upload a service-account JSON as a Render Secret File, never into Git or the
@@ -116,6 +131,12 @@ match /biogen_preview_receipts/{document=**} {
   allow read, write: if false;
 }
 match /biogen_preview_purchase_inbox/{document=**} {
+  allow read, write: if false;
+}
+match /biogen_preview_payment_codes/{document=**} {
+  allow read, write: if false;
+}
+match /biogen_preview_payment_events/{document=**} {
   allow read, write: if false;
 }
 ```
@@ -153,3 +174,7 @@ shows 100 accounts (known UIDs can also be entered explicitly).
 Official transaction/auth guidance:
 https://firebase.google.com/docs/firestore/manage-data/transactions
 https://firebase.google.com/docs/firestore/quickstart-server
+
+Automatic payment rollout and SePay/Techcombank prerequisites:
+see `automatic-payments.md`. Without readiness, checkout does not display a QR
+or accept new payment requests through its button; existing credits still work.

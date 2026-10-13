@@ -67,3 +67,22 @@ still applies, and packages are granted manually after payment verification.
   Both previously authorized owner accounts were topped up to a total grant of
   two exam trial credits, held zero. No real AI action or payment was performed;
   no live test purchase was submitted. Production/main remain unchanged.
+
+## Automatic QR payment update — 13 October 2026
+
+- Prices confirmed by the owner: exam packages 199k/349k/479k, manual 20k/3.
+  Banner/checkout thank teachers, list the plans, and retain the existing recipient.
+- 51 backend and 33 frontend/data tests pass. Scoped TypeScript and production
+  frontend build pass. Tests cover HMAC/API-key validation, stale/forged payloads,
+  wrong amount/recipient/direction, receipt collisions, blocked users and each wallet.
+- Browser fixture accepted signed synthetic incoming events: exam balance 2 → 12
+  for the 10-credit package; manual allowance 3 → 6 for the three-action package.
+  Checkout detected fulfillment by polling, displayed thanks and refreshed balances
+  without an admin grant. No real transfer or provider request occurred.
+- Real Firestore acceptance passed in `biogen_payment_test_1791883625`. Eight
+  parallel deliveries of each synthetic event granted exactly one exam package
+  and one manual package; a restarted service recovered balances 12 and 6.
+  This was isolated test data, not money received into a real bank account.
+- Live activation remains pending bank/SePay connection, dedicated signing secret
+  and owner-performed real transfer acceptance. The ready flag stays false and
+  checkout does not ask teachers to pay while this connection is unavailable.

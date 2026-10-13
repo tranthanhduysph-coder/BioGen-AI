@@ -119,6 +119,10 @@ def build_router(require_user, parse_slot, generate):
     def report_payment(purchase_id: str, user=Depends(require_user)):
         return service().report_payment(user, purchase_id)
 
+    @router.post('/purchases/{purchase_id}/prepare-payment')
+    def prepare_payment(purchase_id: str, user=Depends(require_user)):
+        return service().prepare_purchase_payment(user, purchase_id)
+
     @router.post('/manual-runs')
     def manual_run(payload: ManualRun, user=Depends(require_user)):
         return service().create_manual_run(user, payload.requestId, [b.model_dump() for b in payload.batches])
@@ -135,6 +139,11 @@ def build_router(require_user, parse_slot, generate):
     def admin_purchases(user=Depends(admin)):
         credits = service()
         return credits.store.list_matching(f'{credits.namespace}_purchase_inbox', 'status', 'pending', 100)
+
+    @router.get('/admin/payment-events')
+    def payment_events(user=Depends(admin)):
+        credits = service()
+        return credits.store.list(f'{credits.namespace}_payment_events', 100)
 
     @router.post('/admin/accounts/{account_uid}/purchases/{purchase_id}/reject')
     def reject_purchase(account_uid: str, purchase_id: str, payload: Refund, user=Depends(admin)):

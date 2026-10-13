@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { creditRequest, getCreditAccount, type PurchaseRequest, type CreditAccount } from '../services/creditService';
+import React, { useEffect, useRef, useState } from 'react';
+import { creditRequest, getCreditAccount, getPaymentConfig, type PaymentConfig, type PurchaseRequest, type CreditAccount } from '../services/creditService';
 import { auth } from '../firebaseConfig';
+import plans from '../data/paymentPlans.json';
 
 const button = 'rounded-lg border px-3 py-2 text-sm font-semibold disabled:opacity-40';
-const productName = (p: PurchaseRequest) => p.product === 'manual' ? '3 lượt câu hỏi lẻ · 20.000đ' : `${p.package} credit tạo đề`;
+export const money = (amount: number) => `${amount.toLocaleString('vi-VN')}đ`;
+const productName = (p: PurchaseRequest) => p.product === 'manual' ? `3 lượt câu hỏi lẻ · ${money(p.expectedAmount || plans.manual.priceVnd)}`
+  : `${p.package} credit tạo đề · ${money(p.expectedAmount || plans.exam.find(g => g.credits === p.package)!.priceVnd)}`;
 
 export const CreditPurchase: React.FC<{ initialProduct?: 'exam' | 'manual' }> = ({ initialProduct = 'exam' }) => {
   const [product, setProduct] = useState(initialProduct);
@@ -12,12 +15,35 @@ export const CreditPurchase: React.FC<{ initialProduct?: 'exam' | 'manual' }> = 
   const [orders, setOrders] = useState<PurchaseRequest[]>([]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [config, setConfig] = useState<PaymentConfig | null>(null);
+  const [paid, setPaid] = useState<PurchaseRequest | null>(null);
+  const known = useRef<Record<string, string>>({});
+  const polling = useRef(false);
   const load = async () => {
-    try { setOrders(await creditRequest<PurchaseRequest[]>('/purchases')); }
+    if (polling.current) return;
+    polling.current = true;
+    try {
+      const [rows, paymentConfig] = await Promise.all([
+        creditRequest<PurchaseRequest[]>('/purchases'), getPaymentConfig(),
+      ]);
+      for (const order of rows) {
+        if (known.current[order.id] === 'pending' && order.status === 'fulfilled') {
+          setPaid(order); window.dispatchEvent(new Event('biogen-credit-updated'));
+        }
+        known.current[order.id] = order.status;
+      }
+      setOrders(rows); setConfig(paymentConfig); setError('');
+    }
     catch (e: any) { setError(e.message); }
+    finally { polling.current = false; }
   };
   useEffect(() => { void load(); }, []);
   const pending = orders.find(p => p.status === 'pending');
+  useEffect(() => {
+    if (!pending || !config?.automaticPaymentReady) return;
+    const timer = setInterval(() => { if (!document.hidden) void load(); }, 5000);
+    return () => clearInterval(timer);
+  }, [pending?.id, config?.automaticPaymentReady]);
   const submit = async () => {
     setBusy(true); setError('');
     const key = `biogen_purchase_pending_${auth?.currentUser?.uid}`;
@@ -34,23 +60,34 @@ export const CreditPurchase: React.FC<{ initialProduct?: 'exam' | 'manual' }> = 
     finally { setBusy(false); }
   };
   return <section aria-label="Mua lượt BioGen AI" className="space-y-3 text-sm">
-    <p>Hai loại lượt được tính riêng: 1 credit = 1 đề. Câu hỏi lẻ có 3 lượt đầu miễn phí, sau đó 20.000đ / 3 lượt tạo.</p>
+    <p>Trân trọng cảm ơn thầy/cô đã tin tưởng BioGen AI. Khoản thanh toán của thầy/cô giúp duy trì chi phí AI, máy chủ và tiếp tục hoàn thiện học liệu Sinh học.</p>
+    <div className="rounded-lg bg-slate-50 p-3 text-slate-900">
+      <b>Gói sử dụng</b>
+      {plans.exam.map(p => <p key={p.credits}>{p.credits} credit = {p.credits} đề · {money(p.priceVnd)}</p>)}
+      <p>Câu hỏi lẻ: {money(plans.manual.priceVnd)} / {plans.manual.turns} lượt tạo.</p>
+      <p className="mt-2 text-xs">1 credit tạo 1 đề tối đa 40 câu/ý (mỗi câu Đúng/Sai tính 4 ý), gồm duyệt, sửa thủ công và xuất Word. Thay câu bằng AI tối đa 20% dung lượng đề.</p>
+      <p className="mt-1 text-xs">1 lượt câu hỏi lẻ là 1 lần bấm tạo, tối đa 40 câu, kể cả danh sách nhiều yêu cầu.</p>
+      <p className="mt-1 text-xs">Hai loại lượt tính riêng. Dùng thử một lần: 2 đề và 3 lượt câu hỏi lẻ. Credit đề không hết hạn.</p>
+    </div>
+    {paid && <p role="status" className="rounded-lg bg-emerald-50 p-3 font-semibold text-emerald-800">Đã thanh toán và cộng {paid.package} {paid.product === 'exam' ? 'credit tạo đề' : 'lượt câu hỏi lẻ'} vào tài khoản. Trân trọng cảm ơn thầy/cô; thầy/cô có thể sử dụng ngay.</p>}
+    {config && !config.automaticPaymentReady && <p role="status" className="rounded-lg bg-amber-50 p-3 text-amber-900">Thanh toán tự động đang được hoàn tất kết nối. Thầy/cô vẫn có thể dùng các lượt hiện có; vui lòng chưa chuyển khoản cho gói mới.</p>}
     {pending ? <div className="rounded-xl border border-sky-200 bg-sky-50 p-3 text-slate-900">
-      <b>Yêu cầu mua: {productName(pending)}</b>
-      <p className="mt-1">{pending.reportedPaid ? 'Anh/chị đã báo chuyển khoản. Quản trị đang đối chiếu.' : 'Đã gửi yêu cầu tới quản trị.'} Chỉ cộng lượt sau khi quản trị xác nhận thanh toán.</p>
+      <b>Gói đã chọn: {productName(pending)}</b>
+      <p className="mt-1">{config?.automaticPaymentReady ? 'Thầy/cô quét QR, chuyển đúng số tiền và giữ nguyên nội dung. Khi nhận được xác nhận tiền vào, hệ thống tự cộng lượt vào tài khoản đang đăng nhập; không cần chờ duyệt.' : 'Gói đã được lưu. QR sẽ hiển thị khi kết nối thanh toán tự động sẵn sàng.'}</p>
       <p className="mt-1 break-all">Mã yêu cầu: {pending.id}</p>
-      {pending.product === 'manual' && <>
-        <p className="mt-2 font-semibold">Chuyển khoản 20.000đ · Techcombank · 84907276901 · TRAN THANH DUY</p>
-        <p>Nội dung: BG{pending.id.replace(/-/g, '').slice(0, 12).toUpperCase()}</p>
-        <img className="mx-auto mt-2 w-56 rounded-lg" alt="QR thanh toán 3 lượt câu hỏi lẻ"
-          src={`https://img.vietqr.io/image/TCB-84907276901-compact2.png?amount=20000&addInfo=BG${pending.id.replace(/-/g, '').slice(0, 12).toUpperCase()}`} />
-        {!pending.reportedPaid && <button className={button} disabled={busy} onClick={async () => {
-          setBusy(true); setError('');
-          try { await creditRequest(`/purchases/${pending.id}/report-payment`, {}); await load(); }
-          catch (e: any) { setError(e.message); } finally { setBusy(false); }
-        }}>Báo đã chuyển khoản</button>}
+      {pending.paymentIssue && <p role="alert" className="mt-2 font-semibold text-amber-800">Giao dịch chưa khớp gói đã chọn nên chưa cộng lượt. Thầy/cô vui lòng giữ biên nhận và <a className="underline" href="mailto:ttduy@sgu.edu.vn">liên hệ hỗ trợ</a> để đối soát; không chuyển thêm tiền cho mã này.</p>}
+      {config?.automaticPaymentReady && !pending.paymentIssue && pending.paymentCode && pending.bank && <>
+        <p className="mt-2 font-semibold">{money(pending.expectedAmount!)} · {pending.bank.name} · {pending.bank.accountNumber} · {pending.bank.accountName}</p>
+        <p>Nội dung: <b>{pending.paymentCode}</b></p>
+        <img className="mx-auto mt-2 w-56 rounded-lg" alt={`QR thanh toán ${productName(pending)}`}
+          src={`https://img.vietqr.io/image/${pending.bank.id}-${pending.bank.accountNumber}-compact2.png?amount=${pending.expectedAmount}&addInfo=${encodeURIComponent(pending.paymentCode)}&accountName=${encodeURIComponent(pending.bank.accountName)}`} />
+        <p className="mt-2 text-center">Đang chờ xác nhận tiền vào… Trang tự cập nhật trạng thái.</p>
       </>}
-      {pending.product === 'exam' && <p className="mt-2">Quản trị sẽ xác nhận giá và hướng dẫn thanh toán cho gói đã chọn.</p>}
+      {config?.automaticPaymentReady && !pending.paymentCode && <button className={button} disabled={busy} onClick={async () => {
+        setBusy(true); setError('');
+        try { await creditRequest(`/purchases/${pending.id}/prepare-payment`, {}); await load(); }
+        catch (e: any) { setError(e.message); } finally { setBusy(false); }
+      }}>Tạo QR cho gói đã lưu</button>}
     </div> : <>
       <label className="block">Module cần mua
         <select className="mt-1 w-full rounded-lg border bg-white p-2 text-slate-900" value={product} onChange={e => setProduct(e.target.value as any)}>
@@ -59,13 +96,13 @@ export const CreditPurchase: React.FC<{ initialProduct?: 'exam' | 'manual' }> = 
       </label>
       {product === 'exam' && <label className="block">Gói credit
         <select className="mt-1 w-full rounded-lg border bg-white p-2 text-slate-900" value={pack} onChange={e => setPack(Number(e.target.value))}>
-          {[10, 20, 30].map(n => <option key={n} value={n}>{n} credit = {n} đề</option>)}
+          {plans.exam.map(p => <option key={p.credits} value={p.credits}>{p.credits} credit = {p.credits} đề · {money(p.priceVnd)}</option>)}
         </select>
       </label>}
       <label className="block">Ghi chú cho quản trị (không bắt buộc)
         <textarea className="mt-1 w-full rounded-lg border bg-white p-2 text-slate-900" maxLength={500} value={note} onChange={e => setNote(e.target.value)} />
       </label>
-      <button className={`${button} bg-sky-600 text-white`} disabled={busy} onClick={() => void submit()}>Gửi yêu cầu mua</button>
+      <button className={`${button} bg-sky-600 text-white`} disabled={busy || !config?.automaticPaymentReady} onClick={() => void submit()}>Hiển thị QR thanh toán</button>
     </>}
     <button className={button} disabled={busy} onClick={() => void load()}>Kiểm tra trạng thái mua</button>
     {orders.filter(p => p.status !== 'pending').slice(0, 3).map(p => <p key={p.id}>{productName(p)} · {p.status === 'fulfilled' ? 'Đã cộng lượt' : 'Yêu cầu đã đóng'}</p>)}
@@ -89,6 +126,8 @@ export const ManualAccessPanel: React.FC<{ refreshToken: number; onResume: () =>
     catch (e: any) { setError(e.message); }
   };
   useEffect(() => { void refresh(); }, [refreshToken]);
+  useEffect(() => { const update = () => { void refresh(); }; window.addEventListener('biogen-credit-updated', update);
+    return () => window.removeEventListener('biogen-credit-updated', update); }, []);
   if (!account?.enabled) return error ? <p role="status">{error}</p> : null;
   const remaining = account.manualBalance ?? 3;
   return <section aria-label="Lượt tạo câu hỏi lẻ" className="rounded-xl border border-sky-200 bg-sky-50 p-3 text-sm text-slate-900">

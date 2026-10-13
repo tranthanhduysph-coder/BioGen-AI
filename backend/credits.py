@@ -6,8 +6,8 @@ import re
 import time
 import uuid
 from fastapi import HTTPException
+from backend.payment_config import PACKAGES, MANUAL_PRICE, PLANS
 
-PACKAGES = {10: 199000, 20: 349000, 30: 479000}
 
 
 def fail(code, message, status=409):
@@ -379,12 +379,42 @@ class CreditService:
             purchase = {'id': operation, 'uid': account['uid'], 'email': account['email'],
                 'name': account['name'], 'product': product, 'package': package, 'note': note,
                 'status': 'pending', 'createdAt': self.clock(), 'updatedAt': self.clock()}
+            self.prepare_payment(tx, purchase)
             account.update(activePurchaseId=operation, updatedAt=self.clock())
             tx.set(self.account_path(account['uid']), account)
             tx.set(path, purchase)
             tx.set(f'{self.namespace}_purchase_inbox/{fingerprint(account["uid"])}', purchase)
             return purchase
         return self.store.run(create)
+
+    def prepare_payment(self, tx, purchase):
+        if purchase.get('paymentCode'):
+            return purchase
+        # The full server-generated random code avoids collisions between users
+        # or QR scans; UID, product and price only come from this stored order.
+        prefix = 'BGP' if self.namespace == 'biogen_preview' else 'BGL'
+        code = prefix + uuid.uuid4().hex[:20].upper()
+        code_path = f'{self.namespace}_payment_codes/{code}'
+        if tx.get(code_path):
+            fail('payment_code_busy', 'Vui lòng tạo lại mã thanh toán.')
+        purchase.update(paymentCode=code, expectedAmount=MANUAL_PRICE if purchase['product'] == 'manual' else PACKAGES[purchase['package']],
+                        bank=PLANS['bank'].copy())
+        tx.set(code_path, {'uid': purchase['uid'], 'purchaseId': purchase['id'], 'updatedAt': self.clock()})
+        return purchase
+
+    def prepare_purchase_payment(self, user, purchase_id):
+        def prepare(tx):
+            account = self.account(tx, user)
+            self.approved(account)
+            path = f'{self.account_path(account["uid"])}/purchases/{request_id(purchase_id)}'
+            purchase = tx.get(path)
+            if not purchase or purchase['status'] != 'pending':
+                fail('purchase_conflict', 'Không tìm thấy yêu cầu mua đang chờ.', 404)
+            self.prepare_payment(tx, purchase)
+            tx.set(path, purchase)
+            tx.set(f'{self.namespace}_purchase_inbox/{fingerprint(account["uid"])}', purchase)
+            return purchase
+        return self.store.run(prepare)
 
     def purchases(self, uid):
         return self.store.list(f'{self.account_path(uid)}/purchases', 50)

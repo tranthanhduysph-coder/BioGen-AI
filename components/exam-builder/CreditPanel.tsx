@@ -30,6 +30,7 @@ export const CreditPanel: React.FC<{ onAccount: (account: CreditAccount | null) 
   const [confirmation, setConfirmation] = useState<{ text: string; run: () => void } | null>(null);
   const [purchases, setPurchases] = useState<PurchaseRequest[]>([]);
   const [selectedPurchase, setSelectedPurchase] = useState<PurchaseRequest | null>(null);
+  const [paymentEvents, setPaymentEvents] = useState<any[]>([]);
   useEffect(() => { setConfirmation(null); }, [selectedUid, note, paymentReference]);
 
   const refresh = async () => {
@@ -51,6 +52,8 @@ export const CreditPanel: React.FC<{ onAccount: (account: CreditAccount | null) 
   useEffect(() => { const stop = auth ? onAuthStateChanged(auth, () => { void refresh(); }) : undefined;
     return () => stop?.(); }, []);
   useEffect(() => { void refresh(); }, [refreshToken]);
+  useEffect(() => { const update = () => { void refresh(); }; window.addEventListener('biogen-credit-updated', update);
+    return () => window.removeEventListener('biogen-credit-updated', update); }, []);
   useEffect(() => {
     if (!account?.isAdmin) return;
     const timer = setInterval(() => {
@@ -103,7 +106,7 @@ export const CreditPanel: React.FC<{ onAccount: (account: CreditAccount | null) 
     <p className="mt-2 text-xs text-slate-500">1 credit = 1 đề, tối đa 40 câu/ý. Câu Đúng/Sai tính 4 ý. Thay tối đa 20% dung lượng; sửa thủ công và xuất Word không trừ thêm. Credit không hết hạn.</p>
     <p className="mt-2 text-sm">Mỗi tài khoản nhận 2 credit tạo đề dùng thử một lần. Câu hỏi lẻ có số lượt riêng.</p>
     <details className="mt-3"><summary className="cursor-pointer font-bold text-sky-700">Mua thêm credit / lượt câu hỏi lẻ</summary><div className="mt-3"><CreditPurchase /></div></details>
-    {account.isAdmin && <p role="status" className="mt-3 rounded-lg bg-amber-50 p-2 font-semibold text-amber-900">Yêu cầu mua đang chờ: {purchases.filter(p => p.status === 'pending').length}. Mở quản trị bên dưới để xử lý; tự cập nhật mỗi 30 giây.</p>}
+    {account.isAdmin && <p role="status" className="mt-3 rounded-lg bg-amber-50 p-2 font-semibold text-amber-900">Thanh toán đang chờ: {purchases.filter(p => p.status === 'pending').length}. Tự cộng lượt khi kết nối ngân hàng sẵn sàng; tự cập nhật mỗi 30 giây.</p>}
     {account.status !== 'approved' && <p className="mt-2 text-sm text-amber-700">Tài khoản cần được quản trị duyệt để sử dụng AI.</p>}
     {account.balance === 0 && <p className="mt-2 text-sm">Các gói: 10, 20, 30 credit. Liên hệ quản trị để thanh toán và cộng credit.</p>}
     {error && <p role="alert" className="mt-2 text-sm text-red-600">{error}</p>}
@@ -125,7 +128,12 @@ export const CreditPanel: React.FC<{ onAccount: (account: CreditAccount | null) 
     <details className="mt-3"><summary className="cursor-pointer font-semibold">Lịch sử credit</summary>{historyTable(events)}</details>
     {account.isAdmin && <details className="mt-4 rounded-lg border border-slate-200 p-3">
       <summary className="cursor-pointer font-bold">Quản trị tài khoản và credit</summary>
-      <p className="mt-2 text-xs text-slate-500">Chỉ cộng gói sau khi xác nhận thanh toán. Mỗi thao tác có mã giao dịch và lý do.</p>
+      <p className="mt-2 text-xs text-slate-500">Thanh toán QR hợp lệ được cộng lượt tự động khi kết nối ngân hàng hoạt động. Các nút cộng thủ công bên dưới dành cho đối soát ngoại lệ; chỉ dùng sau khi xác nhận tiền vào.</p>
+      <button className={`${button} mt-3`} disabled={disabled} onClick={() => void action(async () => setPaymentEvents(await creditRequest<any[]>('/admin/payment-events')))}>Xem giao dịch tự động và ngoại lệ</button>
+      {!!paymentEvents.length && <div className="mt-2 max-h-60 overflow-auto text-xs">{paymentEvents.map(e => <p key={e.id} className="mt-2 rounded border p-2">
+        {new Date(e.updatedAt * 1000).toLocaleString('vi-VN')} · {e.status === 'fulfilled' ? 'Đã cộng lượt tự động' : `Cần đối soát: ${e.status}`} · {Number(e.intent.amount).toLocaleString('vi-VN')}đ
+        <br />Mã thanh toán: {e.intent.paymentCode} · Mã ngân hàng: {e.intent.reference}<br />Tài khoản: {e.uid}
+      </p>)}</div>}
       <h4 className="mt-3 font-bold">Yêu cầu mua credit và lượt câu hỏi lẻ</h4>
       {purchases.filter(p => p.status === 'pending').map(p => <div key={p.id} className="mt-2 rounded-lg border border-amber-200 p-3 text-sm">
         <b>{p.email || p.uid}</b> · {p.product === 'manual' ? '3 lượt câu hỏi lẻ · 20.000đ' : `${p.package} credit đề`}
