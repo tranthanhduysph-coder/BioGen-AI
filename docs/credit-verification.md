@@ -86,3 +86,11 @@ still applies, and packages are granted manually after payment verification.
 - Live activation remains pending bank/SePay connection, dedicated signing secret
   and owner-performed real transfer acceptance. The ready flag stays false and
   checkout does not ask teachers to pay while this connection is unavailable.
+- Preview backend deploy `dep-db6vlq4s728c73cv1s50` and frontend deploy
+  `dep-db6vo70m7kps73bi1i4g` are live at `dbff268`. Public health reports
+  `ok: true` and credit enforcement enabled; `/api/payment-plans` reports the
+  approved prices and `automaticPaymentReady: false`. No backend error logs
+  were returned for the deployment window. Authenticated live checkout displays
+  all prices, the connection-pending notice and a disabled QR button. No live
+  purchase, bank transfer or AI generation was submitted. Main/production remain
+  unchanged.
