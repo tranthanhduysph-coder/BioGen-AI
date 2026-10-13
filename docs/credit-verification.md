@@ -94,3 +94,24 @@ still applies, and packages are granted manually after payment verification.
   all prices, the connection-pending notice and a disabled QR button. No live
   purchase, bank transfer or AI generation was submitted. Main/production remain
   unchanged.
+
+## Payment support and launch preparation — 13 October 2026
+
+- Shared payment help explains exact transfer amount/memo, preserved account
+  balances, delayed confirmation, mismatches, duplicate transfers and support
+  reconciliation. It appears in checkout and the Vietnamese/English user guide.
+- Closed purchase history now shows the account's own order ID and reconciled
+  bank reference. The user guide describes the current Exam Builder and demo
+  limits, replacing obsolete guest/quick-exam instructions.
+- The launch checklist records dashboard settings, current published SePay
+  prices and real-transfer acceptance steps. Proposed refund terms remain a
+  local review draft, not a published guarantee or automatic bank refund.
+- 33 frontend/data tests, Exam Builder and Footer scoped TypeScript checks,
+  production frontend build and diff whitespace checks pass. Backend generation,
+  balances, payment settlement, Firebase and DOCX were not changed in this update.
+- Frontend preview deploy `dep-db7009rncjis73f2b4q0` is live at `928ba27`.
+  Authenticated checkout and the user-guide dialog display the new help;
+  the QR button remains disabled with the connection-pending notice. Screenshot:
+  local `tmp/payment-support-live.png`. No live purchase was submitted.
+  SePay account/bank setup and real payment acceptance remain pending. No paid
+  subscription, bank permission change or real transfer was performed.

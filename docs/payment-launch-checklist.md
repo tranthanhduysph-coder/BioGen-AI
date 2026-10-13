@@ -10,6 +10,25 @@
 
 ## Cấu hình cần nhập trong dashboard
 
+### Giá SePay đã đối chiếu
+
+Ngày 13/10/2026, bảng giá công khai và lựa chọn thanh toán tháng hiển thị:
+
+- Free: 0đ/tháng, 50 giao dịch tiền vào/tháng, có webhook/API.
+- Startup: 120.000đ/tháng, 180 giao dịch tiền vào/tháng. Chọn thanh toán năm
+  hiển thị mức quy đổi 96.000đ/tháng; đây không phải giá trả từng tháng.
+- Cho phép vượt số giao dịch và tính phí vượt. Chưa xác nhận đơn giá vượt cho
+  tài khoản của chủ sản phẩm; không suy ra từ đơn giá bình quân của gói.
+- Danh sách 12 ngân hàng hỗ trợ của các gói trên không có Techcombank. Giá và
+  khả năng kết nối SMS cho tài khoản Techcombank hiện tại vẫn chờ xác nhận.
+- Một lần mua gói 30 đề bằng một chuyển khoản là một giao dịch tiền vào, không
+  phải 30 giao dịch. SePay định nghĩa tổng giao dịch tiền vào trong tháng; chưa
+  xác nhận bộ lọc webhook có loại giao dịch không liên quan khỏi hạn mức hay không.
+
+Chưa đăng ký gói trả phí hoặc thay đổi tài khoản nhận tiền.
+
+### Webhook preview
+
 | Mục | Giá trị |
 | --- | --- |
 | Tên webhook | BioGen AI preview — tiền vào |
