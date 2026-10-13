@@ -11,7 +11,7 @@ export type CreditAccount = { enabled: boolean; uid: string; email: string; name
 export type PurchaseRequest = { id: string; uid: string; email: string; name: string;
   product: 'exam' | 'manual'; package: number; note: string;
   status: 'pending' | 'fulfilled' | 'rejected'; updatedAt: number; reportedPaid?: boolean;
-  paymentCode?: string; expectedAmount?: number; paymentIssue?: string; bank?: PaymentConfig['bank'] };
+  paymentCode?: string; expectedAmount?: number; paymentIssue?: string; paymentReference?: string; bank?: PaymentConfig['bank'] };
 export type PaymentConfig = { automaticPaymentReady: boolean; currency: string;
   exam: { credits: number; priceVnd: number }[]; manual: { turns: number; priceVnd: number };
   bank: { id: string; name: string; accountNumber: string; accountName: string } };

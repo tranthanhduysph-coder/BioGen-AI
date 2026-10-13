@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { PaymentHelp } from './PaymentHelp';
 
 interface FooterProps {
   onOpenDisclaimer: () => void;
@@ -113,17 +114,17 @@ export const Footer: React.FC<FooterProps> = ({ onOpenDisclaimer }) => {
               <div className="space-y-4 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                 <p>
                   {isEnglish
-                    ? 'BioGen AI helps create, review and practise Biology questions with AI. You can sign in to save your history or use guest mode for a quick trial.'
-                    : 'BioGen AI hỗ trợ tạo, rà soát và luyện tập câu hỏi Sinh học bằng AI. Bạn có thể đăng nhập để lưu lịch sử hoặc dùng chế độ khách để trải nghiệm nhanh.'}
+                    ? 'Sign in to generate Biology content with AI and save your work. Each account receives two exam credits and three individual-question actions once. Demo mode helps explore the interface; it does not grant real AI allowance.'
+                    : 'Đăng nhập để tạo nội dung Sinh học bằng AI và lưu công việc. Mỗi tài khoản nhận một lần 2 credit tạo đề và 3 lượt câu hỏi lẻ. Chế độ demo giúp xem thử giao diện, không cấp lượt AI thật.'}
                 </p>
                 <div className="grid gap-3">
                   {[
                     isEnglish
-                      ? ['1. Choose criteria', 'Select topic, difficulty, competency, context, question type and number of questions.']
-                      : ['1. Chọn tiêu chí', 'Chọn chủ đề, mức độ, năng lực, bối cảnh, dạng câu hỏi và số lượng câu.'],
+                      ? ['1. Choose a module', 'Use Exam Builder for a complete exam or individual-question generation for a question set. The two modules have separate balances.']
+                      : ['1. Chọn module', 'Chọn tạo đề kiểm tra theo ma trận hoặc tạo câu hỏi lẻ theo tiêu chí. Hai module có số dư lượt riêng.'],
                     isEnglish
-                      ? ['2. Generate questions', 'Use manual generation for a controlled question set or the quick-exam feature for a broader exam-style set.']
-                      : ['2. Tạo câu hỏi', 'Dùng chế độ thủ công để kiểm soát tiêu chí hoặc chế độ đề nhanh để tạo bộ câu hỏi theo phong cách đề thi.'],
+                      ? ['2. Configure and generate', 'For exams, select grade, content, competencies and learning outcomes, allocate questions and points, then lock the blueprint. For individual questions, choose criteria and generate the requested batch.']
+                      : ['2. Thiết kế và tạo nội dung', 'Với đề kiểm tra: chọn lớp, nội dung, năng lực, YCCĐ; phân bổ câu và điểm rồi khóa ma trận. Với câu hỏi lẻ: chọn tiêu chí và tạo danh sách yêu cầu.'],
                     isEnglish
                       ? ['3. Review before use', 'Check the scientific accuracy, wording, answer key and explanation before using any AI-generated item.']
                       : ['3. Kiểm tra trước khi sử dụng', 'Luôn kiểm tra độ chính xác khoa học, cách diễn đạt, đáp án và lời giải trước khi dùng câu hỏi do AI tạo.'],
@@ -140,6 +141,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenDisclaimer }) => {
                     </div>
                   ))}
                 </div>
+                <PaymentHelp english={isEnglish} />
                 <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800 dark:border-amber-800/70 dark:bg-amber-950/30 dark:text-amber-200">
                   {isEnglish
                     ? 'AI can make mistakes. Verify generated Biology content against textbooks, official materials and reliable scientific sources.'

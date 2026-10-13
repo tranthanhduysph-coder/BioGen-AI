@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { creditRequest, getCreditAccount, getPaymentConfig, type PaymentConfig, type PurchaseRequest, type CreditAccount } from '../services/creditService';
 import { auth } from '../firebaseConfig';
 import plans from '../data/paymentPlans.json';
+import { PaymentHelp } from './PaymentHelp';
 
 const button = 'rounded-lg border px-3 py-2 text-sm font-semibold disabled:opacity-40';
 export const money = (amount: number) => `${amount.toLocaleString('vi-VN')}đ`;
@@ -99,13 +100,18 @@ export const CreditPurchase: React.FC<{ initialProduct?: 'exam' | 'manual' }> = 
           {plans.exam.map(p => <option key={p.credits} value={p.credits}>{p.credits} credit = {p.credits} đề · {money(p.priceVnd)}</option>)}
         </select>
       </label>}
-      <label className="block">Ghi chú cho quản trị (không bắt buộc)
+      <label className="block">Ghi chú hỗ trợ (không bắt buộc)
         <textarea className="mt-1 w-full rounded-lg border bg-white p-2 text-slate-900" maxLength={500} value={note} onChange={e => setNote(e.target.value)} />
       </label>
       <button className={`${button} bg-sky-600 text-white`} disabled={busy || !config?.automaticPaymentReady} onClick={() => void submit()}>Hiển thị QR thanh toán</button>
     </>}
     <button className={button} disabled={busy} onClick={() => void load()}>Kiểm tra trạng thái mua</button>
-    {orders.filter(p => p.status !== 'pending').slice(0, 3).map(p => <p key={p.id}>{productName(p)} · {p.status === 'fulfilled' ? 'Đã cộng lượt' : 'Yêu cầu đã đóng'}</p>)}
+    {orders.filter(p => p.status !== 'pending').slice(0, 3).map(p => <div key={p.id} className="rounded-lg border p-3">
+      <p>{productName(p)} · {p.status === 'fulfilled' ? 'Đã cộng lượt' : 'Yêu cầu đã đóng'}</p>
+      <p className="mt-1 break-all text-xs">Mã yêu cầu: {p.id}</p>
+      {p.paymentReference && <p className="break-all text-xs">Mã giao dịch đã đối soát: {p.paymentReference}</p>}
+    </div>)}
+    <PaymentHelp />
     {error && <p role="alert" className="text-red-600">{error}</p>}
   </section>;
 };
