@@ -1,7 +1,8 @@
 # BioGen AI — lựa chọn tên miền và chuẩn bị kết nối
 
 Đối chiếu ngày 14/10/2026. Chủ sản phẩm muốn giữ BioGen AI, ngân sách dưới
-1.000.000đ/năm. Chưa mua tên miền hoặc thay đổi DNS/Firebase/production.
+1.000.000đ/năm. Đã chuẩn bị đơn biogenai.vn một năm, chưa mua tên miền
+hoặc thay đổi DNS/Firebase/production.
 
 ## Kết quả tra cứu
 
@@ -14,8 +15,17 @@
 Đề xuất **biogenai.vn** cho sản phẩm phục vụ giáo viên Việt Nam. Bảng giá
 công khai .vn ghi tổng năm đầu 558.000đ và tổng năm tiếp theo 458.000đ, trong
 khi trang tra cứu hiển thị 550.000đ. Cần xác nhận tổng tiền có thuế tại giỏ hàng
-trước thanh toán; không coi giá tra cứu là tổng cuối cùng. Chọn một tên miền
-trong một năm, không chọn combo tên miền hoặc hosting/email mua thêm.
+trước thanh toán; không coi giá tra cứu là tổng cuối cùng. Đã xác minh giỏ
+hàng: một biogenai.vn trong một năm, 550.000đ trước VAT + 8.000đ VAT =
+**558.000đ**. Dịch vụ DNSSEC trả phí tự thêm đã được bỏ khỏi đơn; không chọn
+combo tên miền hoặc hosting/email mua thêm. Không thay đổi DNSSEC của một
+tên miền đang hoạt động: tên miền này chưa được đăng ký bởi chủ sản phẩm.
+
+Đơn đã đến bước đăng nhập/tạo tài khoản và xác minh chủ thể trên Mắt Bão.
+Chủ sản phẩm được bàn giao để tự nhập thông tin, đọc/chấp nhận điều khoản
+và thanh toán; chưa có xác nhận đã đăng ký tên miền. Không ghi link đơn riêng,
+thông tin định danh hoặc thông tin đăng nhập vào repository. Bằng chứng cục bộ:
+`tmp/biogenai-vn-cart.png`.
 
 Porkbun niêm yết .com thông thường 11,08 USD cho đăng ký/gia hạn; .app 8,75 USD
 năm đầu và 14,93 USD gia hạn. Tra cứu biogenai.com và biogenai.app tại Porkbun

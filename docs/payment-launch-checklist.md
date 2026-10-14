@@ -74,8 +74,12 @@ Ledger thể hiện riêng +10 credit đề và +3 lượt câu hỏi lẻ, mỗ
 Đã đăng xuất và đăng nhập lại, giữ đúng số dư 12 lượt đề / 6 lượt câu lẻ.
 Thử AI thật đã gặp Gemini 503/504; sau thao tác hủy của chủ tài khoản, đọc
 Firestore xác nhận số dư 12/6, không giữ lượt và không còn lượt đang dở.
-Chưa chốt tạo AI thật thành công. Đã yêu cầu phát lại webhook thật nhưng SePay
-chưa trả kết quả hoàn tất/log lần gửi mới; không coi bước này đã nghiệm thu.
+Lần thử sau đã tạo thành công một MCQ thật (HTTP 200) và xuất DOCX hợp lệ;
+số dư máy chủ 12 lượt đề / 5 lượt câu lẻ, không giữ lượt và không còn công việc dở.
+Đã kiểm tra chống trùng trực tiếp trên hai biên nhận thật đã lưu: mỗi biên nhận
+lặp 8 lần đồng thời với mọi ghi bị cấm; cả tài khoản giữ nguyên. Đã yêu cầu
+SePay phát lại nhưng chưa có log lần gửi mới, nên bước phát lại HTTP từ nhà cung
+cấp vẫn chưa chốt. Kiểm thử dữ liệu máy chủ không được gọi là lần gửi HTTP mới.
 
 1. Chủ tài khoản mua gói câu hỏi lẻ qua đơn thật 20.000đ / 3 lượt trên preview.
    Ghi lại mã đơn, số dư trước và sau, mã giao dịch; không đưa dữ liệu thẻ/OTP vào log.

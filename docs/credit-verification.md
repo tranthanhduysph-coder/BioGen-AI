@@ -251,3 +251,29 @@ still applies, and packages are granted manually after payment verification.
   Browser visual verification remains unavailable because approval review
   exhausted its usage limit. Real AI completion and live SePay replay are still
   open; no main merge, production rollout or domain purchase was performed.
+
+### Successful real AI and final policy UI check
+
+- Browser approval became available again. The account still had 12 exam / 6
+  manual allowance with no holds. After deliberately clearing the cancelled
+  request, one new real manual run generated exactly one MCQ; provider route
+  returned HTTP 200 at 08:48:04 UTC. The answer/biology explanation was checked.
+  Manual balance changed 6 → 5, with 0 held; exam balance remains 12. A fresh
+  server SDK read confirms those values and no active manual run.
+- Exported the actual generated question to DOCX through the app. The downloaded
+  file is 8,636 bytes, a valid Word ZIP archive, and document.xml contains the
+  generated Biology question. No further allowance was spent for export.
+  Evidence: `tmp/manual-ai-paid-acceptance.png`.
+- Reloaded the live frontend and opened Guide → Payment help. The approved
+  2-business-day response, 7-day change-of-mind window and 7-business-day refund
+  terms appear in the UI. Evidence: `tmp/payment-policy-approved-live.png`.
+- SePay's replay action still did not expose a new delivery log or reach the
+  receiver during the observed window. Independently checked the settlement
+  method against both actual stored SePay receipts (89710446 / 89824997), with
+  eight concurrent repeats per receipt. A wrapper prohibited every database
+  write, so an unexpected new grant would fail the test. Both return fulfilled;
+  the entire account document is unchanged at 12 exam / 5 manual. This confirms
+  real stored-event deduplication, not a fresh signed SePay HTTP replay.
+- Domain checkout confirms biogenai.vn, one year, total 558,000 VND incl. VAT.
+  Owner registration/identity/terms/payment handoff is pending. Main, production,
+  DNS and Firebase domain permissions remain unchanged.
