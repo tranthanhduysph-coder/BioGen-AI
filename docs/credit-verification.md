@@ -241,3 +241,13 @@ still applies, and packages are granted manually after payment verification.
   was used. SePay replay verification, final UI state and domain checkout remain
   pending; main/production and DNS remain unchanged.
 - Domain results and deployment preparation are in custom-domain-launch.md.
+- After the owner attempted cancellation, inspected the exact test account
+  through the previously authorized Firebase CLI/server SDK (read-only).
+  Firestore confirms exam balance 12, manual balance 6, manual held 0 and
+  activeManualRunId null. There is no remaining test reservation to cancel;
+  the inspection made no account changes and exposed no credentials.
+- Approved policy frontend deploy `dep-db7juht9fdbs73eh9rlg` is live at
+  `2d16817`. The 36 frontend/data tests, scoped TypeScript and build pass.
+  Browser visual verification remains unavailable because approval review
+  exhausted its usage limit. Real AI completion and live SePay replay are still
+  open; no main merge, production rollout or domain purchase was performed.

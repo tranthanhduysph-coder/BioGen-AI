@@ -71,9 +71,11 @@ giao dịch `89824997`, mã ngân hàng `E75B2D65-E0AB-4099-8328-9FC8E0B8EF5B`.
 Log `56868123` đạt HTTP 200; checkout tự fulfilled, credit đề 2 → 12.
 Ledger thể hiện riêng +10 credit đề và +3 lượt câu hỏi lẻ, mỗi khoản một lần.
 
-Đã kiểm tra số dư lưu khi mở lại app. Chưa thực hiện đầy đủ đăng xuất/đăng nhập
-và dùng một lượt AI sau mua. Đã yêu cầu phát lại webhook thật nhưng SePay chưa
-trả kết quả hoàn tất/log lần gửi mới; không coi bước này đã nghiệm thu.
+Đã đăng xuất và đăng nhập lại, giữ đúng số dư 12 lượt đề / 6 lượt câu lẻ.
+Thử AI thật đã gặp Gemini 503/504; sau thao tác hủy của chủ tài khoản, đọc
+Firestore xác nhận số dư 12/6, không giữ lượt và không còn lượt đang dở.
+Chưa chốt tạo AI thật thành công. Đã yêu cầu phát lại webhook thật nhưng SePay
+chưa trả kết quả hoàn tất/log lần gửi mới; không coi bước này đã nghiệm thu.
 
 1. Chủ tài khoản mua gói câu hỏi lẻ qua đơn thật 20.000đ / 3 lượt trên preview.
    Ghi lại mã đơn, số dư trước và sau, mã giao dịch; không đưa dữ liệu thẻ/OTP vào log.
@@ -97,16 +99,19 @@ trả kết quả hoàn tất/log lần gửi mới; không coi bước này đ�
   không còn yêu cầu đang chạy thì được hủy để trả lượt đang giữ.
 - Hoàn lượt trong ứng dụng không tự động chuyển tiền ngân hàng.
 
-## Bản nháp chính sách hoàn tiền — cần chủ sản phẩm chốt trước mở bán
+## Chính sách hỗ trợ và hoàn tiền — chủ sản phẩm đã duyệt
 
 Đề xuất: đối soát và xử lý tiền chuyển trùng, chuyển sai gói hoặc thanh toán
 đã nhận nhưng hệ thống không cung cấp được lượt. Nếu hoàn tiền, cần xác minh
 giao dịch gốc và thu hồi phần lượt tương ứng chưa dùng để tránh vừa hoàn tiền
 vừa giữ quyền sử dụng. Chuyển tiền hoàn do chủ tài khoản thực hiện trực tiếp.
 
-Đề xuất này chưa được xuất bản thành cam kết về thời hạn, phí hay quyền hoàn
-tiền của khách hàng. Cần chốt việc đổi ý sau mua, phần lượt đã dùng, thời gian
-phản hồi/xử lý và thông tin bán hàng trước khi mở production.
+Ngày 14/10/2026, chủ sản phẩm duyệt phản hồi 2 ngày làm việc, hoàn tiền 7 ngày
+làm việc sau khi đồng ý, tiếp nhận đổi ý trong 7 ngày và đối soát phần mua chưa
+sử dụng. PaymentHelp chung trong checkout/hướng dẫn đã triển khai lên preview
+tại commit 2d16817. Chi tiết ở payment-policy-draft.md; tên file giữ lại để
+không làm mất link chủ sản phẩm đã đọc. Hoàn tiền vẫn do chủ sản phẩm thực
+hiện qua ngân hàng, không tự động từ số dư trong ứng dụng.
 
 ## Nguồn đối chiếu ngày 13/10/2026
 
