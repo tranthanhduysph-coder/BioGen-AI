@@ -1,0 +1,91 @@
+# Supplemental YCCĐ from CTGDPT Biology (2018). No source competency codes or cognitive-level columns.
+# Heading: @grade|contentId|scope|label (electives only)|outline separated by ;
+# Record: stable id|PDF pages|complete missing requirement or missing clause|related incomplete specification id
+@10|viruses|core
+curr-g10-virus-prevention|21|Trình bày được phương thức lây truyền một số bệnh do virus ở người, thực vật và động vật (HIV, cúm, sởi,...) và cách phòng chống. Giải thích được các bệnh do virus thường lây lan nhanh, rộng và có nhiều biến thể.
+@11|plant_response|core
+curr-g11-plant-response-role|31|Phân tích được vai trò cảm ứng đối với thực vật.
+@11|plant_growth|core
+curr-g11-meristems|34,35|Nêu được khái niệm mô phân sinh. Trình bày được vai trò của mô phân sinh đối với sinh trưởng ở thực vật. Phân biệt được các loại mô phân sinh.
+@12|chromosomal_genetics|core
+curr-g12-mendel-regularity|43|Nêu được tính quy luật của hiện tượng di truyền.
+curr-g12-chromosome-practical|45|Thực hành, quan sát được đột biến nhiễm sắc thể trên tiêu bản cố định và tạm thời; tìm hiểu được tác hại gây đột biến ở người của một số chất độc (dioxin, thuốc diệt cỏ 2,4D,...).
+@12|population_genetics|core
+curr-g12-hardy-weinberg|47|Trình bày được định luật Hardy – Weinberg và điều kiện nghiệm đúng.
+@12|community_ecology|core
+curr-g12-community-living-level|51|Giải thích được quần xã là một cấp độ tổ chức sống.
+curr-g12-community-shannon|51|Thực hành: Tính được độ phong phú của loài trong quần xã; tính được độ đa dạng của quần xã theo chỉ số Shannon.|spec-g12-p30-r15
+@12|ecosystems_biosphere|core
+curr-g12-ecosystem-concept|51|Phát biểu được khái niệm hệ sinh thái.
+curr-g12-ecosystem-exchange|51|Phân tích được quá trình trao đổi vật chất và chuyển hoá năng lượng trong hệ sinh thái.
+curr-g12-food-web|51|Trình bày được khái niệm chuỗi thức ăn, các loại chuỗi thức ăn, lưới thức ăn, bậc dinh dưỡng. Vẽ được sơ đồ chuỗi và lưới thức ăn trong quần xã.
+curr-g12-energy-flow|52|Trình bày được dòng năng lượng trong một hệ sinh thái (bao gồm: phân bố năng lượng trên Trái Đất, sơ đồ khái quát về dòng năng lượng trong hệ sinh thái, sơ đồ khái quát năng lượng chuyển qua các bậc dinh dưỡng trong hệ sinh thái).
+curr-g12-ecological-efficiency-concept|52|Nêu được khái niệm hiệu suất sinh thái (sản lượng sơ cấp, sản lượng thứ cấp); tháp sinh thái.
+curr-g12-ecological-efficiency-calculation|52|Tính được hiệu suất sinh thái của một hệ sinh thái.
+curr-g12-ecological-efficiency-meaning|52|Giải thích được ý nghĩa của nghiên cứu hiệu suất sinh thái và tháp sinh thái trong thực tiễn.
+curr-g12-biogeochemical-cycles|52|Phát biểu được khái niệm chu trình sinh – địa – hoá các chất. Vẽ được sơ đồ khái quát chu trình trao đổi chất trong tự nhiên. Trình bày được chu trình sinh – địa – hoá của một số chất: nước, carbon, nitơ (nitrogen) và ý nghĩa sinh học của các chu trình đó, đồng thời vận dụng kiến thức về các chu trình đó vào giải thích các vấn đề của thực tiễn.
+curr-g12-ecosystem-dynamics|52|Phân tích được sự biến động của hệ sinh thái.
+curr-g12-succession-concept|52|Nêu được khái niệm diễn thế sinh thái.
+curr-g12-succession-causes|52|Phân tích được nguyên nhân và tầm quan trọng của diễn thế sinh thái trong tự nhiên và trong thực tiễn.|spec-g12-p32-r01
+curr-g12-ecosystem-phenomena|52|Nêu được một số hiện tượng ảnh hưởng đến hệ sinh thái như: sự ấm lên toàn cầu; sự phì dưỡng; sa mạc hoá.
+curr-g12-biosphere-concept|53|Phát biểu được khái niệm Sinh quyển.
+curr-g12-biome-concept|53|Phát biểu được khái niệm khu sinh học.
+@10|elective_10_1|elective|Chuyên đề 10.1: Công nghệ tế bào và một số thành tựu|Thành tựu công nghệ tế bào;Các giai đoạn của công nghệ tế bào;Tế bào gốc và ứng dụng
+curr-g10-e10-1-01|22|Kể được tên một số thành tựu hiện đại của công nghệ tế bào.
+curr-g10-e10-1-02|22|Trình bày được tính toàn năng và các giai đoạn chung của công nghệ tế bào. Lấy được ví dụ về công nghệ tế bào thực vật, công nghệ tế bào động vật.
+curr-g10-e10-1-03|22|Nêu được khái niệm tế bào gốc. Trình bày được một số thành tựu trong sử dụng tế bào gốc.
+curr-g10-e10-1-04|22|Phân tích được triển vọng của công nghệ tế bào trong tương lai.
+curr-g10-e10-1-05|22|Thực hiện được dự án hoặc đề tài tìm hiểu về các thành tựu nuôi cấy mô, thành tựu tế bào gốc. Thiết kế được tập san các bài viết, tranh ảnh về công nghệ tế bào.
+curr-g10-e10-1-06|22|Trình bày được quan điểm của bản thân về tầm quan trọng của việc sử dụng tế bào gốc trong thực tiễn.
+curr-g10-e10-1-07|22|Tranh luận, phản biện được quan điểm về nhân bản vô tính động vật, con người.
+@10|elective_10_2|elective|Chuyên đề 10.2: Công nghệ enzyme và ứng dụng|Cơ sở khoa học ứng dụng công nghệ enzyme;Quy trình công nghệ sản xuất enzyme;Ứng dụng của enzyme
+curr-g10-e10-2-01|22|Trình bày được một số thành tựu của công nghệ enzyme.
+curr-g10-e10-2-02|22|Phân tích được cơ sở khoa học ứng dụng công nghệ enzyme.
+curr-g10-e10-2-03|23|Trình bày được quy trình công nghệ sản xuất enzyme. Lấy được một số ví dụ minh hoạ.
+curr-g10-e10-2-04|23|Trình bày được một số ứng dụng của enzyme trong các lĩnh vực: công nghệ thực phẩm, y dược, kĩ thuật di truyền.
+curr-g10-e10-2-05|23|Phân tích được triển vọng công nghệ enzyme trong tương lai.
+curr-g10-e10-2-06|23|Thực hiện được dự án hoặc đề tài tìm hiểu về ứng dụng enzyme.
+@10|elective_10_3|elective|Chuyên đề 10.3: Công nghệ vi sinh vật trong xử lí ô nhiễm môi trường|Vai trò của vi sinh vật trong xử lí ô nhiễm môi trường;Vi sinh vật trong việc phân huỷ các hợp chất;Một số công nghệ ứng dụng vi sinh vật trong xử lí môi trường
+curr-g10-e10-3-01|23|Nêu được vai trò của vi sinh vật trong xử lí ô nhiễm môi trường.
+curr-g10-e10-3-02|23|Mô tả được quá trình phân giải các hợp chất trong xử lí môi trường bằng công nghệ vi sinh: phân giải hiếu khí, kị khí, lên men.
+curr-g10-e10-3-03|23|Trình bày được một số công nghệ ứng dụng vi sinh vật trong xử lí môi trường. + Xử lí ô nhiễm môi trường đất; + Xử lí nước thải và làm sạch nước; + Thu nhận khí sinh học; + Xử lí chất thải rắn.
+curr-g10-e10-3-04|23,24|Thực hiện được dự án: Điều tra công nghệ ứng dụng vi sinh vật xử lí ô nhiễm môi trường tại địa phương (xử lí rác thải, nước thải,...).
+@11|elective_11_1|elective|Chuyên đề 11.1: Dinh dưỡng khoáng – tăng năng suất cây trồng và nông nghiệp sạch|Khái niệm nông nghiệp sạch;Nguyên tắc sử dụng khoáng;Biện pháp kĩ thuật sử dụng dinh dưỡng khoáng nhằm tạo nền nông nghiệp sạch
+curr-g11-e11-1-01|38|Nêu được khái niệm nông nghiệp sạch.
+curr-g11-e11-1-02|38|Phân tích được các nguyên tắc sử dụng khoáng trong việc tăng năng suất cây trồng (phù hợp thời vụ, giai đoạn sinh trưởng, phát triển, hàm lượng, phối hợp khoáng,...).
+curr-g11-e11-1-03|38|Phân tích được một số biện pháp kĩ thuật sử dụng dinh dưỡng khoáng nhằm tạo nền nông nghiệp sạch. Lấy được ví dụ minh hoạ.
+curr-g11-e11-1-04|38|Trình bày được mô hình thuỷ canh theo hướng phát triển nông nghiệp sạch.
+curr-g11-e11-1-05|38|Thực hiện được dự án: Điều tra sử dụng phân bón ở địa phương hoặc thực hành trồng cây với các kĩ thuật bón phân phù hợp.
+curr-g11-e11-1-06|38|Làm được thí nghiệm chứng minh tác dụng của loại phân bón, cách bón, hàm lượng đối với cây trồng.
+@11|elective_11_2|elective|Chuyên đề 11.2: Một số bệnh dịch ở người và cách phòng, chống|Một số bệnh dịch phổ biến ở người;Nguyên nhân gây bệnh dịch ở người;Các biện pháp phòng chống bệnh dịch
+curr-g11-e11-2-01|39|Kể tên được một số bệnh và tác nhân gây bệnh (vi khuẩn, virus,...). Trình bày được một số nguyên nhân lây nhiễm, gây dịch bệnh ở người (ví dụ: vệ sinh cơ thể không đúng cách, nhà cửa không sạch sẽ, ô nhiễm môi trường, vệ sinh giao tiếp với người bệnh không đúng cách,...).
+curr-g11-e11-2-02|39|Phân tích được một số biện pháp phòng chống các bệnh dịch phổ biến ở người: bệnh sốt xuất huyết; bệnh cúm; bệnh lao phổi; bệnh sởi,...
+curr-g11-e11-2-03|39|Thực hiện được các biện pháp phòng chống một số bệnh dịch phổ biến ở người.
+curr-g11-e11-2-04|39|Thực hiện được dự án: Điều tra được một số bệnh dịch phổ biến ở người và tuyên truyền phòng chống bệnh (Bệnh cúm, dịch tả, sốt xuất huyết, HIV/AIDS,...).
+@11|elective_11_3|elective|Chuyên đề 11.3: Vệ sinh an toàn thực phẩm|Khái niệm vệ sinh an toàn thực phẩm;Các nguyên nhân gây ngộ độc thực phẩm;Tác hại của mất vệ sinh an toàn thực phẩm;Biện pháp phòng và điều trị ngộ độc thực phẩm
+curr-g11-e11-3-01|40|Nêu được định nghĩa vệ sinh an toàn thực phẩm.
+curr-g11-e11-3-02|40|Phân tích được một số nguyên nhân gây ngộ độc thực phẩm. Lấy được ví dụ minh hoạ.
+curr-g11-e11-3-03|40|Phân tích được tác hại của việc mất an toàn vệ sinh thực phẩm đối với sức khoẻ con người.
+curr-g11-e11-3-04|40|Phân tích được một số biện pháp phòng và điều trị ngộ độc thực phẩm. Lấy được ví dụ minh hoạ.
+curr-g11-e11-3-05|40|Thực hiện được dự án: Điều tra về hiện trạng mất an toàn vệ sinh thực phẩm tại địa phương.
+@12|elective_12_1|elective|Chuyên đề 12.1: Sinh học phân tử|Khái quát sinh học phân tử và các thành tựu;Các nguyên lí của phương pháp tách chiết DNA;Công nghệ gene;Triển vọng công nghệ gene
+curr-g12-e12-1-01|54|Nêu được khái niệm sinh học phân tử.
+curr-g12-e12-1-02|54|Trình bày được một số thành tựu hiện đại về lí thuyết và ứng dụng của sinh học phân tử.
+curr-g12-e12-1-03|54|Phân tích được các nguyên tắc ứng dụng sinh học phân tử trong thực tiễn.
+curr-g12-e12-1-04|54|Nêu được các nguyên lí của phương pháp tách chiết DNA từ tế bào.
+curr-g12-e12-1-05|55|Dựa vào sơ đồ, mô tả được các bước trong công nghệ gene. Trình bày được các bước tạo thực vật chuyển gene và tạo động vật chuyển gene. Lấy được ví dụ minh hoạ.
+curr-g12-e12-1-06|55|Giải thích được cơ sở khoa học chuyển gene và vì sao phải sử dụng vector để truyền gene từ tế bào này sang tế bào khác.
+curr-g12-e12-1-07|55|Thực hiện được dự án hoặc đề tài tìm hiểu về các sản phẩm chuyển gene. Làm được tập san các bài viết, tranh ảnh về công nghệ chuyển gene.
+curr-g12-e12-1-08|55|Thu thập được các thông tin đánh giá về triển vọng của công nghệ gene trong tương lai.
+curr-g12-e12-1-09|55|Thực hiện được các kĩ năng: làm báo cáo, thuyết trình, tập san, thiết kế video.
+@12|elective_12_2|elective|Chuyên đề 12.2: Kiểm soát sinh học|Khái niệm kiểm soát sinh học;Vai trò của kiểm soát sinh học;Cơ sở của kiểm soát sinh học;Biện pháp kiểm soát sinh học
+curr-g12-e12-2-01|55|Nêu được khái niệm kiểm soát sinh học.
+curr-g12-e12-2-02|55|Phân tích được vai trò của kiểm soát sinh học.
+curr-g12-e12-2-03|55|Phân tích được cơ sở của kiểm soát sinh học.
+curr-g12-e12-2-04|55|Trình bày được một số biện pháp kiểm soát sinh học (bảo vệ các loài thiên địch; sử dụng hợp lí thuốc trừ sâu, phân bón).
+curr-g12-e12-2-05|55|Thực hành: Sưu tầm hoặc điều tra được ứng dụng kiểm soát sinh học tại địa phương.
+@12|elective_12_3|elective|Chuyên đề 12.3: Sinh thái nhân văn|Khái niệm sinh thái nhân văn;Giá trị của sinh thái nhân văn trong việc phát triển bền vững;Một số lĩnh vực sinh thái nhân văn
+curr-g12-e12-3-01|56|Nêu được khái niệm sinh thái nhân văn.
+curr-g12-e12-3-02|56|Phân tích được giá trị của sinh thái nhân văn trong việc phát triển bền vững.
+curr-g12-e12-3-03|56|Phân tích được giá trị của sinh thái nhân văn trong một số lĩnh vực như: + Nông nghiệp; + Phát triển đô thị; + Bảo tồn và phát triển; + Thích ứng với biến đổi khí hậu.
+curr-g12-e12-3-04|56|Thực hiện dự án: Điều tra tìm hiểu về một trong các lĩnh vực sinh thái nhân văn tại địa phương.

@@ -1,0 +1,539 @@
+import json
+import os
+import re
+import threading
+import time
+from collections import defaultdict, deque
+from typing import Any, Literal
+
+from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token as google_id_token
+from pydantic import BaseModel, Field
+from backend.gemini_gateway import GeminiRateLimiter, generate_content, quota_error
+from backend import credit_api
+
+try:
+    from google import genai
+except Exception:
+    genai = None
+
+APP_ENV = os.getenv('APP_ENV', 'development')
+FIREBASE_PROJECT_ID = os.getenv('FIREBASE_PROJECT_ID', 'biogen-ai').strip()
+AI_GENERATION_UNITS_PER_HOUR = int(os.getenv('AI_GENERATION_UNITS_PER_HOUR', '120'))
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '').strip()
+GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash').strip()
+GEMINI_REQUESTS_PER_MINUTE = max(1, int(os.getenv('GEMINI_REQUESTS_PER_MINUTE', '4')))
+_gemini_limiter = GeminiRateLimiter(GEMINI_REQUESTS_PER_MINUTE)
+CORS_ORIGINS = [
+    item.strip()
+    for item in os.getenv(
+        'CORS_ORIGINS',
+        'https://biogenai-blueprint-preview.onrender.com,https://biogenai.onrender.com',
+    ).split(',')
+    if item.strip()
+]
+
+app = FastAPI(
+    title='BioGen AI API',
+    version='0.1.0',
+    docs_url='/docs' if APP_ENV != 'production' else None,
+    redoc_url=None,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=CORS_ORIGINS,
+    allow_credentials=False,
+    allow_methods=['GET', 'POST', 'OPTIONS'],
+    allow_headers=['Content-Type', 'Authorization'],
+    expose_headers=['Retry-After'],
+)
+
+_firebase_request = google_requests.Request()
+
+def require_firebase_user(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    if not authorization or not authorization.lower().startswith('bearer '):
+        raise HTTPException(status_code=401, detail='Firebase ID token is required.')
+
+    token = authorization.split(' ', 1)[1].strip()
+    if not token:
+        raise HTTPException(status_code=401, detail='Firebase ID token is required.')
+
+    try:
+        decoded = google_id_token.verify_firebase_token(
+            token,
+            _firebase_request,
+            audience=FIREBASE_PROJECT_ID,
+        )
+    except Exception:
+        raise HTTPException(status_code=401, detail='Invalid or expired Firebase ID token.')
+
+    expected_issuer = f'https://securetoken.google.com/{FIREBASE_PROJECT_ID}'
+    if decoded.get('aud') != FIREBASE_PROJECT_ID or decoded.get('iss') != expected_issuer:
+        raise HTTPException(status_code=401, detail='Firebase token project mismatch.')
+
+    return dict(decoded)
+
+_usage_lock = threading.Lock()
+_usage_by_uid: dict[str, deque[float]] = defaultdict(deque)
+
+def consume_ai_quota(user: dict[str, Any], units: int = 1) -> None:
+    uid = str(user.get('uid') or user.get('sub') or '').strip()
+    if not uid:
+        raise HTTPException(status_code=401, detail='Firebase user ID is missing.')
+
+    units = max(1, int(units))
+    now = time.time()
+    cutoff = now - 3600
+
+    with _usage_lock:
+        bucket = _usage_by_uid[uid]
+        while bucket and bucket[0] <= cutoff:
+            bucket.popleft()
+
+        if len(bucket) + units > AI_GENERATION_UNITS_PER_HOUR:
+            retry_after = max(1, int(3600 - (now - bucket[0]))) if bucket else 3600
+            raise quota_error('user_hourly_quota', retry_after, False,
+                              'Account hourly AI generation quota reached.')
+
+        for _ in range(units):
+            bucket.append(now)
+
+class SimpleSlot(BaseModel):
+    id: str
+    part: Literal['mcq', 'short']
+    order: int
+    maxScore: float = 0
+    contentId: str
+    contentLabel: str
+    competencyCode: str
+    outcomeId: str
+    outcomeText: str
+    level: Literal['know', 'understand', 'apply']
+
+class TfStatementSlot(BaseModel):
+    id: str
+    statementOrder: Literal[1, 2, 3, 4]
+    contentId: str
+    contentLabel: str
+    competencyCode: str
+    outcomeId: str
+    outcomeText: str
+    level: Literal['know', 'understand', 'apply']
+
+class TfSlot(BaseModel):
+    id: str
+    part: Literal['tf']
+    order: int
+    maxScore: float = 0
+    statements: list[TfStatementSlot] = Field(min_length=4, max_length=4)
+    scoring: dict[str, float] = Field(default_factory=dict)
+
+class GenerateItemRequest(BaseModel):
+    slot: dict[str, Any]
+    lang: str = 'vi'
+
+class ManualGenerateRequest(BaseModel):
+    prompt: str = Field(min_length=20, max_length=16000)
+    expectedCount: int = Field(ge=1, le=40)
+    runId: str | None = Field(default=None, min_length=8, max_length=80)
+    batchIndex: int = Field(default=0, ge=0, le=39)
+    lang: str = 'vi'
+
+class GeneratedQuestion(BaseModel):
+    question: str
+    type: str
+    options: list[str]
+    answer: str
+    explanation: str
+
+class GeneratedExamItem(BaseModel):
+    slotId: str
+    part: Literal['mcq', 'tf', 'short']
+    order: int
+    question: GeneratedQuestion
+
+LEVEL_LABELS = {
+    'know': {'vi': 'Biết', 'en': 'Know'},
+    'understand': {'vi': 'Hiểu', 'en': 'Understand'},
+    'apply': {'vi': 'Vận dụng', 'en': 'Apply'},
+}
+
+@app.get('/health')
+def health():
+    return {
+        'ok': True,
+        'service': 'biogenai-api',
+        'environment': APP_ENV,
+        'aiConfigured': bool(GEMINI_API_KEY),
+        'authRequired': True,
+        'firebaseProjectId': FIREBASE_PROJECT_ID,
+        'generationUnitsPerHour': AI_GENERATION_UNITS_PER_HOUR,
+        'model': GEMINI_MODEL,
+        'geminiRequestsPerMinute': GEMINI_REQUESTS_PER_MINUTE,
+        'creditsEnabled': credit_api.enabled(),
+    }
+
+def _client():
+    if not GEMINI_API_KEY:
+        raise HTTPException(status_code=503, detail='GEMINI_API_KEY is not configured on the BioGen backend.')
+    if genai is None:
+        raise HTTPException(status_code=500, detail='google-genai is unavailable.')
+    # All retries must pass through our project limiter, including SDK retries.
+    return genai.Client(api_key=GEMINI_API_KEY, http_options={
+        'timeout': 90000, 'retry_options': {'attempts': 1},
+    })
+
+def _mcq_prompt(slot: SimpleSlot, lang: str) -> str:
+    if lang == 'en':
+        return f'''You are an expert Biology teacher. Create ONE multiple-choice question.
+Content: {slot.contentLabel}
+Competency: {slot.competencyCode}
+Learning outcome: {slot.outcomeText}
+Cognitive level: {LEVEL_LABELS[slot.level]['en']}
+
+Requirements:
+- Exactly 4 options A-D.
+- Exactly 1 correct answer.
+- Match the learning outcome and requested cognitive level.
+- Do not mention matrix, slot, competency code, or cognitive label.
+- Scientifically accurate Biology.
+- Return ONLY valid JSON with keys question,type,options,answer,explanation.'''
+    return f'''Bạn là chuyên gia soạn đề Sinh học. Tạo ĐÚNG MỘT câu trắc nghiệm nhiều lựa chọn.
+Nội dung: {slot.contentLabel}
+Năng lực: {slot.competencyCode}
+Yêu cầu cần đạt: {slot.outcomeText}
+Mức độ: {LEVEL_LABELS[slot.level]['vi']}
+
+Yêu cầu:
+- Đúng 4 phương án A-D.
+- Chỉ 1 phương án đúng.
+- Bám đúng YCCĐ và mức độ.
+- Không nhắc ma trận, slot, mã năng lực hay tên mức độ.
+- Nội dung Sinh học chính xác.
+- Chỉ trả về JSON hợp lệ với các khóa question,type,options,answer,explanation.'''
+
+def _short_prompt(slot: SimpleSlot, lang: str) -> str:
+    if lang == 'en':
+        return f'''Create ONE numeric short-response Biology question.
+Content: {slot.contentLabel}
+Competency: {slot.competencyCode}
+Learning outcome: {slot.outcomeText}
+Cognitive level: {LEVEL_LABELS[slot.level]['en']}
+- Final answer is one number only.
+- Maximum 4 characters including minus sign or decimal separator.
+- No choices.
+- Return ONLY valid JSON with keys question,type,options,answer,explanation.'''
+    return f'''Tạo ĐÚNG MỘT câu trả lời ngắn bằng số.
+Nội dung: {slot.contentLabel}
+Năng lực: {slot.competencyCode}
+Yêu cầu cần đạt: {slot.outcomeText}
+Mức độ: {LEVEL_LABELS[slot.level]['vi']}
+- Đáp án cuối cùng là một số duy nhất.
+- Chuỗi đáp án tối đa 4 ký tự, tính cả dấu âm hoặc dấu thập phân.
+- Không có phương án lựa chọn.
+- Chỉ trả về JSON hợp lệ với các khóa question,type,options,answer,explanation.'''
+
+def _tf_prompt(slot: TfSlot, lang: str) -> str:
+    specs = []
+    for statement in slot.statements:
+        letter = chr(96 + statement.statementOrder)
+        level = LEVEL_LABELS[statement.level]['en' if lang == 'en' else 'vi']
+        specs.append(f'{letter}) {level}: {statement.outcomeText}')
+    spec_text = '\n'.join(specs)
+    content = slot.statements[0].contentLabel if slot.statements else 'Biology'
+    if lang == 'en':
+        return f'''Create ONE True/False cluster with EXACTLY four statements.
+Shared content: {content}
+Follow these four specifications in order:
+{spec_text}
+- One coherent shared stem/context in question.
+- Exactly four options a), b), c), d).
+- answer must be a STRING such as "a) True; b) False; c) True; d) False", covering all four statements.
+- Each statement matches its own outcome and level.
+- Use a meaningful mix of true and false statements.
+- Return ONLY valid JSON with keys question,type,options,answer,explanation.'''
+    return f'''Tạo ĐÚNG MỘT câu Đúng/Sai gồm CHÍNH XÁC 4 ý.
+Nội dung chung: {content}
+Bốn ý lần lượt bám đúng đặc tả:
+{spec_text}
+- Một đoạn dẫn/ngữ cảnh chung trong question.
+- Đúng bốn ý a), b), c), d).
+- answer phải là CHUỖI, ví dụ "a) Đúng; b) Sai; c) Đúng; d) Sai", chỉ rõ đáp án cho đủ bốn ý.
+- Mỗi ý đúng YCCĐ và mức độ riêng.
+- Pha trộn hợp lí mệnh đề đúng và sai.
+- Chỉ trả về JSON hợp lệ với các khóa question,type,options,answer,explanation.'''
+
+def _extract_json(text: str) -> dict[str, Any]:
+    cleaned = text.strip()
+    data = json.loads(cleaned)
+    if not isinstance(data, dict):
+        raise ValueError('AI response must be one JSON object.')
+    return data
+
+def _normalize_tf_answer(raw: Any) -> str:
+    # Preserve the four explicit truth values; never infer missing answers.
+    true_tokens = {'đúng', 'dung', 'true', 't'}
+    false_tokens = {'sai', 'false', 'f'}
+    if isinstance(raw, dict):
+        values = {str(key).strip().lower(): value for key, value in raw.items()}
+        if set(values) != set('abcd') or len(raw) != 4:
+            raise ValueError('True/False answer must include exactly a, b, c, d.')
+    elif isinstance(raw, str):
+        values = {}
+        for match in re.finditer(r'\b([a-d])\s*[\)\.:\-]?\s*(Đúng|Dung|Sai|True|False|T|F)\b', raw, re.I):
+            letter, token = match.groups()
+            letter = letter.lower()
+            if letter in values:
+                raise ValueError('True/False answer contains duplicate statement letters.')
+            values[letter] = token
+        if set(values) != set('abcd'):
+            raise ValueError('True/False answer must include a, b, c, d with explicit truth values.')
+    else:
+        raise ValueError('True/False answer must be text or a four-letter answer map.')
+    result = []
+    for letter in 'abcd':
+        value = values[letter]
+        if isinstance(value, bool):
+            truth = value
+        elif isinstance(value, str) and value.strip().lower() in true_tokens | false_tokens:
+            truth = value.strip().lower() in true_tokens
+        else:
+            raise ValueError('True/False truth value must be explicit true/false.')
+        result.append(f'{letter}) {"Đúng" if truth else "Sai"}')
+    return '; '.join(result)
+
+def _validate_and_normalize(data: dict[str, Any], part: str) -> GeneratedQuestion:
+    question = str(data.get('question', '')).strip()
+    answer = str(data.get('answer', '')).strip()
+    explanation = str(data.get('explanation', '')).strip()
+    options = [str(x).strip() for x in data.get('options', [])] if isinstance(data.get('options', []), list) else []
+    if not question or not answer or not explanation:
+        raise ValueError('Missing question, answer, or explanation.')
+    if part == 'mcq':
+        if len(options) != 4:
+            raise ValueError('MCQ must contain exactly four options.')
+        normalized = []
+        for index, option in enumerate(options):
+            letter = chr(65 + index)
+            clean = re.sub(r'^\s*[A-D][\.)]\s*', '', option, flags=re.I).strip()
+            normalized.append(f'{letter}. {clean}')
+        options = normalized
+        if not re.match(r'^[A-D]', answer, flags=re.I):
+            raise ValueError('MCQ answer must begin with A/B/C/D.')
+        qtype = 'Multiple choices'
+    elif part == 'tf':
+        if len(options) != 4:
+            raise ValueError('True/False must contain exactly four statements.')
+        normalized = []
+        for index, option in enumerate(options):
+            letter = chr(97 + index)
+            clean = re.sub(r'^\s*[a-d][\.)]\s*', '', option, flags=re.I).strip()
+            normalized.append(f'{letter}) {clean}')
+        options = normalized
+        answer = _normalize_tf_answer(data.get('answer'))
+        qtype = 'True/ False'
+    else:
+        options = []
+        clean_answer = re.sub(r'^\s*A\.\s*', '', answer, flags=re.I).strip().replace(',', '.')
+        if not re.match(r'^-?\d+(?:\.\d+)?$', clean_answer):
+            raise ValueError('Short response answer must be numeric.')
+        if len(clean_answer.replace('.', ',')) > 4:
+            raise ValueError('Short response answer must be at most four characters.')
+        answer = clean_answer
+        qtype = 'Short response'
+    return GeneratedQuestion(question=question, type=qtype, options=options, answer=answer, explanation=explanation)
+
+def _charge_once(user: dict[str, Any], units: int = 1):
+    charged = False
+    def charge():
+        nonlocal charged
+        if not charged:
+            consume_ai_quota(user, units)
+            charged = True
+    return charge
+
+def _generate(slot, lang: str, on_admitted=None, usage_sink=None) -> GeneratedExamItem:
+    client = _client()
+    if isinstance(slot, TfSlot):
+        prompt = _tf_prompt(slot, lang)
+        part = 'tf'
+    elif slot.part == 'mcq':
+        prompt = _mcq_prompt(slot, lang)
+        part = 'mcq'
+    else:
+        prompt = _short_prompt(slot, lang)
+        part = 'short'
+    last_error = None
+    for attempt in range(2):
+        try:
+            response = generate_content(client, _gemini_limiter, on_admitted=on_admitted,
+                model=GEMINI_MODEL,
+                contents=prompt + ('\nIMPORTANT: Fix structural errors and follow the JSON schema exactly.' if attempt else ''),
+                config={'response_mime_type': 'application/json'},
+            )
+            if usage_sink:
+                meta = getattr(response, 'usage_metadata', None)
+                usage_sink({'calls': 1, 'inputTokens': getattr(meta, 'prompt_token_count', 0) or 0,
+                            'outputTokens': getattr(meta, 'candidates_token_count', 0) or 0,
+                            'thinkingTokens': getattr(meta, 'thoughts_token_count', 0) or 0})
+            data = _extract_json(response.text or '')
+            question = _validate_and_normalize(data, part)
+            return GeneratedExamItem(slotId=slot.id, part=part, order=slot.order, question=question)
+        except HTTPException:
+            raise
+        except (ValueError, TypeError) as exc:
+            last_error = exc
+    raise HTTPException(status_code=422, detail={
+        'code': 'ai_invalid_question', 'retryable': False,
+        'message': f'AI question format validation failed: {last_error}',
+    })
+
+def _validate_manual_question(data: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(data, dict):
+        raise ValueError('Manual question must be a JSON object.')
+    question = str(data.get('question', '')).strip()
+    qtype = str(data.get('type', '')).strip()
+    answer = str(data.get('answer', '')).strip()
+    explanation = str(data.get('explanation', '')).strip()
+    options = data.get('options', [])
+
+    if not question or not answer or not explanation:
+        raise ValueError('Manual question is missing required fields.')
+
+    if qtype not in ('Multiple choices', 'True/ False', 'Short response', 'Free answer'):
+        raise ValueError('Unsupported question type.')
+
+    if not isinstance(options, list):
+        raise ValueError('Question options must be an array.')
+
+    options = [str(item).strip() for item in options]
+
+    if qtype == 'Multiple choices' and len(options) != 4:
+        raise ValueError('Multiple-choice question must contain exactly four options.')
+
+    if qtype == 'True/ False' and len(options) != 4:
+        raise ValueError('True/False question must contain exactly four statements.')
+    if qtype == 'True/ False':
+        answer = _normalize_tf_answer(data.get('answer'))
+
+    if qtype == 'Short response':
+        options = []
+        clean_answer = re.sub(r'^\s*A\.\s*', '', answer, flags=re.I).strip()
+        if not re.match(r'^-?\d+(?:[\.,]\d+)?$', clean_answer):
+            raise ValueError('Short-response answer must be numeric.')
+        if len(clean_answer.replace('.', ',').replace('+', '')) > 4:
+            raise ValueError('Short-response answer must be at most four characters.')
+        answer = clean_answer
+
+    return {
+        'question': question,
+        'type': qtype,
+        'options': options,
+        'answer': answer,
+        'explanation': explanation,
+    }
+
+@app.post('/api/questions/generate-manual')
+def generate_manual_questions(
+    payload: ManualGenerateRequest,
+    user: dict[str, Any] = Depends(require_firebase_user),
+):
+    if not credit_api.enabled():
+        return _generate_manual_questions(payload, user)
+    if not payload.runId:
+        raise HTTPException(403, detail={'code': 'manual_run_required', 'retryable': False,
+            'message': 'Hãy đăng ký lượt tạo câu hỏi lẻ trước khi gọi AI.'})
+    credits = credit_api.service()
+    batch = {'prompt': payload.prompt, 'expectedCount': payload.expectedCount, 'lang': payload.lang}
+    claim = credits.claim_manual(user, payload.runId, payload.batchIndex, batch)
+    if 'cached' in claim:
+        return claim['cached']
+    try:
+        result = _generate_manual_questions(payload, user)
+        return credits.finish_manual(user, payload.runId, claim['nonce'], result)
+    except Exception:
+        credits.finish_manual(user, payload.runId, claim['nonce'])
+        raise
+
+
+def _generate_manual_questions(payload, user):
+    on_admitted = _charge_once(user, payload.expectedCount)
+    client = _client()
+    last_error = None
+
+    for attempt in range(2):
+        try:
+            response = generate_content(client, _gemini_limiter, on_admitted=on_admitted,
+                model=GEMINI_MODEL,
+                contents=payload.prompt + (
+                    '\nIMPORTANT: Return the exact requested number of questions and valid JSON only.'
+                    if attempt
+                    else ''
+                ),
+                config={'response_mime_type': 'application/json'},
+            )
+            data = json.loads((response.text or '').strip())
+            if not isinstance(data, list):
+                raise ValueError('AI response must be a JSON array.')
+            if len(data) != payload.expectedCount:
+                raise ValueError(
+                    f'Expected {payload.expectedCount} questions, received {len(data)}.'
+                )
+            return [_validate_manual_question(item) for item in data]
+        except HTTPException:
+            raise
+        except (ValueError, TypeError) as exc:
+            last_error = exc
+
+    raise HTTPException(
+        status_code=422,
+        detail={'code': 'ai_invalid_question', 'retryable': False,
+                'message': f'AI question format validation failed: {last_error}'},
+    )
+
+@app.post('/api/exam/generate-item', response_model=GeneratedExamItem)
+def generate_item(
+    payload: GenerateItemRequest,
+    user: dict[str, Any] = Depends(require_firebase_user),
+):
+    if credit_api.enabled():
+        raise HTTPException(403, detail={'code': 'credit_exam_required', 'retryable': False,
+                            'message': 'Hãy tạo hoặc tiếp tục đề bằng credit trước khi gọi AI.'})
+    part = payload.slot.get('part')
+    try:
+        if part == 'tf':
+            slot = TfSlot.model_validate(payload.slot)
+        elif part in ('mcq', 'short'):
+            slot = SimpleSlot.model_validate(payload.slot)
+        else:
+            raise ValueError('Unsupported slot part.')
+    except Exception as exc:
+        raise HTTPException(status_code=422, detail=f'Invalid exam slot: {exc}') from exc
+    return _generate(slot, payload.lang, on_admitted=_charge_once(user))
+
+
+def _parse_credit_slot(raw):
+    try:
+        if raw.get('part') == 'tf':
+            slot = TfSlot.model_validate(raw)
+        elif raw.get('part') in ('mcq', 'short'):
+            slot = SimpleSlot.model_validate(raw)
+        else:
+            raise ValueError('Unsupported part')
+        if not 1 <= len(slot.id) <= 150:
+            raise ValueError('Invalid slot ID')
+        return slot
+    except Exception:
+        raise HTTPException(422, detail='Vị trí câu hỏi không hợp lệ.')
+
+
+app.include_router(credit_api.build_router(
+    require_firebase_user, _parse_credit_slot,
+    lambda slot, lang, user, usage_sink: _generate(slot, lang, on_admitted=_charge_once(user),
+                                                usage_sink=usage_sink),
+))
+from backend.payments import build_payment_router
+app.include_router(build_payment_router(lambda: credit_api.service()))

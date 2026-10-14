@@ -1,0 +1,1973 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "title": "Chương trình giáo dục phổ thông môn Sinh học (2018)",
+    "documentId": "14. CT_Sinh hoc.pdf",
+    "pageCount": 65,
+    "authority": "Bộ Giáo dục và Đào tạo",
+    "issuedWith": "Thông tư 32/2018/TT-BGDĐT, ngày 26/12/2018",
+    "pdfUrl": "/specification/biology-curriculum-2018.pdf",
+    "pdfSha256": "a2435d857b8c7988bc14f988ee4df51b5f5a30d5a9a1b15cf8bdc614c0159bae",
+    "allocations": null,
+    "scores": null,
+    "notes": [
+      "Đối chiếu phần YCCĐ lớp 10 (trang 13–21), lớp 11 (24–38), lớp 12 (40–54) và 9 chuyên đề (21–24, 38–40, 54–56).",
+      "Chỉ bổ sung yêu cầu hoặc vế yêu cầu chưa có; giữ nguyên nội dung, mã, mức độ và ID của bản đặc tả trước.",
+      "YCCĐ chương trình không có cột mã năng lực hoặc mức độ. Không suy từ động từ."
+    ]
+  },
+  "topicUpdates": [
+    {
+      "grade": 12,
+      "contentId": "ecosystems_biosphere",
+      "contentLabel": "Hệ sinh thái và Sinh quyển",
+      "sourceId": "curriculum",
+      "sourcePages": [
+        51,
+        52,
+        53
+      ],
+      "outline": [
+        "Khái quát về hệ sinh thái",
+        "Dòng năng lượng và trao đổi vật chất trong hệ sinh thái",
+        "Chuỗi thức ăn",
+        "Lưới thức ăn",
+        "Hiệu suất sinh thái",
+        "Tháp sinh thái",
+        "Chu trình sinh – địa – hoá các chất",
+        "Sự biến động của hệ sinh thái",
+        "Diễn thế sinh thái",
+        "Sự ấm lên toàn cầu",
+        "Phì dưỡng",
+        "Sa mạc hoá",
+        "Sinh quyển",
+        "Khái niệm",
+        "Các khu sinh học (Biome) trên cạn",
+        "Các khu sinh học dưới nước"
+      ]
+    }
+  ],
+  "topics": [
+    {
+      "grade": 10,
+      "contentId": "elective_10_1",
+      "scope": "elective",
+      "contentLabel": "Chuyên đề 10.1: Công nghệ tế bào và một số thành tựu",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "outline": [
+        "Thành tựu công nghệ tế bào",
+        "Các giai đoạn của công nghệ tế bào",
+        "Tế bào gốc và ứng dụng"
+      ]
+    },
+    {
+      "grade": 10,
+      "contentId": "elective_10_2",
+      "scope": "elective",
+      "contentLabel": "Chuyên đề 10.2: Công nghệ enzyme và ứng dụng",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "outline": [
+        "Cơ sở khoa học ứng dụng công nghệ enzyme",
+        "Quy trình công nghệ sản xuất enzyme",
+        "Ứng dụng của enzyme"
+      ]
+    },
+    {
+      "grade": 10,
+      "contentId": "elective_10_3",
+      "scope": "elective",
+      "contentLabel": "Chuyên đề 10.3: Công nghệ vi sinh vật trong xử lí ô nhiễm môi trường",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "outline": [
+        "Vai trò của vi sinh vật trong xử lí ô nhiễm môi trường",
+        "Vi sinh vật trong việc phân huỷ các hợp chất",
+        "Một số công nghệ ứng dụng vi sinh vật trong xử lí môi trường"
+      ]
+    },
+    {
+      "grade": 11,
+      "contentId": "elective_11_1",
+      "scope": "elective",
+      "contentLabel": "Chuyên đề 11.1: Dinh dưỡng khoáng – tăng năng suất cây trồng và nông nghiệp sạch",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "outline": [
+        "Khái niệm nông nghiệp sạch",
+        "Nguyên tắc sử dụng khoáng",
+        "Biện pháp kĩ thuật sử dụng dinh dưỡng khoáng nhằm tạo nền nông nghiệp sạch"
+      ]
+    },
+    {
+      "grade": 11,
+      "contentId": "elective_11_2",
+      "scope": "elective",
+      "contentLabel": "Chuyên đề 11.2: Một số bệnh dịch ở người và cách phòng, chống",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "outline": [
+        "Một số bệnh dịch phổ biến ở người",
+        "Nguyên nhân gây bệnh dịch ở người",
+        "Các biện pháp phòng chống bệnh dịch"
+      ]
+    },
+    {
+      "grade": 11,
+      "contentId": "elective_11_3",
+      "scope": "elective",
+      "contentLabel": "Chuyên đề 11.3: Vệ sinh an toàn thực phẩm",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "outline": [
+        "Khái niệm vệ sinh an toàn thực phẩm",
+        "Các nguyên nhân gây ngộ độc thực phẩm",
+        "Tác hại của mất vệ sinh an toàn thực phẩm",
+        "Biện pháp phòng và điều trị ngộ độc thực phẩm"
+      ]
+    },
+    {
+      "grade": 12,
+      "contentId": "elective_12_1",
+      "scope": "elective",
+      "contentLabel": "Chuyên đề 12.1: Sinh học phân tử",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "outline": [
+        "Khái quát sinh học phân tử và các thành tựu",
+        "Các nguyên lí của phương pháp tách chiết DNA",
+        "Công nghệ gene",
+        "Triển vọng công nghệ gene"
+      ]
+    },
+    {
+      "grade": 12,
+      "contentId": "elective_12_2",
+      "scope": "elective",
+      "contentLabel": "Chuyên đề 12.2: Kiểm soát sinh học",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "outline": [
+        "Khái niệm kiểm soát sinh học",
+        "Vai trò của kiểm soát sinh học",
+        "Cơ sở của kiểm soát sinh học",
+        "Biện pháp kiểm soát sinh học"
+      ]
+    },
+    {
+      "grade": 12,
+      "contentId": "elective_12_3",
+      "scope": "elective",
+      "contentLabel": "Chuyên đề 12.3: Sinh thái nhân văn",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "outline": [
+        "Khái niệm sinh thái nhân văn",
+        "Giá trị của sinh thái nhân văn trong việc phát triển bền vững",
+        "Một số lĩnh vực sinh thái nhân văn"
+      ]
+    }
+  ],
+  "records": [
+    {
+      "id": "curr-g10-virus-prevention",
+      "grade": 10,
+      "contentId": "viruses",
+      "contentLabel": "Virus và các ứng dụng",
+      "strand": "SINH HỌC VI SINH VẬT VÀ VIRUS",
+      "sourceId": "curriculum",
+      "scope": "core",
+      "level": null,
+      "competencyCode": null,
+      "text": "Trình bày được phương thức lây truyền một số bệnh do virus ở người, thực vật và động vật (HIV, cúm, sởi,...) và cách phòng chống. Giải thích được các bệnh do virus thường lây lan nhanh, rộng và có nhiều biến thể.",
+      "sourcePage": 21,
+      "sourcePages": [
+        21
+      ],
+      "sourceLocation": "curriculum.psv:5",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g11-plant-response-role",
+      "grade": 11,
+      "contentId": "plant_response",
+      "contentLabel": "Cảm ứng ở thực vật",
+      "strand": "Cảm ứng ở sinh vật",
+      "sourceId": "curriculum",
+      "scope": "core",
+      "level": null,
+      "competencyCode": null,
+      "text": "Phân tích được vai trò cảm ứng đối với thực vật.",
+      "sourcePage": 31,
+      "sourcePages": [
+        31
+      ],
+      "sourceLocation": "curriculum.psv:7",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g11-meristems",
+      "grade": 11,
+      "contentId": "plant_growth",
+      "contentLabel": "Sinh trưởng và phát triển ở thực vật",
+      "strand": "Sinh trưởng và phát triển ở sinh vật",
+      "sourceId": "curriculum",
+      "scope": "core",
+      "level": null,
+      "competencyCode": null,
+      "text": "Nêu được khái niệm mô phân sinh. Trình bày được vai trò của mô phân sinh đối với sinh trưởng ở thực vật. Phân biệt được các loại mô phân sinh.",
+      "sourcePage": 34,
+      "sourcePages": [
+        34,
+        35
+      ],
+      "sourceLocation": "curriculum.psv:9",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-mendel-regularity",
+      "grade": 12,
+      "contentId": "chromosomal_genetics",
+      "contentLabel": "Di truyền nhiễm sắc thể",
+      "strand": "DI TRUYỀN HỌC",
+      "sourceId": "curriculum",
+      "scope": "core",
+      "level": null,
+      "competencyCode": null,
+      "text": "Nêu được tính quy luật của hiện tượng di truyền.",
+      "sourcePage": 43,
+      "sourcePages": [
+        43
+      ],
+      "sourceLocation": "curriculum.psv:11",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-chromosome-practical",
+      "grade": 12,
+      "contentId": "chromosomal_genetics",
+      "contentLabel": "Di truyền nhiễm sắc thể",
+      "strand": "DI TRUYỀN HỌC",
+      "sourceId": "curriculum",
+      "scope": "core",
+      "level": null,
+      "competencyCode": null,
+      "text": "Thực hành, quan sát được đột biến nhiễm sắc thể trên tiêu bản cố định và tạm thời; tìm hiểu được tác hại gây đột biến ở người của một số chất độc (dioxin, thuốc diệt cỏ 2,4D,...).",
+      "sourcePage": 45,
+      "sourcePages": [
+        45
+      ],
+      "sourceLocation": "curriculum.psv:12",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-hardy-weinberg",
+      "grade": 12,
+      "contentId": "population_genetics",
+      "contentLabel": "Di truyền quần thể",
+      "strand": "DI TRUYỀN HỌC",
+      "sourceId": "curriculum",
+      "scope": "core",
+      "level": null,
+      "competencyCode": null,
+      "text": "Trình bày được định luật Hardy – Weinberg và điều kiện nghiệm đúng.",
+      "sourcePage": 47,
+      "sourcePages": [
+        47
+      ],
+      "sourceLocation": "curriculum.psv:14",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-community-living-level",
+      "grade": 12,
+      "contentId": "community_ecology",
+      "contentLabel": "Sinh thái học quần xã",
+      "strand": "SINH THÁI HỌC VÀ MÔI TRƯỜNG",
+      "sourceId": "curriculum",
+      "scope": "core",
+      "level": null,
+      "competencyCode": null,
+      "text": "Giải thích được quần xã là một cấp độ tổ chức sống.",
+      "sourcePage": 51,
+      "sourcePages": [
+        51
+      ],
+      "sourceLocation": "curriculum.psv:16",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-community-shannon",
+      "grade": 12,
+      "contentId": "community_ecology",
+      "contentLabel": "Sinh thái học quần xã",
+      "strand": "SINH THÁI HỌC VÀ MÔI TRƯỜNG",
+      "sourceId": "curriculum",
+      "scope": "core",
+      "level": null,
+      "competencyCode": null,
+      "text": "Thực hành: Tính được độ phong phú của loài trong quần xã; tính được độ đa dạng của quần xã theo chỉ số Shannon.",
+      "sourcePage": 51,
+      "sourcePages": [
+        51
+      ],
+      "sourceLocation": "curriculum.psv:17",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      },
+      "relatedSourceRecordIds": [
+        "spec-g12-p30-r15"
+      ]
+    },
+    {
+      "id": "curr-g12-ecosystem-concept",
+      "grade": 12,
+      "contentId": "ecosystems_biosphere",
+      "contentLabel": "Hệ sinh thái và Sinh quyển (phần còn đọc được ở trang 32)",
+      "strand": "SINH THÁI HỌC VÀ MÔI TRƯỜNG",
+      "sourceId": "curriculum",
+      "scope": "core",
+      "level": null,
+      "competencyCode": null,
+      "text": "Phát biểu được khái niệm hệ sinh thái.",
+      "sourcePage": 51,
+      "sourcePages": [
+        51
+      ],
+      "sourceLocation": "curriculum.psv:19",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-ecosystem-exchange",
+      "grade": 12,
+      "contentId": "ecosystems_biosphere",
+      "contentLabel": "Hệ sinh thái và Sinh quyển (phần còn đọc được ở trang 32)",
+      "strand": "SINH THÁI HỌC VÀ MÔI TRƯỜNG",
+      "sourceId": "curriculum",
+      "scope": "core",
+      "level": null,
+      "competencyCode": null,
+      "text": "Phân tích được quá trình trao đổi vật chất và chuyển hoá năng lượng trong hệ sinh thái.",
+      "sourcePage": 51,
+      "sourcePages": [
+        51
+      ],
+      "sourceLocation": "curriculum.psv:20",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-food-web",
+      "grade": 12,
+      "contentId": "ecosystems_biosphere",
+      "contentLabel": "Hệ sinh thái và Sinh quyển (phần còn đọc được ở trang 32)",
+      "strand": "SINH THÁI HỌC VÀ MÔI TRƯỜNG",
+      "sourceId": "curriculum",
+      "scope": "core",
+      "level": null,
+      "competencyCode": null,
+      "text": "Trình bày được khái niệm chuỗi thức ăn, các loại chuỗi thức ăn, lưới thức ăn, bậc dinh dưỡng. Vẽ được sơ đồ chuỗi và lưới thức ăn trong quần xã.",
+      "sourcePage": 51,
+      "sourcePages": [
+        51
+      ],
+      "sourceLocation": "curriculum.psv:21",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-energy-flow",
+      "grade": 12,
+      "contentId": "ecosystems_biosphere",
+      "contentLabel": "Hệ sinh thái và Sinh quyển (phần còn đọc được ở trang 32)",
+      "strand": "SINH THÁI HỌC VÀ MÔI TRƯỜNG",
+      "sourceId": "curriculum",
+      "scope": "core",
+      "level": null,
+      "competencyCode": null,
+      "text": "Trình bày được dòng năng lượng trong một hệ sinh thái (bao gồm: phân bố năng lượng trên Trái Đất, sơ đồ khái quát về dòng năng lượng trong hệ sinh thái, sơ đồ khái quát năng lượng chuyển qua các bậc dinh dưỡng trong hệ sinh thái).",
+      "sourcePage": 52,
+      "sourcePages": [
+        52
+      ],
+      "sourceLocation": "curriculum.psv:22",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-ecological-efficiency-concept",
+      "grade": 12,
+      "contentId": "ecosystems_biosphere",
+      "contentLabel": "Hệ sinh thái và Sinh quyển (phần còn đọc được ở trang 32)",
+      "strand": "SINH THÁI HỌC VÀ MÔI TRƯỜNG",
+      "sourceId": "curriculum",
+      "scope": "core",
+      "level": null,
+      "competencyCode": null,
+      "text": "Nêu được khái niệm hiệu suất sinh thái (sản lượng sơ cấp, sản lượng thứ cấp); tháp sinh thái.",
+      "sourcePage": 52,
+      "sourcePages": [
+        52
+      ],
+      "sourceLocation": "curriculum.psv:23",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-ecological-efficiency-calculation",
+      "grade": 12,
+      "contentId": "ecosystems_biosphere",
+      "contentLabel": "Hệ sinh thái và Sinh quyển (phần còn đọc được ở trang 32)",
+      "strand": "SINH THÁI HỌC VÀ MÔI TRƯỜNG",
+      "sourceId": "curriculum",
+      "scope": "core",
+      "level": null,
+      "competencyCode": null,
+      "text": "Tính được hiệu suất sinh thái của một hệ sinh thái.",
+      "sourcePage": 52,
+      "sourcePages": [
+        52
+      ],
+      "sourceLocation": "curriculum.psv:24",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-ecological-efficiency-meaning",
+      "grade": 12,
+      "contentId": "ecosystems_biosphere",
+      "contentLabel": "Hệ sinh thái và Sinh quyển (phần còn đọc được ở trang 32)",
+      "strand": "SINH THÁI HỌC VÀ MÔI TRƯỜNG",
+      "sourceId": "curriculum",
+      "scope": "core",
+      "level": null,
+      "competencyCode": null,
+      "text": "Giải thích được ý nghĩa của nghiên cứu hiệu suất sinh thái và tháp sinh thái trong thực tiễn.",
+      "sourcePage": 52,
+      "sourcePages": [
+        52
+      ],
+      "sourceLocation": "curriculum.psv:25",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-biogeochemical-cycles",
+      "grade": 12,
+      "contentId": "ecosystems_biosphere",
+      "contentLabel": "Hệ sinh thái và Sinh quyển (phần còn đọc được ở trang 32)",
+      "strand": "SINH THÁI HỌC VÀ MÔI TRƯỜNG",
+      "sourceId": "curriculum",
+      "scope": "core",
+      "level": null,
+      "competencyCode": null,
+      "text": "Phát biểu được khái niệm chu trình sinh – địa – hoá các chất. Vẽ được sơ đồ khái quát chu trình trao đổi chất trong tự nhiên. Trình bày được chu trình sinh – địa – hoá của một số chất: nước, carbon, nitơ (nitrogen) và ý nghĩa sinh học của các chu trình đó, đồng thời vận dụng kiến thức về các chu trình đó vào giải thích các vấn đề của thực tiễn.",
+      "sourcePage": 52,
+      "sourcePages": [
+        52
+      ],
+      "sourceLocation": "curriculum.psv:26",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-ecosystem-dynamics",
+      "grade": 12,
+      "contentId": "ecosystems_biosphere",
+      "contentLabel": "Hệ sinh thái và Sinh quyển (phần còn đọc được ở trang 32)",
+      "strand": "SINH THÁI HỌC VÀ MÔI TRƯỜNG",
+      "sourceId": "curriculum",
+      "scope": "core",
+      "level": null,
+      "competencyCode": null,
+      "text": "Phân tích được sự biến động của hệ sinh thái.",
+      "sourcePage": 52,
+      "sourcePages": [
+        52
+      ],
+      "sourceLocation": "curriculum.psv:27",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-succession-concept",
+      "grade": 12,
+      "contentId": "ecosystems_biosphere",
+      "contentLabel": "Hệ sinh thái và Sinh quyển (phần còn đọc được ở trang 32)",
+      "strand": "SINH THÁI HỌC VÀ MÔI TRƯỜNG",
+      "sourceId": "curriculum",
+      "scope": "core",
+      "level": null,
+      "competencyCode": null,
+      "text": "Nêu được khái niệm diễn thế sinh thái.",
+      "sourcePage": 52,
+      "sourcePages": [
+        52
+      ],
+      "sourceLocation": "curriculum.psv:28",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-succession-causes",
+      "grade": 12,
+      "contentId": "ecosystems_biosphere",
+      "contentLabel": "Hệ sinh thái và Sinh quyển (phần còn đọc được ở trang 32)",
+      "strand": "SINH THÁI HỌC VÀ MÔI TRƯỜNG",
+      "sourceId": "curriculum",
+      "scope": "core",
+      "level": null,
+      "competencyCode": null,
+      "text": "Phân tích được nguyên nhân và tầm quan trọng của diễn thế sinh thái trong tự nhiên và trong thực tiễn.",
+      "sourcePage": 52,
+      "sourcePages": [
+        52
+      ],
+      "sourceLocation": "curriculum.psv:29",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      },
+      "relatedSourceRecordIds": [
+        "spec-g12-p32-r01"
+      ]
+    },
+    {
+      "id": "curr-g12-ecosystem-phenomena",
+      "grade": 12,
+      "contentId": "ecosystems_biosphere",
+      "contentLabel": "Hệ sinh thái và Sinh quyển (phần còn đọc được ở trang 32)",
+      "strand": "SINH THÁI HỌC VÀ MÔI TRƯỜNG",
+      "sourceId": "curriculum",
+      "scope": "core",
+      "level": null,
+      "competencyCode": null,
+      "text": "Nêu được một số hiện tượng ảnh hưởng đến hệ sinh thái như: sự ấm lên toàn cầu; sự phì dưỡng; sa mạc hoá.",
+      "sourcePage": 52,
+      "sourcePages": [
+        52
+      ],
+      "sourceLocation": "curriculum.psv:30",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-biosphere-concept",
+      "grade": 12,
+      "contentId": "ecosystems_biosphere",
+      "contentLabel": "Hệ sinh thái và Sinh quyển (phần còn đọc được ở trang 32)",
+      "strand": "SINH THÁI HỌC VÀ MÔI TRƯỜNG",
+      "sourceId": "curriculum",
+      "scope": "core",
+      "level": null,
+      "competencyCode": null,
+      "text": "Phát biểu được khái niệm Sinh quyển.",
+      "sourcePage": 53,
+      "sourcePages": [
+        53
+      ],
+      "sourceLocation": "curriculum.psv:31",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-biome-concept",
+      "grade": 12,
+      "contentId": "ecosystems_biosphere",
+      "contentLabel": "Hệ sinh thái và Sinh quyển (phần còn đọc được ở trang 32)",
+      "strand": "SINH THÁI HỌC VÀ MÔI TRƯỜNG",
+      "sourceId": "curriculum",
+      "scope": "core",
+      "level": null,
+      "competencyCode": null,
+      "text": "Phát biểu được khái niệm khu sinh học.",
+      "sourcePage": 53,
+      "sourcePages": [
+        53
+      ],
+      "sourceLocation": "curriculum.psv:32",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g10-e10-1-01",
+      "grade": 10,
+      "contentId": "elective_10_1",
+      "contentLabel": "Chuyên đề 10.1: Công nghệ tế bào và một số thành tựu",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Kể được tên một số thành tựu hiện đại của công nghệ tế bào.",
+      "sourcePage": 22,
+      "sourcePages": [
+        22
+      ],
+      "sourceLocation": "curriculum.psv:34",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g10-e10-1-02",
+      "grade": 10,
+      "contentId": "elective_10_1",
+      "contentLabel": "Chuyên đề 10.1: Công nghệ tế bào và một số thành tựu",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Trình bày được tính toàn năng và các giai đoạn chung của công nghệ tế bào. Lấy được ví dụ về công nghệ tế bào thực vật, công nghệ tế bào động vật.",
+      "sourcePage": 22,
+      "sourcePages": [
+        22
+      ],
+      "sourceLocation": "curriculum.psv:35",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g10-e10-1-03",
+      "grade": 10,
+      "contentId": "elective_10_1",
+      "contentLabel": "Chuyên đề 10.1: Công nghệ tế bào và một số thành tựu",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Nêu được khái niệm tế bào gốc. Trình bày được một số thành tựu trong sử dụng tế bào gốc.",
+      "sourcePage": 22,
+      "sourcePages": [
+        22
+      ],
+      "sourceLocation": "curriculum.psv:36",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g10-e10-1-04",
+      "grade": 10,
+      "contentId": "elective_10_1",
+      "contentLabel": "Chuyên đề 10.1: Công nghệ tế bào và một số thành tựu",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Phân tích được triển vọng của công nghệ tế bào trong tương lai.",
+      "sourcePage": 22,
+      "sourcePages": [
+        22
+      ],
+      "sourceLocation": "curriculum.psv:37",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g10-e10-1-05",
+      "grade": 10,
+      "contentId": "elective_10_1",
+      "contentLabel": "Chuyên đề 10.1: Công nghệ tế bào và một số thành tựu",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Thực hiện được dự án hoặc đề tài tìm hiểu về các thành tựu nuôi cấy mô, thành tựu tế bào gốc. Thiết kế được tập san các bài viết, tranh ảnh về công nghệ tế bào.",
+      "sourcePage": 22,
+      "sourcePages": [
+        22
+      ],
+      "sourceLocation": "curriculum.psv:38",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g10-e10-1-06",
+      "grade": 10,
+      "contentId": "elective_10_1",
+      "contentLabel": "Chuyên đề 10.1: Công nghệ tế bào và một số thành tựu",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Trình bày được quan điểm của bản thân về tầm quan trọng của việc sử dụng tế bào gốc trong thực tiễn.",
+      "sourcePage": 22,
+      "sourcePages": [
+        22
+      ],
+      "sourceLocation": "curriculum.psv:39",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g10-e10-1-07",
+      "grade": 10,
+      "contentId": "elective_10_1",
+      "contentLabel": "Chuyên đề 10.1: Công nghệ tế bào và một số thành tựu",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Tranh luận, phản biện được quan điểm về nhân bản vô tính động vật, con người.",
+      "sourcePage": 22,
+      "sourcePages": [
+        22
+      ],
+      "sourceLocation": "curriculum.psv:40",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g10-e10-2-01",
+      "grade": 10,
+      "contentId": "elective_10_2",
+      "contentLabel": "Chuyên đề 10.2: Công nghệ enzyme và ứng dụng",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Trình bày được một số thành tựu của công nghệ enzyme.",
+      "sourcePage": 22,
+      "sourcePages": [
+        22
+      ],
+      "sourceLocation": "curriculum.psv:42",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g10-e10-2-02",
+      "grade": 10,
+      "contentId": "elective_10_2",
+      "contentLabel": "Chuyên đề 10.2: Công nghệ enzyme và ứng dụng",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Phân tích được cơ sở khoa học ứng dụng công nghệ enzyme.",
+      "sourcePage": 22,
+      "sourcePages": [
+        22
+      ],
+      "sourceLocation": "curriculum.psv:43",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g10-e10-2-03",
+      "grade": 10,
+      "contentId": "elective_10_2",
+      "contentLabel": "Chuyên đề 10.2: Công nghệ enzyme và ứng dụng",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Trình bày được quy trình công nghệ sản xuất enzyme. Lấy được một số ví dụ minh hoạ.",
+      "sourcePage": 23,
+      "sourcePages": [
+        23
+      ],
+      "sourceLocation": "curriculum.psv:44",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g10-e10-2-04",
+      "grade": 10,
+      "contentId": "elective_10_2",
+      "contentLabel": "Chuyên đề 10.2: Công nghệ enzyme và ứng dụng",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Trình bày được một số ứng dụng của enzyme trong các lĩnh vực: công nghệ thực phẩm, y dược, kĩ thuật di truyền.",
+      "sourcePage": 23,
+      "sourcePages": [
+        23
+      ],
+      "sourceLocation": "curriculum.psv:45",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g10-e10-2-05",
+      "grade": 10,
+      "contentId": "elective_10_2",
+      "contentLabel": "Chuyên đề 10.2: Công nghệ enzyme và ứng dụng",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Phân tích được triển vọng công nghệ enzyme trong tương lai.",
+      "sourcePage": 23,
+      "sourcePages": [
+        23
+      ],
+      "sourceLocation": "curriculum.psv:46",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g10-e10-2-06",
+      "grade": 10,
+      "contentId": "elective_10_2",
+      "contentLabel": "Chuyên đề 10.2: Công nghệ enzyme và ứng dụng",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Thực hiện được dự án hoặc đề tài tìm hiểu về ứng dụng enzyme.",
+      "sourcePage": 23,
+      "sourcePages": [
+        23
+      ],
+      "sourceLocation": "curriculum.psv:47",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g10-e10-3-01",
+      "grade": 10,
+      "contentId": "elective_10_3",
+      "contentLabel": "Chuyên đề 10.3: Công nghệ vi sinh vật trong xử lí ô nhiễm môi trường",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Nêu được vai trò của vi sinh vật trong xử lí ô nhiễm môi trường.",
+      "sourcePage": 23,
+      "sourcePages": [
+        23
+      ],
+      "sourceLocation": "curriculum.psv:49",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g10-e10-3-02",
+      "grade": 10,
+      "contentId": "elective_10_3",
+      "contentLabel": "Chuyên đề 10.3: Công nghệ vi sinh vật trong xử lí ô nhiễm môi trường",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Mô tả được quá trình phân giải các hợp chất trong xử lí môi trường bằng công nghệ vi sinh: phân giải hiếu khí, kị khí, lên men.",
+      "sourcePage": 23,
+      "sourcePages": [
+        23
+      ],
+      "sourceLocation": "curriculum.psv:50",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g10-e10-3-03",
+      "grade": 10,
+      "contentId": "elective_10_3",
+      "contentLabel": "Chuyên đề 10.3: Công nghệ vi sinh vật trong xử lí ô nhiễm môi trường",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Trình bày được một số công nghệ ứng dụng vi sinh vật trong xử lí môi trường. + Xử lí ô nhiễm môi trường đất; + Xử lí nước thải và làm sạch nước; + Thu nhận khí sinh học; + Xử lí chất thải rắn.",
+      "sourcePage": 23,
+      "sourcePages": [
+        23
+      ],
+      "sourceLocation": "curriculum.psv:51",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g10-e10-3-04",
+      "grade": 10,
+      "contentId": "elective_10_3",
+      "contentLabel": "Chuyên đề 10.3: Công nghệ vi sinh vật trong xử lí ô nhiễm môi trường",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Thực hiện được dự án: Điều tra công nghệ ứng dụng vi sinh vật xử lí ô nhiễm môi trường tại địa phương (xử lí rác thải, nước thải,...).",
+      "sourcePage": 23,
+      "sourcePages": [
+        23,
+        24
+      ],
+      "sourceLocation": "curriculum.psv:52",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g11-e11-1-01",
+      "grade": 11,
+      "contentId": "elective_11_1",
+      "contentLabel": "Chuyên đề 11.1: Dinh dưỡng khoáng – tăng năng suất cây trồng và nông nghiệp sạch",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Nêu được khái niệm nông nghiệp sạch.",
+      "sourcePage": 38,
+      "sourcePages": [
+        38
+      ],
+      "sourceLocation": "curriculum.psv:54",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g11-e11-1-02",
+      "grade": 11,
+      "contentId": "elective_11_1",
+      "contentLabel": "Chuyên đề 11.1: Dinh dưỡng khoáng – tăng năng suất cây trồng và nông nghiệp sạch",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Phân tích được các nguyên tắc sử dụng khoáng trong việc tăng năng suất cây trồng (phù hợp thời vụ, giai đoạn sinh trưởng, phát triển, hàm lượng, phối hợp khoáng,...).",
+      "sourcePage": 38,
+      "sourcePages": [
+        38
+      ],
+      "sourceLocation": "curriculum.psv:55",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g11-e11-1-03",
+      "grade": 11,
+      "contentId": "elective_11_1",
+      "contentLabel": "Chuyên đề 11.1: Dinh dưỡng khoáng – tăng năng suất cây trồng và nông nghiệp sạch",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Phân tích được một số biện pháp kĩ thuật sử dụng dinh dưỡng khoáng nhằm tạo nền nông nghiệp sạch. Lấy được ví dụ minh hoạ.",
+      "sourcePage": 38,
+      "sourcePages": [
+        38
+      ],
+      "sourceLocation": "curriculum.psv:56",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g11-e11-1-04",
+      "grade": 11,
+      "contentId": "elective_11_1",
+      "contentLabel": "Chuyên đề 11.1: Dinh dưỡng khoáng – tăng năng suất cây trồng và nông nghiệp sạch",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Trình bày được mô hình thuỷ canh theo hướng phát triển nông nghiệp sạch.",
+      "sourcePage": 38,
+      "sourcePages": [
+        38
+      ],
+      "sourceLocation": "curriculum.psv:57",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g11-e11-1-05",
+      "grade": 11,
+      "contentId": "elective_11_1",
+      "contentLabel": "Chuyên đề 11.1: Dinh dưỡng khoáng – tăng năng suất cây trồng và nông nghiệp sạch",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Thực hiện được dự án: Điều tra sử dụng phân bón ở địa phương hoặc thực hành trồng cây với các kĩ thuật bón phân phù hợp.",
+      "sourcePage": 38,
+      "sourcePages": [
+        38
+      ],
+      "sourceLocation": "curriculum.psv:58",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g11-e11-1-06",
+      "grade": 11,
+      "contentId": "elective_11_1",
+      "contentLabel": "Chuyên đề 11.1: Dinh dưỡng khoáng – tăng năng suất cây trồng và nông nghiệp sạch",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Làm được thí nghiệm chứng minh tác dụng của loại phân bón, cách bón, hàm lượng đối với cây trồng.",
+      "sourcePage": 38,
+      "sourcePages": [
+        38
+      ],
+      "sourceLocation": "curriculum.psv:59",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g11-e11-2-01",
+      "grade": 11,
+      "contentId": "elective_11_2",
+      "contentLabel": "Chuyên đề 11.2: Một số bệnh dịch ở người và cách phòng, chống",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Kể tên được một số bệnh và tác nhân gây bệnh (vi khuẩn, virus,...). Trình bày được một số nguyên nhân lây nhiễm, gây dịch bệnh ở người (ví dụ: vệ sinh cơ thể không đúng cách, nhà cửa không sạch sẽ, ô nhiễm môi trường, vệ sinh giao tiếp với người bệnh không đúng cách,...).",
+      "sourcePage": 39,
+      "sourcePages": [
+        39
+      ],
+      "sourceLocation": "curriculum.psv:61",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g11-e11-2-02",
+      "grade": 11,
+      "contentId": "elective_11_2",
+      "contentLabel": "Chuyên đề 11.2: Một số bệnh dịch ở người và cách phòng, chống",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Phân tích được một số biện pháp phòng chống các bệnh dịch phổ biến ở người: bệnh sốt xuất huyết; bệnh cúm; bệnh lao phổi; bệnh sởi,...",
+      "sourcePage": 39,
+      "sourcePages": [
+        39
+      ],
+      "sourceLocation": "curriculum.psv:62",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g11-e11-2-03",
+      "grade": 11,
+      "contentId": "elective_11_2",
+      "contentLabel": "Chuyên đề 11.2: Một số bệnh dịch ở người và cách phòng, chống",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Thực hiện được các biện pháp phòng chống một số bệnh dịch phổ biến ở người.",
+      "sourcePage": 39,
+      "sourcePages": [
+        39
+      ],
+      "sourceLocation": "curriculum.psv:63",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g11-e11-2-04",
+      "grade": 11,
+      "contentId": "elective_11_2",
+      "contentLabel": "Chuyên đề 11.2: Một số bệnh dịch ở người và cách phòng, chống",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Thực hiện được dự án: Điều tra được một số bệnh dịch phổ biến ở người và tuyên truyền phòng chống bệnh (Bệnh cúm, dịch tả, sốt xuất huyết, HIV/AIDS,...).",
+      "sourcePage": 39,
+      "sourcePages": [
+        39
+      ],
+      "sourceLocation": "curriculum.psv:64",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g11-e11-3-01",
+      "grade": 11,
+      "contentId": "elective_11_3",
+      "contentLabel": "Chuyên đề 11.3: Vệ sinh an toàn thực phẩm",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Nêu được định nghĩa vệ sinh an toàn thực phẩm.",
+      "sourcePage": 40,
+      "sourcePages": [
+        40
+      ],
+      "sourceLocation": "curriculum.psv:66",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g11-e11-3-02",
+      "grade": 11,
+      "contentId": "elective_11_3",
+      "contentLabel": "Chuyên đề 11.3: Vệ sinh an toàn thực phẩm",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Phân tích được một số nguyên nhân gây ngộ độc thực phẩm. Lấy được ví dụ minh hoạ.",
+      "sourcePage": 40,
+      "sourcePages": [
+        40
+      ],
+      "sourceLocation": "curriculum.psv:67",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g11-e11-3-03",
+      "grade": 11,
+      "contentId": "elective_11_3",
+      "contentLabel": "Chuyên đề 11.3: Vệ sinh an toàn thực phẩm",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Phân tích được tác hại của việc mất an toàn vệ sinh thực phẩm đối với sức khoẻ con người.",
+      "sourcePage": 40,
+      "sourcePages": [
+        40
+      ],
+      "sourceLocation": "curriculum.psv:68",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g11-e11-3-04",
+      "grade": 11,
+      "contentId": "elective_11_3",
+      "contentLabel": "Chuyên đề 11.3: Vệ sinh an toàn thực phẩm",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Phân tích được một số biện pháp phòng và điều trị ngộ độc thực phẩm. Lấy được ví dụ minh hoạ.",
+      "sourcePage": 40,
+      "sourcePages": [
+        40
+      ],
+      "sourceLocation": "curriculum.psv:69",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g11-e11-3-05",
+      "grade": 11,
+      "contentId": "elective_11_3",
+      "contentLabel": "Chuyên đề 11.3: Vệ sinh an toàn thực phẩm",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Thực hiện được dự án: Điều tra về hiện trạng mất an toàn vệ sinh thực phẩm tại địa phương.",
+      "sourcePage": 40,
+      "sourcePages": [
+        40
+      ],
+      "sourceLocation": "curriculum.psv:70",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-e12-1-01",
+      "grade": 12,
+      "contentId": "elective_12_1",
+      "contentLabel": "Chuyên đề 12.1: Sinh học phân tử",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Nêu được khái niệm sinh học phân tử.",
+      "sourcePage": 54,
+      "sourcePages": [
+        54
+      ],
+      "sourceLocation": "curriculum.psv:72",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-e12-1-02",
+      "grade": 12,
+      "contentId": "elective_12_1",
+      "contentLabel": "Chuyên đề 12.1: Sinh học phân tử",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Trình bày được một số thành tựu hiện đại về lí thuyết và ứng dụng của sinh học phân tử.",
+      "sourcePage": 54,
+      "sourcePages": [
+        54
+      ],
+      "sourceLocation": "curriculum.psv:73",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-e12-1-03",
+      "grade": 12,
+      "contentId": "elective_12_1",
+      "contentLabel": "Chuyên đề 12.1: Sinh học phân tử",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Phân tích được các nguyên tắc ứng dụng sinh học phân tử trong thực tiễn.",
+      "sourcePage": 54,
+      "sourcePages": [
+        54
+      ],
+      "sourceLocation": "curriculum.psv:74",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-e12-1-04",
+      "grade": 12,
+      "contentId": "elective_12_1",
+      "contentLabel": "Chuyên đề 12.1: Sinh học phân tử",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Nêu được các nguyên lí của phương pháp tách chiết DNA từ tế bào.",
+      "sourcePage": 54,
+      "sourcePages": [
+        54
+      ],
+      "sourceLocation": "curriculum.psv:75",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-e12-1-05",
+      "grade": 12,
+      "contentId": "elective_12_1",
+      "contentLabel": "Chuyên đề 12.1: Sinh học phân tử",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Dựa vào sơ đồ, mô tả được các bước trong công nghệ gene. Trình bày được các bước tạo thực vật chuyển gene và tạo động vật chuyển gene. Lấy được ví dụ minh hoạ.",
+      "sourcePage": 55,
+      "sourcePages": [
+        55
+      ],
+      "sourceLocation": "curriculum.psv:76",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-e12-1-06",
+      "grade": 12,
+      "contentId": "elective_12_1",
+      "contentLabel": "Chuyên đề 12.1: Sinh học phân tử",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Giải thích được cơ sở khoa học chuyển gene và vì sao phải sử dụng vector để truyền gene từ tế bào này sang tế bào khác.",
+      "sourcePage": 55,
+      "sourcePages": [
+        55
+      ],
+      "sourceLocation": "curriculum.psv:77",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-e12-1-07",
+      "grade": 12,
+      "contentId": "elective_12_1",
+      "contentLabel": "Chuyên đề 12.1: Sinh học phân tử",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Thực hiện được dự án hoặc đề tài tìm hiểu về các sản phẩm chuyển gene. Làm được tập san các bài viết, tranh ảnh về công nghệ chuyển gene.",
+      "sourcePage": 55,
+      "sourcePages": [
+        55
+      ],
+      "sourceLocation": "curriculum.psv:78",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-e12-1-08",
+      "grade": 12,
+      "contentId": "elective_12_1",
+      "contentLabel": "Chuyên đề 12.1: Sinh học phân tử",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Thu thập được các thông tin đánh giá về triển vọng của công nghệ gene trong tương lai.",
+      "sourcePage": 55,
+      "sourcePages": [
+        55
+      ],
+      "sourceLocation": "curriculum.psv:79",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-e12-1-09",
+      "grade": 12,
+      "contentId": "elective_12_1",
+      "contentLabel": "Chuyên đề 12.1: Sinh học phân tử",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Thực hiện được các kĩ năng: làm báo cáo, thuyết trình, tập san, thiết kế video.",
+      "sourcePage": 55,
+      "sourcePages": [
+        55
+      ],
+      "sourceLocation": "curriculum.psv:80",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-e12-2-01",
+      "grade": 12,
+      "contentId": "elective_12_2",
+      "contentLabel": "Chuyên đề 12.2: Kiểm soát sinh học",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Nêu được khái niệm kiểm soát sinh học.",
+      "sourcePage": 55,
+      "sourcePages": [
+        55
+      ],
+      "sourceLocation": "curriculum.psv:82",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-e12-2-02",
+      "grade": 12,
+      "contentId": "elective_12_2",
+      "contentLabel": "Chuyên đề 12.2: Kiểm soát sinh học",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Phân tích được vai trò của kiểm soát sinh học.",
+      "sourcePage": 55,
+      "sourcePages": [
+        55
+      ],
+      "sourceLocation": "curriculum.psv:83",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-e12-2-03",
+      "grade": 12,
+      "contentId": "elective_12_2",
+      "contentLabel": "Chuyên đề 12.2: Kiểm soát sinh học",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Phân tích được cơ sở của kiểm soát sinh học.",
+      "sourcePage": 55,
+      "sourcePages": [
+        55
+      ],
+      "sourceLocation": "curriculum.psv:84",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-e12-2-04",
+      "grade": 12,
+      "contentId": "elective_12_2",
+      "contentLabel": "Chuyên đề 12.2: Kiểm soát sinh học",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Trình bày được một số biện pháp kiểm soát sinh học (bảo vệ các loài thiên địch; sử dụng hợp lí thuốc trừ sâu, phân bón).",
+      "sourcePage": 55,
+      "sourcePages": [
+        55
+      ],
+      "sourceLocation": "curriculum.psv:85",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-e12-2-05",
+      "grade": 12,
+      "contentId": "elective_12_2",
+      "contentLabel": "Chuyên đề 12.2: Kiểm soát sinh học",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Thực hành: Sưu tầm hoặc điều tra được ứng dụng kiểm soát sinh học tại địa phương.",
+      "sourcePage": 55,
+      "sourcePages": [
+        55
+      ],
+      "sourceLocation": "curriculum.psv:86",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-e12-3-01",
+      "grade": 12,
+      "contentId": "elective_12_3",
+      "contentLabel": "Chuyên đề 12.3: Sinh thái nhân văn",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Nêu được khái niệm sinh thái nhân văn.",
+      "sourcePage": 56,
+      "sourcePages": [
+        56
+      ],
+      "sourceLocation": "curriculum.psv:88",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-e12-3-02",
+      "grade": 12,
+      "contentId": "elective_12_3",
+      "contentLabel": "Chuyên đề 12.3: Sinh thái nhân văn",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Phân tích được giá trị của sinh thái nhân văn trong việc phát triển bền vững.",
+      "sourcePage": 56,
+      "sourcePages": [
+        56
+      ],
+      "sourceLocation": "curriculum.psv:89",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-e12-3-03",
+      "grade": 12,
+      "contentId": "elective_12_3",
+      "contentLabel": "Chuyên đề 12.3: Sinh thái nhân văn",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Phân tích được giá trị của sinh thái nhân văn trong một số lĩnh vực như: + Nông nghiệp; + Phát triển đô thị; + Bảo tồn và phát triển; + Thích ứng với biến đổi khí hậu.",
+      "sourcePage": 56,
+      "sourcePages": [
+        56
+      ],
+      "sourceLocation": "curriculum.psv:90",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    },
+    {
+      "id": "curr-g12-e12-3-04",
+      "grade": 12,
+      "contentId": "elective_12_3",
+      "contentLabel": "Chuyên đề 12.3: Sinh thái nhân văn",
+      "strand": "CHUYÊN ĐỀ HỌC TẬP",
+      "sourceId": "curriculum",
+      "scope": "elective",
+      "level": null,
+      "competencyCode": null,
+      "text": "Thực hiện dự án: Điều tra tìm hiểu về một trong các lĩnh vực sinh thái nhân văn tại địa phương.",
+      "sourcePage": 56,
+      "sourcePages": [
+        56
+      ],
+      "sourceLocation": "curriculum.psv:91",
+      "sourceCodeMissing": true,
+      "sourceLevelMissing": true,
+      "sourceNote": "Bổ sung từ CTGDPT môn Sinh học 2018; chương trình không có cột mã năng lực hoặc mức độ của bản đặc tả.",
+      "questionReferences": {
+        "mcq": "",
+        "tf": "",
+        "short": ""
+      }
+    }
+  ]
+}

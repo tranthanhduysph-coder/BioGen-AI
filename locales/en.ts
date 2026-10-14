@@ -1,3 +1,5 @@
+import { getManualCompetencyTranslations } from '../data/biologySpecification/competencies';
+
 export const en = {
   translation: {
     app: { name: "BioGen AI", subtitle: "Intelligent Biology Question Generator" },
@@ -60,23 +62,7 @@ export const en = {
         difficulties: { diff_1: "Recall", diff_2: "Understand", diff_3: "Apply", diff_4: "Analyze" },
         
         // ACCURATE COMPETENCY TRANSLATIONS (2018 Curriculum Equivalent)
-        competencies: {
-            nt1: "NT1: Recognize, list, state concepts/processes.",
-            nt2: "NT2: Describe characteristics, roles, mechanisms.",
-            nt3: "NT3: Classify objects/phenomena.",
-            nt4: "NT4: Analyze features, structures, processes.",
-            nt5: "NT5: Compare/Select based on criteria.",
-            nt6: "NT6: Explain relationships (Cause-Effect, Structure-Function).",
-            nt7: "NT7: Identify errors; Critical thinking.",
-            nt8: "NT8: Use terminology; Logical connection.",
-            th1: "TH1: Propose research problems/questions.",
-            th2: "TH2: Formulate hypotheses.",
-            th3: "TH3: Plan research/experiments.",
-            th4: "TH4: Execute plan (data collection/processing).",
-            th5: "TH5: Report and discuss results.",
-            vd1: "VD1: Explain practical phenomena.",
-            vd2: "VD2: Demonstrate appropriate behavior (Health/Environment)."
-        },
+        competencies: getManualCompetencyTranslations(true),
         settings: { set_theory: "Theory", set_exp: "Exp", set_calc: "Calc", set_real: "Real", set_data: "Data" },
         types: { type_mixed: "Mixed", type_mcq: "MCQ", type_tf: "T/F", type_short: "Short" }
     }

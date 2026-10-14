@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { GoogleGenAI } from '@google/genai';
 import { CriteriaSelector } from './components/CriteriaSelector';
 import { QuestionList } from './components/QuestionList';
 import { Header } from './components/Header';
@@ -12,8 +11,8 @@ import { DonateModal } from './components/DonateModal';
 import { Footer } from './components/Footer';
 import { BannerAd } from './components/BannerAd';
 import type { Criteria, GeneratedQuestion } from './types';
-import { generatePrompt } from './services/geminiService';
-import { simulateExam } from './services/examSimulationService';
+import { generateManualQuestions, resumeManualQuestions } from './services/manualGenerationService';
+import { getCreditAccount } from './services/creditService';
 import { auth, isConfigured } from './firebaseConfig';
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { LoginScreen } from './components/LoginScreen';
@@ -46,19 +45,28 @@ const App: React.FC = () => {
   const [isLimitReached, setIsLimitReached] = useState<boolean>(false);
   
   const [isQuizMode, setIsQuizMode] = useState<boolean>(false);
-  const [usageCount, setUsageCount] = useState<number>(0);
+  const [manualRefresh, setManualRefresh] = useState(0);
+  const [lastManualAction, setLastManualAction] = useState<{ criteria: Criteria[]; resume: boolean } | null>(null);
 
   useEffect(() => {
-    const storedUsage = parseInt(localStorage.getItem('biogen_usage_count') || '0', 10);
-    setUsageCount(storedUsage);
+    if (user && user.uid !== DEMO_USER.uid) {
+      // The server grants one-time trials and preserves blocked accounts.
+      void getCreditAccount().catch(() => { /* Backend errors are shown on generation. */ });
+    }
+  }, [user?.uid]);
 
+  useEffect(() => {
+    const isBlueprintPreview = window.location.hostname === 'biogenai-blueprint-preview.onrender.com';
     if (isConfigured && auth) {
+      let initialAuthState = true;
       const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-        setUser(currentUser);
+        setUser(currentUser || (initialAuthState && isBlueprintPreview ? DEMO_USER : null));
+        initialAuthState = false;
         setIsAuthLoading(false);
       });
       return () => unsubscribe();
     } else {
+      if (isBlueprintPreview) setUser(DEMO_USER);
       setIsAuthLoading(false);
     }
   }, []);
@@ -77,84 +85,38 @@ const App: React.FC = () => {
     document.documentElement.classList.toggle('dark');
   };
 
-  const incrementUsage = () => {
-      const newCount = usageCount + 1;
-      setUsageCount(newCount);
-      localStorage.setItem('biogen_usage_count', String(newCount));
-      if (newCount > 0 && newCount % 3 === 0) {
-          setIsLimitReached(false);
-          setShowDonate(true);
-      }
-  };
-
-  const handleGenerate = useCallback(async (criteriaList: Criteria[]) => {
-    if (criteriaList.length === 0) return;
+  const handleGenerate = useCallback(async (criteriaList: Criteria[], resume = false, confirmedLast = false) => {
+    if (!resume && criteriaList.length === 0) return;
     setIsLoading(true);
     setError(null);
-    setHasGenerated(true);
-    setGeneratedQuestions([]); 
-    setIsQuizMode(false);
-
     try {
-      if (!process.env.API_KEY) throw new Error("API_KEY missing.");
-      
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      
-      const promises = criteriaList.map(async (criteria) => {
-        const prompt = generatePrompt(criteria, i18n.language);
-        const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: prompt,
-          config: { responseMimeType: "application/json" },
-        });
-
-        const jsonText = response.text?.replace(/```json|```/g, '').trim();
-        if (!jsonText) return [];
-        const questions = JSON.parse(jsonText) as GeneratedQuestion[];
-        if (!Array.isArray(questions)) return [];
-        return questions.map(q => ({ ...q, criteria }));
-      });
-
-      const results = await Promise.all(promises);
-      const allQuestions = results.flat();
-      if (allQuestions.length === 0) throw new Error(t('results.no_data'));
-      
-      setGeneratedQuestions(allQuestions);
-      incrementUsage();
-
-    } catch (err: any) {
-      console.error("Error:", err);
-      setError(err.message || t('error.title'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [i18n.language, t, usageCount]);
-
-  const handleSimulateExam = useCallback(async (userPrompt: string = "") => {
-      setIsLoading(true);
-      setError(null);
+      const before = await getCreditAccount();
+      if (before.enabled && before.manualBalance === 1 && !before.activeManualRunId && !confirmedLast) {
+        setLastManualAction({ criteria: criteriaList, resume });
+        return;
+      }
       setHasGenerated(true);
       setGeneratedQuestions([]);
       setIsQuizMode(false);
+      const allQuestions = resume ? await resumeManualQuestions() : await generateManualQuestions(criteriaList, i18n.language);
 
-      try {
-        if (!process.env.API_KEY) throw new Error("API_KEY missing.");
-        
-        const langInstruction = i18n.language === 'en' ? " (English)" : "";
-        const allQuestions = await simulateExam(process.env.API_KEY, userPrompt + langInstruction);
-        
-        if (allQuestions.length === 0) throw new Error("Simulation failed.");
-        
-        setGeneratedQuestions(allQuestions);
-        incrementUsage();
-
-      } catch (err: any) {
-          console.error("Simulation Error:", err);
-          setError(err.message || "Error simulating exam.");
-      } finally {
-          setIsLoading(false);
+      if (allQuestions.length === 0) {
+        throw new Error(t('results.no_data'));
       }
-  }, [i18n.language, t, usageCount]);
+
+      setGeneratedQuestions(allQuestions);
+      void getCreditAccount().then(account => {
+        if (account.enabled && account.manualBalance === 0) setShowDonate(true);
+      }).catch(() => { /* Keep successfully generated questions on a balance-refresh error. */ });
+    } catch (err: any) {
+      console.error('Generation error:', err);
+      setError(err.message || t('error.title'));
+      if (err.code === 'manual_credits_required') setShowDonate(true);
+    } finally {
+      setIsLoading(false);
+      setManualRefresh(v => v + 1);
+    }
+  }, [i18n.language, t]);
 
   if (isAuthLoading) return <LoadingSpinner />;
   if (!user) return <LoginScreen onDemoLogin={handleDemoLogin} />;
@@ -172,7 +134,7 @@ const App: React.FC = () => {
       
       {!isQuizMode && (
          <div className="container mx-auto px-4 pt-4">
-             <BannerAd onDonateClick={() => setShowDonate(true)} />
+             <BannerAd />
          </div>
       )}
 
@@ -183,9 +145,11 @@ const App: React.FC = () => {
             {!isQuizMode && (
                 <div className="lg:col-span-4 h-full">
                     <CriteriaSelector 
+                        manualRefreshToken={manualRefresh}
+                        onResumeManual={() => void handleGenerate([], true)}
+                        onBuyManual={() => setShowDonate(true)}
                         onGenerate={handleGenerate} 
                         isLoading={isLoading} 
-                        onSimulate={handleSimulateExam} 
                     />
                 </div>
             )}
@@ -217,6 +181,19 @@ const App: React.FC = () => {
       <DisclaimerModal isOpen={showDisclaimer} onClose={() => setShowDisclaimer(false)} />
       <HistoryModal isOpen={showHistory} onClose={() => setShowHistory(false)} user={user} />
       <DonateModal isOpen={showDonate} onClose={() => setShowDonate(false)} onConfirmPayment={() => setShowDonate(false)} isLimitReached={isLimitReached} />
+      {lastManualAction && <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/60 p-4">
+        <section role="dialog" aria-label="Cảnh báo lượt câu hỏi lẻ cuối cùng" aria-modal="true" className="w-full max-w-md rounded-2xl bg-white p-5 text-slate-800 shadow-xl dark:bg-slate-900 dark:text-white">
+          <h3 className="font-bold text-amber-700">Đây là lượt câu hỏi lẻ cuối cùng</h3>
+          <p className="mt-2 text-sm">Sau lượt này, anh/chị cần mua gói 20.000đ / 3 lượt để tiếp tục. Credit tạo đề được tính riêng.</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button className="rounded-lg bg-sky-600 px-3 py-2 text-sm font-bold text-white" onClick={() => {
+              const pending = lastManualAction; setLastManualAction(null); void handleGenerate(pending.criteria, pending.resume, true);
+            }}>Dùng lượt cuối</button>
+            <button className="rounded-lg border px-3 py-2 text-sm font-semibold" onClick={() => { setLastManualAction(null); setShowDonate(true); }}>Mua thêm 3 lượt</button>
+            <button className="rounded-lg border px-3 py-2 text-sm" onClick={() => setLastManualAction(null)}>Để sau</button>
+          </div>
+        </section>
+      </div>}
     </div>
   );
 };

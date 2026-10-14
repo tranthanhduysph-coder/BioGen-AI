@@ -1,0 +1,118 @@
+# Transcribed against the original PDF. Fields: level | code (empty means absent) | pages | outcome | Part I | Part II | Part III
+@introduction|Giới thiệu khái quát chương trình môn Sinh học|MỞ ĐẦU
+K|NT1|1|Nêu được đối tượng và các lĩnh vực nghiên cứu của sinh học.
+K|NT1|1|Nêu được triển vọng phát triển sinh học trong tương lai.
+K|NT1|1|Kể được tên các ngành nghề liên quan đến sinh học và ứng dụng sinh học.
+U|NT2|1|Trình bày được mục tiêu môn Sinh học.
+U|NT4|1|Phân tích được vai trò của sinh học với cuộc sống hằng ngày và với sự phát triển kinh tế – xã hội; vai trò sinh học với sự phát triển bền vững môi trường sống và những vấn đề toàn cầu.
+U|NT2|1|Trình bày được các thành tựu từ lí thuyết đến thành tựu công nghệ của một số ngành nghề chủ chốt (y – dược học, pháp y, công nghệ thực phẩm, bảo vệ môi trường, nông nghiệp, lâm nghiệp,...). Nêu được triển vọng của các ngành nghề đó trong tương lai.
+@sustainability|Sinh học và sự phát triển bền vững|MỞ ĐẦU
+U|NT2|1|Trình bày được định nghĩa về phát triển bền vững.
+U|NT2|1|Trình bày được vai trò của sinh học trong phát triển bền vững môi trường sống.
+U|NT4|1|Phân tích được mối quan hệ giữa sinh học với những vấn đề xã hội: đạo đức sinh học, kinh tế, công nghệ.
+@research_methods|Các phương pháp nghiên cứu và học tập môn Sinh học|MỞ ĐẦU
+K|NT1|1|Nêu được một số vật liệu, thiết bị nghiên cứu và học tập môn Sinh học.
+U|NT2|2|Trình bày được một số phương pháp nghiên cứu sinh học, cụ thể: + Phương pháp quan sát; + Phương pháp làm việc trong phòng thí nghiệm (các kĩ thuật phòng thí nghiệm); + Phương pháp thực nghiệm khoa học.
+U|NT2|2|Trình bày được các kĩ năng trong tiến trình nghiên cứu: + Quan sát: logic thực hiện quan sát; thu thập, lưu giữ kết quả quan sát; lựa chọn hình thức biểu đạt kết quả quan sát; + Xây dựng giả thuyết; + Thiết kế và tiến hành thí nghiệm; + Điều tra, khảo sát thực địa; + Làm báo cáo kết quả nghiên cứu;||3a,b
+U|NT2|2|Giới thiệu được phương pháp tin sinh học (Bioinformatics) như là công cụ trong nghiên cứu và học tập sinh học.
+A|TH2-5|2|Vận dụng được một số phương pháp nghiên cứu sinh học, cụ thể: + Phương pháp quan sát; + Phương pháp làm việc trong phòng thí nghiệm (các kĩ thuật phòng thí nghiệm); + Phương pháp thực nghiệm khoa học.
+A|TH2-5|2|Vận dụng được các kĩ năng trong tiến trình nghiên cứu: + Quan sát: logic thực hiện quan sát; thu thập, lưu giữ kết quả quan sát; lựa chọn hình thức biểu đạt kết quả quan sát; + Xây dựng giả thuyết; + Thiết kế và tiến hành thí nghiệm; + Điều tra, khảo sát thực địa; + Làm báo cáo kết quả nghiên cứu;
+@living_levels|Các cấp độ tổ chức của thế giới sống|GIỚI THIỆU CHUNG VỀ CÁC CẤP ĐỘ TỔ CHỨC CỦA THẾ GIỚI SỐNG
+K|NT1|2|Phát biểu được khái niệm cấp độ tổ chức sống.
+U|NT2|2|Trình bày được các đặc điểm chung của các cấp độ tổ chức sống.
+U|NT3|2|Dựa vào sơ đồ, phân biệt được cấp độ tổ chức sống.
+A|NT6|3|Giải thích được mối quan hệ giữa các cấp độ tổ chức sống.
+@cell_overview|Khái quát về tế bào|SINH HỌC TẾ BÀO
+K|NT1|3|Nêu được khái quát học thuyết tế bào.
+A|NT6|3|Giải thích được tế bào là đơn vị cấu trúc và chức năng của cơ thể sống.
+@cell_chemistry|Thành phần hoá học của tế bào|SINH HỌC TẾ BÀO
+K|NT1|3|Liệt kê được một số nguyên tố hoá học chính có trong tế bào (C, H, O, N, S, P).
+K|NT1|3|Nêu được vai trò của các nguyên tố vi lượng, đa lượng trong tế bào.
+K|NT1|3|Nêu được vai trò quan trọng của nguyên tố carbon trong tế bào (cấu trúc nguyên tử C có thể liên kết với chính nó và nhiều nhóm chức khác nhau).
+K|NT1|3|Nêu được khái niệm phân tử sinh học.
+K|NT1|3|Nêu được một số nguồn thực phẩm cung cấp các phân tử sinh học cho cơ thể.
+U|NT2/NT6|3|Trình bày được đặc điểm cấu tạo phân tử nước quy định tính chất vật lí, hoá học và sinh học của nước, từ đó quy định vai trò sinh học của nước trong tế bào.
+U|NT2|3|Trình bày được thành phần cấu tạo (các nguyên tố hoá học và đơn phân) và vai trò của các phân tử sinh học trong tế bào: carbohydrate, lipid, protein, nucleic acid.|Câu 1
+U|NT4/NT6|3|Phân tích được mối quan hệ giữa cấu tạo và vai trò của các phân tử sinh học.
+A|VD1|3|Vận dụng được kiến thức về thành phần hoá học của tế bào vào giải thích các hiện tượng và ứng dụng trong thực tiễn (ví dụ: ăn uống hợp lí; giải thích vì sao thịt lợn, thịt bò cùng là protein nhưng có nhiều đặc điểm khác nhau; giải thích vai trò của DNA trong xác định huyết thống, truy tìm tội phạm,...).
+A|VD1|4|Thực hành xác định (định tính) được một số thành phần hoá học có trong tế bào (protein, lipid,...).
+@cell_structure|Cấu trúc tế bào|SINH HỌC TẾ BÀO
+K|NT1|4|Nêu được cấu tạo và chức năng của tế bào chất.
+U|NT2|4|Mô tả được kích thước, cấu tạo và chức năng các thành phần của tế bào nhân sơ.
+U|NT2|4|Trình bày được cấu trúc của nhân tế bào và chức năng quan trọng của nhân.
+U|VD1|4|Thực hành làm được tiêu bản và quan sát được tế bào sinh vật nhân sơ (vi khuẩn).
+U|VD1|4|Làm được tiêu bản hiển vi tế bào nhân thực (củ hành tây, hành ta, thài lài tía, hoa lúa, bí ngô, tế bào niêm mạc xoang miệng,...) và quan sát nhân, một số bào quan trên tiêu bản đó.
+A|NT6|4|Phân tích được mối quan hệ phù hợp giữa cấu tạo và chức năng của thành tế bào (ở tế bào thực vật) và màng sinh chất.
+A|NT4/NT6|4|Phân tích được mối quan hệ giữa cấu tạo và chức năng của các bào quan trong tế bào.|Câu 3
+A|NT8|4|Quan sát hình vẽ, lập được bảng so sánh cấu tạo tế bào thực vật và động vật.
+A|NT8|4|Lập được bảng so sánh tế bào nhân sơ và tế bào nhân thực.
+@cell_metabolism|Trao đổi chất và chuyển hoá năng lượng ở tế bào|SINH HỌC TẾ BÀO
+K|NT1|4|Nêu được khái niệm trao đổi chất ở tế bào.
+K|NT1|4|Phát biểu được khái niệm chuyển hoá năng lượng trong tế bào.
+K|NT1|4|Nêu được khái niệm, cấu trúc và cơ chế tác động của enzyme.
+K|NT1|4|Nêu được khái niệm tổng hợp các chất trong tế bào.
+K|NT1|4|Nêu được vai trò quan trọng của quang hợp trong việc tổng hợp các chất và tích luỹ năng lượng trong tế bào thực vật.
+K|NT1|4|Nêu được vai trò của hoá tổng hợp và quang khử ở vi khuẩn.
+K|NT1|4|Phát biểu được khái niệm phân giải các chất trong tế bào.
+U|NT4|4|Phân biệt được các hình thức vận chuyển các chất qua màng sinh chất: vận chuyển thụ động, chủ động. Nêu được ý nghĩa của các hình thức đó. Lấy được ví dụ minh hoạ.
+U|NT2|4,5|Trình bày được hiện tượng nhập bào và xuất bào thông qua biến dạng của màng sinh chất. Lấy được ví dụ minh hoạ.
+U|VD1|5|Vận dụng những hiểu biết về sự vận chuyển các chất qua màng sinh chất để giải thích một số hiện tượng thực tiễn (muối dưa, muối cà).
+U|VD1|5|Làm được thí nghiệm và quan sát hiện tượng co và phản co nguyên sinh (tế bào hành, tế bào máu,...); thí nghiệm tính thấm có chọn lọc của màng sinh chất tế bào sống.
+U|NT3|5|Phân biệt được các dạng năng lượng trong chuyển hoá năng lượng ở tế bào.
+U|NT4|5|Phân tích được cấu tạo và chức năng của ATP về giá trị năng lượng sinh học.
+U|NT2|5|Trình bày được quá trình tổng hợp và phân giải ATP gắn liền với quá trình tích luỹ, giải phóng năng lượng.
+U|NT2|5|Trình bày vai trò của enzyme trong quá trình trao đổi chất và chuyển hoá năng lượng.
+U|NT2|5|Lấy được ví dụ minh hoạ về tổng hợp các chất (tổng hợp protein, lipid, carbohydrate,...).
+U|NT2|5|Trình bày được quá trình tổng hợp các chất song song với tích luỹ năng lượng.
+U|NT2|5|Trình bày được các giai đoạn phân giải hiếu khí (hô hấp tế bào) và các giai đoạn phân giải kị khí (lên men).
+U|NT2|5|Trình bày được quá trình phân giải các chất song song với giải phóng năng lượng.
+A|NT6|5|Giải thích được năng lượng được tích luỹ và sử dụng cho các hoạt động sống của tế bào là dạng hoá năng (năng lượng tiềm ẩn trong các liên kết hoá học).
+A|NT6|5|Phân tích được các yếu tố ảnh hưởng đến hoạt động xúc tác của enzyme.
+A|VD1|5|Thực hành: làm được thí nghiệm phân tích ảnh hưởng của một số yếu tố đến hoạt tính của enzyme; thí nghiệm kiểm tra hoạt tính thuỷ phân tinh bột của amylase.
+A|NT6|5|Phân tích được mối quan hệ giữa tổng hợp và phân giải các chất trong tế bào.
+@cell_information|Thông tin ở tế bào|SINH HỌC TẾ BÀO
+K|NT1|6|Nêu được khái niệm về thông tin giữa các tế bào.
+U|NT2|6|Dựa vào sơ đồ thông tin giữa các tế bào, trình bày được các quá trình: + Tiếp nhận: Một phân tử truyền tin liên kết vào một protein thụ thể làm thụ thể thay đổi hình dạng; + Truyền tin: các chuỗi tương tác phân tử chuyển tiếp tín hiệu từ các thụ thể tới các phân tử đích trong tế bào; + Đáp ứng: Tế bào phát tín hiệu điều khiển phiên mã, dịch mã hoặc điều hoà hoạt động của tế bào.
+@cell_cycle|Chu kì tế bào và phân bào|SINH HỌC TẾ BÀO
+K|NT1|6|Nêu được khái niệm chu kì tế bào.
+K|NT1|6|Nêu được một số biện pháp phòng tránh ung thư.
+U|NT2|6|Dựa vào sơ đồ, trình bày được các giai đoạn và mối quan hệ giữa các giai đoạn trong chu kì tế bào.|Câu 2
+U|NT2|6|Trình bày được một số thông tin về bệnh ung thư ở Việt Nam.
+U|VD1|6|Thực hành làm được tiêu bản nhiễm sắc thể để quan sát quá trình nguyên phân (hành tây, hành ta, đại mạch, cây tỏi, lay ơn, khoai môn,...).
+U|VD1|6|Vận dụng kiến thức về nguyên phân và giảm phân vào giải thích một số vấn đề trong thực tiễn.
+U|VD1|6|Làm được tiêu bản quan sát quá trình giảm phân ở tế bào động vật, thực vật (châu chấu đực, hoa hành,...).
+A|NT8|6|Dựa vào cơ chế nhân đôi và phân li của nhiễm sắc thể để giải thích được quá trình nguyên phân là cơ chế sinh sản của tế bào.
+A|NT6|6|Giải thích được sự phân chia tế bào một cách không bình thường có thể dẫn đến ung thư.
+A|NT6/NT8|6|Dựa vào cơ chế nhân đôi và phân li của nhiễm sắc thể để giải thích được quá trình giảm phân, thụ tinh cùng với nguyên phân là cơ sở của sinh sản hữu tính ở sinh vật.
+A|NT2/NT6|6|Trình bày được một số nhân tố ảnh hưởng đến quá trình giảm phân.
+A|NT8|6|Lập được bảng so sánh quá trình nguyên phân và quá trình giảm phân.
+@cell_technology|Công nghệ tế bào|SINH HỌC TẾ BÀO
+K|NT1|7|Nêu được khái niệm, nguyên lí công nghệ và một số thành tựu của công nghệ tế bào thực vật.
+?|NT1|7|Nêu được khái niệm, nguyên lí công nghệ và một số thành tựu công nghệ tế bào động vật.
+@microorganisms|Vi sinh vật|SINH HỌC VI SINH VẬT VÀ VIRUS
+K|NT1|7|Nêu được khái niệm vi sinh vật. Kể tên được các nhóm vi sinh vật.
+K|NT1|7|Nêu được một số ví dụ về quá trình tổng hợp và phân giải các chất ở vi sinh vật.
+K|NT1|7|Nêu được khái niệm sinh trưởng ở vi sinh vật.
+K|NT1|7|Kể tên được một số thành tựu hiện đại của công nghệ vi sinh vật.
+K|NT1|7|Kể tên được một số ngành nghề liên quan đến công nghệ vi sinh vật và triển vọng phát triển của ngành nghề đó.
+U|NT2|7|Trình bày được một số phương pháp nghiên cứu vi sinh vật.
+U|VD1|7|Thực hành được một số phương pháp nghiên cứu vi sinh vật thông dụng.
+U|NT4|7|Phân tích được vai trò của vi sinh vật trong đời sống con người và trong tự nhiên.
+U|NT2|7|Trình bày được đặc điểm các pha sinh trưởng của quần thể vi khuẩn.
+U|NT2|7|Trình bày được cơ sở khoa học của việc ứng dụng vi sinh vật trong thực tiễn.
+U|VD1|7|Trình bày được một số ứng dụng vi sinh vật trong thực tiễn (sản xuất và bảo quản thực phẩm, sản xuất thuốc, xử lí môi trường,...).
+U|VD1|7|Trình bày được một số ứng dụng vi sinh vật trong thực tiễn (sản xuất và bảo quản thực phẩm, sản xuất thuốc, xử lí môi trường,...).
+U|VD1|7|Trình bày được ý nghĩa của việc sử dụng kháng sinh để ức chế hoặc tiêu diệt vi sinh vật gây bệnh và tác hại của việc lạm dụng thuốc kháng sinh trong chữa bệnh cho con người và động vật.
+U|VD1|8|Làm được một số sản phẩm lên men từ vi sinh vật (sữa chua, dưa chua, bánh mì,...).
+U|NT4|8|Phân tích được triển vọng công nghệ vi sinh vật trong tương lai.
+A|NT5|8|Phân biệt được các kiểu dinh dưỡng ở vi sinh vật.
+A|NT5|8|Phân biệt được các hình thức sinh sản ở vi sinh vật nhân sơ và vi sinh vật nhân thực.
+A|NT2/NT6|8|Trình bày được các yếu tố ảnh hưởng đến sinh trưởng của vi sinh vật.
+A|TH1-TH5|8|Thực hiện được dự án hoặc đề tài tìm hiểu về các sản phẩm công nghệ vi sinh vật. Làm được tập san các bài viết, tranh ảnh về công nghệ vi sinh vật.
+@viruses|Virus và các ứng dụng|SINH HỌC VI SINH VẬT VÀ VIRUS
+K|NT1|8|Nêu được khái niệm và các đặc điểm của virus.
+K|NT1|8|Kể tên được một số thành tựu ứng dụng virus trong sản xuất chế phẩm sinh học; trong y học và nông nghiệp; sản xuất thuốc trừ sâu từ virus.
+U|NT2|8|Trình bày được cấu tạo của virus.
+U|NT2|8|Trình bày được các giai đoạn nhân lên của virus trong tế bào chủ.
+A|NT6|8|Trình bày được các giai đoạn nhân lên của virus trong tế bào chủ. Từ đó giải thích được cơ chế gây bệnh do virus.
+A|TH1-TH5|8|Thực hiện được dự án hoặc đề tài điều tra một số bệnh do virus gây ra và tuyên truyền phòng chống bệnh.
