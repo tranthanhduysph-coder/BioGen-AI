@@ -154,10 +154,36 @@ still applies, and packages are granted manually after payment verification.
   Send test reports HTTP 200, 512ms. This proves authenticated connectivity, not
   a bank receipt. The saved webhook was reviewed: JSON/incoming, retry enabled,
   bank 1410373736, only VA 96247BIOGENAI, skip transactions without a code.
-- One real owner manual purchase was prepared through the UI at 20,000 VND / 3
-  actions, still pending. Its QR contains the exact VA, price and random BGP memo.
-  Pre-transfer balances are exam 2 and manual 3. The owner was handed the QR to
-  perform the real transfer directly; no allowance was granted by the agent.
+- The owner transferred 20,000 VND directly for manual order
+  `cff10e13-c49e-4188-8ea4-3d724b983cde`, memo `BGP097E436D5C634F1E8DEB`.
+  SePay recorded incoming funds into the configured BIDV VA; bank reference
+  `463D419B-4B94-48C4-9476-3F0346C907A4`, transaction `89710446`.
+  Delivery log `56784973` reports HTTP 200. Checkout automatically became
+  fulfilled and the manual balance increased from 3 to 6, without an admin grant.
+  The reopened app retains the fulfilled order; exam balance remains 2.
 - Local evidence: `tmp/bidv-live-payment-qr.png` and
-  `tmp/sepay-hmac-probe-success.png`. Real-transfer acceptance remains pending;
-  main and production are unchanged.
+  `tmp/sepay-hmac-probe-success.png` and `tmp/bidv-manual-payment-success.png`.
+  Real exam-package payment acceptance is recorded below. Main and production
+  are unchanged.
+
+### Continued live acceptance
+
+- A fresh preview tab loaded the saved manual balance of 6, with 0 held, and
+  the exam balance of 2, with 0 held. This verifies persistence across opening
+  the app again; a full sign-out/sign-in cycle has not yet been performed.
+- The owner transferred 199,000 VND for exam order
+  `78d2621c-818c-47cf-b8f2-b659ef7a2948`, memo `BGP92DBF9B7E305444C9687`.
+  SePay transaction `89824997` confirms the exact amount and VA, reference
+  `E75B2D65-E0AB-4099-8328-9FC8E0B8EF5B`. Delivery log `56868123` reports
+  HTTP 200 at 14:48:47 local time. Checkout automatically became fulfilled;
+  the exam balance rose from 2 to 12, with 0 held. The account ledger shows
+  exactly one +10 exam grant and the earlier +3 manual grant in separate wallets.
+  No admin grant was used for either payment.
+- Evidence: `tmp/bidv-exam-payment-success.png`, `tmp/bidv-exam-payment-qr.png`
+  and `tmp/bidv-manual-balance-persisted.png`. QR screenshots are historical
+  evidence after fulfillment and must not be reused for another transfer.
+- Requested replay through SePay's delivery history and transaction detail.
+  The interface did not provide a completed replay result or a new delivery log
+  during this session; live provider replay acceptance remains unverified.
+  The previously passing parallel/restart Firestore tests verify deduplication
+  using isolated synthetic events, not a completed live SePay replay.

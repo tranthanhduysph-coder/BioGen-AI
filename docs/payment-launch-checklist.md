@@ -3,9 +3,11 @@
 ## Trạng thái
 
 - Giá gói, người nhận tiền, hai ví riêng, cấp dùng thử một lần: đã có.
-- Receiver SePay xác thực và cộng lượt đúng một lần: đã kiểm thử bằng dữ liệu giả.
+- Receiver SePay xác thực và cộng lượt đúng một lần: đã kiểm thử bằng dữ liệu giả;
+  giao dịch thật câu hỏi lẻ đã được tự cộng 3 lượt.
 - Backend/QR trên preview đã bật sau cấu hình; SePay gửi thử HMAC đạt HTTP 200.
-  Nghiệm thu giao dịch tiền thật vẫn đang chờ chủ tài khoản chuyển khoản.
+  Giao dịch thật 20.000đ đã fulfilled, số dư câu hỏi lẻ 3 → 6; credit đề giữ ở 2.
+  Gói đề 199.000đ cũng đã fulfilled, credit đề 2 → 12. Không cộng thủ công.
 - Chủ tài khoản đã đăng ký gói Free và tự liên kết BIDV qua OTP; đã xác minh
   tài khoản 1410373736 và VA 96247BIOGENAI. Chủ tài khoản đã lưu webhook/secret.
 - Main và production: giữ nguyên; không merge hoặc triển khai từ checklist này.
@@ -57,7 +59,21 @@ Secret/webhook đã được kiểm chứng bằng nút Gửi thử trên SePay.
 chỉ nhận ACK sau HMAC, không gọi ledger hoặc cộng lượt. ID giao dịch thật vẫn
 phải là số nguyên dương; không dùng Test mode trên kho credit thật.
 
-## Nghiệm thu tiền thật — chưa thực hiện
+## Nghiệm thu tiền thật — hai module đã nhận tiền
+
+Đơn `cff10e13-c49e-4188-8ea4-3d724b983cde` đã được SePay nhận 20.000đ,
+giao dịch `89710446`, mã ngân hàng `463D419B-4B94-48C4-9476-3F0346C907A4`.
+Log webhook `56784973` đạt HTTP 200; app tự chuyển fulfilled và cộng 3 lượt.
+Chủ tài khoản tự chuyển tiền; không dùng quản trị để cộng thay thanh toán.
+
+Đơn đề `78d2621c-818c-47cf-b8f2-b659ef7a2948` đã nhận đúng 199.000đ vào VA,
+giao dịch `89824997`, mã ngân hàng `E75B2D65-E0AB-4099-8328-9FC8E0B8EF5B`.
+Log `56868123` đạt HTTP 200; checkout tự fulfilled, credit đề 2 → 12.
+Ledger thể hiện riêng +10 credit đề và +3 lượt câu hỏi lẻ, mỗi khoản một lần.
+
+Đã kiểm tra số dư lưu khi mở lại app. Chưa thực hiện đầy đủ đăng xuất/đăng nhập
+và dùng một lượt AI sau mua. Đã yêu cầu phát lại webhook thật nhưng SePay chưa
+trả kết quả hoàn tất/log lần gửi mới; không coi bước này đã nghiệm thu.
 
 1. Chủ tài khoản mua gói câu hỏi lẻ qua đơn thật 20.000đ / 3 lượt trên preview.
    Ghi lại mã đơn, số dư trước và sau, mã giao dịch; không đưa dữ liệu thẻ/OTP vào log.
