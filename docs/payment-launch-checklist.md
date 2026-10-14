@@ -10,7 +10,9 @@
   Gói đề 199.000đ cũng đã fulfilled, credit đề 2 → 12. Không cộng thủ công.
 - Chủ tài khoản đã đăng ký gói Free và tự liên kết BIDV qua OTP; đã xác minh
   tài khoản 1410373736 và VA 96247BIOGENAI. Chủ tài khoản đã lưu webhook/secret.
-- Main và production: giữ nguyên; không merge hoặc triển khai từ checklist này.
+- Chủ sản phẩm đã yêu cầu merge và phát hành chính thức ngày 14/10/2026:
+  PR #1 đã merge vào main 9fc8d3a, frontend/backend đã live. Giữ nguyên kho
+  credit và receiver thanh toán hiện tại; xem production-launch.md.
 
 ## Cấu hình cần nhập trong dashboard
 

@@ -277,3 +277,16 @@ still applies, and packages are granted manually after payment verification.
 - Domain checkout confirms biogenai.vn, one year, total 558,000 VND incl. VAT.
   Owner registration/identity/terms/payment handoff is pending. Main, production,
   DNS and Firebase domain permissions remain unchanged.
+
+### Official production promotion — 14 October 2026
+
+- The owner explicitly authorized merging and launching the official version.
+  PR #1 is merged at 9fc8d3a; frontend and backend are live from that main
+  commit. Both signed payments and the existing biogen_preview credit store
+  were preserved, with the acceptance account still at 12 exam / 5 manual
+  turns and zero held after promotion.
+- Production health, package prices, automatic-payment readiness, explicit
+  CORS and denial of unauthenticated generation passed. The live domain shows
+  Exam Builder and the paid-package banner. No additional AI run or bank
+  transfer was needed for promotion. See production-launch.md for deploy IDs,
+  rollback and the remaining real-session Google sign-in verification.

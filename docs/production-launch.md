@@ -57,3 +57,36 @@ mandatory payment enforcement. Keep the backend receiver and credit store
 running during any frontend rollback. Do not roll back wallet documents or
 paid receipts. Keep production releases manual to avoid accidental rollout
 of later branch edits.
+
+## Verified official release — 14 October 2026
+
+- PR https://github.com/tranthanhduysph-coder/BioGen-AI/pull/1 merged at
+  `9fc8d3afba309dd8e5fd81a3c57e161919a0ed96`. The merged tree exactly matches
+  the verified feature tree. The local checkout now tracks main.
+- Frontend deploy `dep-db7lbujbc2fs73fka0e0` is live at that merge commit
+  (17:15 Asia/Saigon). Backend deploy `dep-db7ld3navr4c738m74fg` is live at
+  the same commit (17:18 Asia/Saigon), branch main, APP_ENV production.
+  Backend health check path is `/health`. Auto-deploy remains off.
+- The production HTML serves `/assets/index-BHWrrGvN.js`. The bundle contains
+  the intended API URL and Exam Builder; legacy process.env.API_KEY and
+  backend-secret variable references were absent. HTTPS responds 200 and
+  www resolves to the apex. Browser guest-mode verification shows the real
+  curriculum preset UI and the approved trial/package banner on biogenai.vn.
+  Evidence: `tmp/biogenai-official-release.png`.
+- Health confirms production, AI configured, Firebase authentication required
+  and credits enabled. Public plans confirm 10/199000, 20/349000, 30/479000
+  exam credits and 3/20000 manual turns, automatic payments ready, with the
+  previously verified BIDV VA. Four configured origins pass OPTIONS;
+  an unrelated origin receives 400 without an allow-origin header.
+- Unauthenticated credit reads and manual generation both return 401.
+  The `/docs` endpoint returns 404 in production. These checks did not call
+  the AI provider, create orders, transfer funds or use customer allowance.
+- Server-side account inspection after promotion still shows 12 exam / 5
+  manual turns, zero held and no active run. The database namespace, signed
+  receiver URL, credentials and wallet documents were preserved.
+- A new Google-authenticated production session has not been verified by
+  automation; prior integrated-browser sign-in had a network error. This is
+  distinct from domain authorization, which was verified via Firebase API,
+  and from the prior successful real-session AI/payment/DOCX acceptance.
+- Documentation-only follow-up commits record this deployment; no new build
+  is needed when only these release records change.

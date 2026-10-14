@@ -4,8 +4,9 @@
 1.000.000đ/năm. Chủ sản phẩm đã xác nhận mua biogenai.vn một năm.
 Đã thêm tên miền vào Render frontend chính, lưu DNS và xác minh cả hai miền;
 HTTPS đã cấp thành công và tên miền mở được ứng dụng.
-Đã bổ sung Firebase/CORS theo phê duyệt của chủ sản phẩm. Chưa merge main
-hoặc triển khai frontend mới lên production.
+Đã bổ sung Firebase/CORS theo phê duyệt của chủ sản phẩm. Chủ sản phẩm đã
+yêu cầu merge bản chính thức; PR #1 đã merge vào main tại 9fc8d3a và cả
+frontend/backend đã triển khai thành công. Chi tiết ở production-launch.md.
 
 ## Kết quả tra cứu
 
@@ -65,8 +66,9 @@ portal `https://manage.matbao.net/domains/profile` xác nhận **Đã ký** ngà
   phiên khách hàng đã đăng nhập và có biogenai.vn. Wiki Mắt Bão còn ghi
   id.axys.group; cổng đó từ chối định dạng ID và khôi phục email/dịch vụ.
   Không tiếp tục dùng cổng cũ hoặc suy ra ID sai từ thông báo tại cổng đó.
-- Frontend chính vẫn chạy `main` commit `3977ed8`; bản đã nghiệm thu nằm ở
-  branch feature trên preview. Gắn tên miền không tự đưa bản mới lên main.
+- Khi mới gắn miền, frontend chính vẫn ở main 3977ed8. Sau yêu cầu triển khai
+  chính thức của chủ sản phẩm, frontend đã lên main 9fc8d3a; Exam Builder và
+  banner các gói credit đã được xác minh trực tiếp trên biogenai.vn.
 - Chủ sản phẩm đã cho phép thêm hai miền vào Firebase và hai origin HTTPS
   vào backend. Đã PATCH riêng `authorizedDomains` bằng kết nối CLI quản trị
   và GET lại xác minh: có biogenai.vn / www.biogenai.vn, giữ localhost,
