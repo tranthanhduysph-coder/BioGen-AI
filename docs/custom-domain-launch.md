@@ -35,8 +35,11 @@ của hai tên. Chưa xác minh giá gia hạn .app tại Mắt Bão.
 
 Việc đăng ký chủ thể, xác thực danh tính và chấp nhận điều khoản do chủ sở
 hữu hoàn tất trực tiếp. Portal chính đã xác nhận tên miền **Đang sử dụng**,
-đăng ký 14/10/2026, hết hạn 14/10/2027. Bản khai riêng vẫn **Chờ ký**; đã bàn
-giao chủ sản phẩm tự xem và ký tại `https://manage.matbao.net/domains/profile`.
+đăng ký 14/10/2026, hết hạn 14/10/2027. Chủ sản phẩm đã tự ký bản khai;
+portal `https://manage.matbao.net/domains/profile` xác nhận **Đã ký** ngày
+14/10/2026, Chờ ký 0 / Đã ký 1 / Hoàn thành 0. Không gọi trạng thái này là
+đã được nhà đăng ký duyệt hoàn tất. Bằng chứng cục bộ:
+`tmp/biogenai-vn-declaration-signed.png`.
 
 ## Kết nối tên miền ngày 14/10/2026
 
@@ -63,6 +66,11 @@ giao chủ sản phẩm tự xem và ký tại `https://manage.matbao.net/domain
   Không tiếp tục dùng cổng cũ hoặc suy ra ID sai từ thông báo tại cổng đó.
 - Frontend chính vẫn chạy `main` commit `3977ed8`; bản đã nghiệm thu nằm ở
   branch feature trên preview. Gắn tên miền không tự đưa bản mới lên main.
+- Đã đọc cấu hình Firebase bằng kết nối CLI quản trị đã được cấp phép:
+  Authorized domains có localhost, biogen-ai.firebaseapp.com,
+  biogen-ai.web.app, biogenai.onrender.com và miền blueprint preview. Chưa có
+  biogenai.vn / www.biogenai.vn. Đã yêu cầu chủ sản phẩm cho phép bổ sung hai
+  miền này và hai origin HTTPS vào backend, chưa thực hiện thay đổi đó.
 - Khi triển khai bản mới cần giữ kho `biogen_preview` đã chứa các giao dịch
   thật và số dư, hoặc chuyển dữ liệu có đối soát trước khi đổi namespace.
   Không cấp lại trial vì đổi URL. Giữ receiver SePay hiện tại nếu dùng cùng
