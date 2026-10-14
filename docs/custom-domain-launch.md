@@ -2,7 +2,8 @@
 
 Đối chiếu ngày 14/10/2026. Chủ sản phẩm muốn giữ BioGen AI, ngân sách dưới
 1.000.000đ/năm. Chủ sản phẩm đã xác nhận mua biogenai.vn một năm.
-Đã thêm tên miền vào Render frontend chính; DNS/HTTPS chưa hoàn tất.
+Đã thêm tên miền vào Render frontend chính, lưu DNS và xác minh cả hai miền;
+HTTPS đã cấp thành công và tên miền mở được ứng dụng.
 Chưa merge main, triển khai bản mới lên production hoặc đổi Firebase.
 
 ## Kết quả tra cứu
@@ -33,22 +34,33 @@ bị timeout, nên không dùng kết quả đó để kết luận khả dụng
 của hai tên. Chưa xác minh giá gia hạn .app tại Mắt Bão.
 
 Việc đăng ký chủ thể, xác thực danh tính và chấp nhận điều khoản do chủ sở
-hữu hoàn tất trực tiếp. Chưa đọc được trạng thái kích hoạt trong tài khoản
-nhà đăng ký vì trang quản trị yêu cầu đăng nhập riêng.
+hữu hoàn tất trực tiếp. Portal chính đã xác nhận tên miền **Đang sử dụng**,
+đăng ký 14/10/2026, hết hạn 14/10/2027. Bản khai riêng vẫn **Chờ ký**; đã bàn
+giao chủ sản phẩm tự xem và ký tại `https://manage.matbao.net/domains/profile`.
 
 ## Kết nối tên miền ngày 14/10/2026
 
 - Render đã nhận `biogenai.vn` và tự thêm `www.biogenai.vn` chuyển về miền gốc
   trên static site `srv-d4gliuchg0os73fsqjs0` (`biogenai.onrender.com`).
-- Cả hai đang **Waiting for DNS / Waiting for Verification**. Chưa có HTTPS
-  được xác minh. Bằng chứng cục bộ: `tmp/biogenai-vn-render-dns.png`.
+- Cả hai đã **Verified / Certificate Issued**. Trạng thái lỗi/pending ban đầu
+  đã hết sau khi DNS đồng bộ và Retry Verification một lần. Đã kiểm tra TLS
+  với xác minh chứng chỉ bật: miền gốc trả HTTP 200, www trả HTTP 301 về
+  `https://biogenai.vn/`, HTTP miền gốc chuyển sang HTTPS. Trình duyệt đã mở
+  được trang đăng nhập BioGen AI trên miền gốc. Bằng chứng:
+  `tmp/biogenai-vn-https-issued.png`, `tmp/biogenai-vn-live.png`.
 - Bản ghi Render cung cấp: `www` CNAME `biogenai.onrender.com`; miền gốc
   dùng ALIAS/ANAME cùng đích nếu nhà cung cấp hỗ trợ, nếu không dùng `@` A
   **216.24.57.1**. IP được đọc trực tiếp từ hộp hướng dẫn Render.
-- DNS công khai đã trả về `ns1.matbao.vn` và `ns2.matbao.vn`; truy vấn A miền
-  gốc chưa trả về địa chỉ, `www` chưa tồn tại. Chưa sửa bản ghi tại Mắt Bão.
-- Portal quản trị chính thức: `https://id.axys.group` (trước đây id.matbao.net).
-  Đang chờ chủ sở hữu đăng nhập để kiểm tra trạng thái tên miền và cấu hình DNS.
+- Đã lưu `@` A `216.24.57.1` và `www` CNAME `biogenai.onrender.com`, TTL 300
+  giây. Giữ NS mặc định `ns1.matbao.vn` / `ns2.matbao.vn`. Cả DNS có thẩm
+  quyền lẫn Google Public DNS đã trả về hai giá trị đúng; không có AAAA miền
+  gốc. Zone chỉ có ba bản ghi (NS và hai bản ghi vừa thêm), không có CAA/MX/TXT
+  cần sửa. Bằng chứng cục bộ: `tmp/biogenai-vn-dns-configured.png`.
+- **Portal đúng cho tài khoản này: `https://manage.matbao.net`.** Đã mở trực
+  tiếp `https://id.matbao.net` và quan sát chuyển hướng tới portal này, nơi
+  phiên khách hàng đã đăng nhập và có biogenai.vn. Wiki Mắt Bão còn ghi
+  id.axys.group; cổng đó từ chối định dạng ID và khôi phục email/dịch vụ.
+  Không tiếp tục dùng cổng cũ hoặc suy ra ID sai từ thông báo tại cổng đó.
 - Frontend chính vẫn chạy `main` commit `3977ed8`; bản đã nghiệm thu nằm ở
   branch feature trên preview. Gắn tên miền không tự đưa bản mới lên main.
 - Khi triển khai bản mới cần giữ kho `biogen_preview` đã chứa các giao dịch
@@ -82,3 +94,4 @@ nhà đăng ký vì trang quản trị yêu cầu đăng nhập riêng.
 - Bảng giá: https://www.matbao.net/ten-mien/bang-gia-ten-mien
 - Porkbun: https://porkbun.com/products/domains
 - Render: https://render.com/docs/custom-domains
+- Portal khách hàng đã đối chiếu trực tiếp: https://manage.matbao.net
