@@ -166,16 +166,15 @@ export const CreditPanel: React.FC<{ onAccount: (account: CreditAccount | null) 
       <input aria-label="UID tài khoản" className={`${input} mt-2 w-full`} value={selectedUid} onChange={e => { setSelectedUid(e.target.value); setSelectedPurchase(null); }} placeholder="Hoặc nhập Firebase UID" />
       <input aria-label="Lý do giao dịch credit" className={`${input} mt-2 w-full`} maxLength={500} value={note} onChange={e => setNote(e.target.value)} placeholder="Lý do tặng, xóa lượt hoặc xử lý tài khoản" />
       {selected && <p className="mt-2 text-sm">Khả dụng: <b>{selected.balance} lượt làm đề</b> · <b>{selected.manualBalance ?? 3} lượt câu hỏi lẻ</b>. Đang giữ: {selected.held} lượt đề · {selected.manualHeld || 0} lượt câu lẻ.</p>}
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">{([
+      <div className="mt-3 grid gap-3">{([
         { product: 'exam', label: 'Lượt làm đề', amount: examAmount, setAmount: setExamAmount, available: selected?.balance },
         { product: 'manual', label: 'Lượt tạo câu hỏi lẻ', amount: manualAmount, setAmount: setManualAmount, available: selected?.manualBalance ?? (selected ? 3 : undefined) },
       ] as const).map(item => <div key={item.product} className="rounded-lg border border-slate-200 p-3">
-        <label className="block text-sm font-semibold">{item.label}
-          <input aria-label={`Số ${item.label.toLowerCase()}`} type="number" min={1} max={10000} step={1} className={`${input} mt-2 w-full`} value={item.amount} onChange={e => item.setAmount(e.target.value)} />
-        </label>
-        <div className="mt-2 flex gap-2">
-          <button className={button} disabled={disabled || !selectedUid || !note.trim() || !validAmount(item.amount)} onClick={() => adjust(item.product, 'add', Number(item.amount))}>Thêm {item.label.toLowerCase()}</button>
-          <button className={button} disabled={disabled || !selectedUid || !note.trim() || !validAmount(item.amount) || item.available !== undefined && Number(item.amount) > item.available} onClick={() => adjust(item.product, 'remove', Number(item.amount))}>Xóa {item.label.toLowerCase()}</button>
+        <label htmlFor={`admin-${item.product}-amount`} className="block text-sm font-semibold">{item.label}</label>
+        <div className="mt-2 flex items-center gap-2">
+          <input id={`admin-${item.product}-amount`} aria-label={`Số ${item.label.toLowerCase()}`} type="number" min={1} max={10000} step={1} className={`${input} min-w-0 flex-1`} value={item.amount} onChange={e => item.setAmount(e.target.value)} />
+          <button aria-label={`Thêm ${item.label.toLowerCase()}`} className={button} disabled={disabled || !selectedUid || !note.trim() || !validAmount(item.amount)} onClick={() => adjust(item.product, 'add', Number(item.amount))}>Thêm</button>
+          <button aria-label={`Xóa ${item.label.toLowerCase()}`} className={button} disabled={disabled || !selectedUid || !note.trim() || !validAmount(item.amount) || item.available !== undefined && Number(item.amount) > item.available} onClick={() => adjust(item.product, 'remove', Number(item.amount))}>Xóa</button>
         </div>
       </div>)}</div>
       {selectedPurchase && <div className="mt-3 rounded-lg border border-amber-200 p-3">
