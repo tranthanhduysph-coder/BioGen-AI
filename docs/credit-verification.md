@@ -215,3 +215,29 @@ still applies, and packages are granted manually after payment verification.
   compact Add/Remove buttons, with no package or trial-grant buttons. Account
   picker retains the owner's real 12 exam / 6 manual balances and the second
   administrator's 2 / 3 balances. Screenshot: `tmp/admin-allowance-live.png`.
+
+## Final acceptance and domain preparation — 14 October 2026
+
+- Signed out of the preview and signed back in after the owner completed the
+  Google action. The exam/manual balances remained 12/6, with 0 held before
+  the generation test. Automated Google sign-in encountered auth/internal-error;
+  the direct owner action restored the authenticated app.
+- First manual generation attempt failed at browser connectivity before a
+  manual-run POST appeared. Balance refresh still showed 6 manual / 0 held.
+  A deliberate retry reached POST manual-runs (HTTP 200), then the real Gemini
+  provider returned 503 three times and 504 on the final temporary retry.
+  No successful real AI question or completed consumption is claimed. The
+  test run needs resume/cancel reconciliation when browser access is restored.
+- Requested replay of the real exam payment from SePay transaction 89824997;
+  no completed replay response was visible. Live replay acceptance remains open.
+- The owner approved the support/refund policy: initial response within 2
+  business days, refund within 7 business days after approval, change-of-mind
+  requests within 7 days with unused paid allowance reconciled manually.
+  PaymentHelp source now contains the approved Vietnamese/English policy;
+  deployment status is recorded separately after verification.
+- Browser verification was subsequently prevented by automatic approval review
+  exhausting its usage limit. This was a review availability failure, not a
+  finding that the action was unsafe. No alternative browser automation bypass
+  was used. SePay replay verification, final UI state and domain checkout remain
+  pending; main/production and DNS remain unchanged.
+- Domain results and deployment preparation are in custom-domain-launch.md.
