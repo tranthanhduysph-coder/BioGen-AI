@@ -4,7 +4,8 @@
 1.000.000đ/năm. Chủ sản phẩm đã xác nhận mua biogenai.vn một năm.
 Đã thêm tên miền vào Render frontend chính, lưu DNS và xác minh cả hai miền;
 HTTPS đã cấp thành công và tên miền mở được ứng dụng.
-Chưa merge main, triển khai bản mới lên production hoặc đổi Firebase.
+Đã bổ sung Firebase/CORS theo phê duyệt của chủ sản phẩm. Chưa merge main
+hoặc triển khai frontend mới lên production.
 
 ## Kết quả tra cứu
 
@@ -66,11 +67,25 @@ portal `https://manage.matbao.net/domains/profile` xác nhận **Đã ký** ngà
   Không tiếp tục dùng cổng cũ hoặc suy ra ID sai từ thông báo tại cổng đó.
 - Frontend chính vẫn chạy `main` commit `3977ed8`; bản đã nghiệm thu nằm ở
   branch feature trên preview. Gắn tên miền không tự đưa bản mới lên main.
-- Đã đọc cấu hình Firebase bằng kết nối CLI quản trị đã được cấp phép:
-  Authorized domains có localhost, biogen-ai.firebaseapp.com,
-  biogen-ai.web.app, biogenai.onrender.com và miền blueprint preview. Chưa có
-  biogenai.vn / www.biogenai.vn. Đã yêu cầu chủ sản phẩm cho phép bổ sung hai
-  miền này và hai origin HTTPS vào backend, chưa thực hiện thay đổi đó.
+- Chủ sản phẩm đã cho phép thêm hai miền vào Firebase và hai origin HTTPS
+  vào backend. Đã PATCH riêng `authorizedDomains` bằng kết nối CLI quản trị
+  và GET lại xác minh: có biogenai.vn / www.biogenai.vn, giữ localhost,
+  biogen-ai.firebaseapp.com, biogen-ai.web.app, biogenai.onrender.com và miền
+  blueprint preview. Không đổi provider đăng nhập, người dùng hoặc IAM.
+- Đã cập nhật duy nhất `CORS_ORIGINS` trên backend preview, giữ hai origin
+  Render hiện có và thêm `https://biogenai.vn`, `https://www.biogenai.vn`.
+  Render đã tự triển khai `23abe36` qua deploy `dep-db7l77uk1f9s7385dbvg`;
+  code backend không khác bản b9c852b trước đó. Kiểm tra OPTIONS sau cập nhật:
+  cả bốn origin cho phép trả HTTP 200 với đúng Access-Control-Allow-Origin;
+  `https://invalid.example` trả HTTP 400, không có header cho phép.
+  `/health` xác nhận ok, AI đã cấu hình, xác thực và credit vẫn bật.
+- Đọc kho credit sau cập nhật: tài khoản nghiệm thu vẫn 12 lượt đề / 5 lượt
+  câu lẻ, không giữ lượt và không có công việc dở. Không đổi namespace, không
+  cấp lại trial, không sửa webhook hoặc dữ liệu thanh toán.
+- Thử nút Google tự động trên frontend main tại miền mới gặp
+  `auth/network-request-failed` trong trình duyệt tích hợp. Danh sách miền đã
+  xác minh qua API; chưa coi lần bấm này là đăng nhập thành công. Cần chủ sản
+  phẩm thử đăng nhập trực tiếp, rồi nghiệm thu frontend mới sau triển khai.
 - Khi triển khai bản mới cần giữ kho `biogen_preview` đã chứa các giao dịch
   thật và số dư, hoặc chuyển dữ liệu có đối soát trước khi đổi namespace.
   Không cấp lại trial vì đổi URL. Giữ receiver SePay hiện tại nếu dùng cùng
