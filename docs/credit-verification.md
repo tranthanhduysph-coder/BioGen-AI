@@ -187,3 +187,31 @@ still applies, and packages are granted manually after payment verification.
   during this session; live provider replay acceptance remains unverified.
   The previously passing parallel/restart Firestore tests verify deduplication
   using isolated synthetic events, not a completed live SePay replay.
+
+## Arbitrary administrator allowance — 14 October 2026
+
+- The administrator UI now has independent exam/manual amount inputs with Add
+  and Remove buttons, rather than package-based gifts. Removed the redundant
+  trial button. Bank reconciliation remains available only for a selected order.
+- The server checks administrator identity and strict whole-number amounts,
+  records the administrator/reason as zero-value gift/revoke ledger entries,
+  and preserves account status, trial eligibility, payment receipts, pending
+  purchases and active reservations. Excess removal fails without any write.
+  Durable operation IDs prevent repeated grants/removals on retries.
+- 63 backend tests and 36 frontend/data tests pass. Exam Builder scoped
+  TypeScript, frontend build and whitespace checks pass. The existing Vite
+  large-chunk advisory remains; no new build failure.
+- Local UI acceptance used MemoryStore and fake accounts only: a teacher's
+  initial exam/manual balances 2/3 became 9/8 after gifts of 7/5, then 6/4
+  after removals of 3/4. Reload retained the values. The UI blocks excessive
+  removal and fractional amounts, clears stale confirmation when inputs change,
+  and hides administrator controls from the teacher. No bank or AI calls.
+- Backend deploy `dep-db7jjhjncjis73eirs3g` is live at `b9c852b`; compact
+  frontend deploy `dep-db7jkda5b2lc7386v2j0` is live at `ba4751d`.
+  Public health reports `ok: true`, and OpenAPI exposes the protected adjustment
+  route with integer amounts. No live account was granted or revoked during
+  this feature test. Main and production remain unchanged.
+- Authenticated live preview displays both arbitrary-amount controls and the
+  compact Add/Remove buttons, with no package or trial-grant buttons. Account
+  picker retains the owner's real 12 exam / 6 manual balances and the second
+  administrator's 2 / 3 balances. Screenshot: `tmp/admin-allowance-live.png`.
