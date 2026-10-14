@@ -4,9 +4,10 @@
 
 - Giá gói, người nhận tiền, hai ví riêng, cấp dùng thử một lần: đã có.
 - Receiver SePay xác thực và cộng lượt đúng một lần: đã kiểm thử bằng dữ liệu giả.
-- Backend/QR nhận tiền thật: chưa bật, chờ kết nối ngân hàng.
+- Backend/QR trên preview đã bật sau cấu hình; SePay gửi thử HMAC đạt HTTP 200.
+  Nghiệm thu giao dịch tiền thật vẫn đang chờ chủ tài khoản chuyển khoản.
 - Chủ tài khoản đã đăng ký gói Free và tự liên kết BIDV qua OTP; đã xác minh
-  tài khoản 1410373736 và VA 96247BIOGENAI. Webhook/secret đang cấu hình.
+  tài khoản 1410373736 và VA 96247BIOGENAI. Chủ tài khoản đã lưu webhook/secret.
 - Main và production: giữ nguyên; không merge hoặc triển khai từ checklist này.
 
 ## Cấu hình cần nhập trong dashboard
@@ -52,7 +53,9 @@ Chủ tài khoản đã liên kết API BIDV cá nhân; không dùng SMS hoặc 
 Tiền phải chuyển vào VA để SePay gửi thông báo; tiền vào số tài khoản chính
 không được đồng bộ theo phương thức này. Cần xác minh giao dịch 20.000đ vào VA
 được ghi nhận cùng đủ nội dung thanh toán, đúng số tiền và đúng trường subAccount.
-QR vẫn tắt trong lúc secret/webhook chưa được kiểm chứng.
+Secret/webhook đã được kiểm chứng bằng nút Gửi thử trên SePay. Mẫu integer ID 0
+chỉ nhận ACK sau HMAC, không gọi ledger hoặc cộng lượt. ID giao dịch thật vẫn
+phải là số nguyên dương; không dùng Test mode trên kho credit thật.
 
 ## Nghiệm thu tiền thật — chưa thực hiện
 

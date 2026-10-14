@@ -137,3 +137,27 @@ still applies, and packages are granted manually after payment verification.
   one active HMAC webhook limited to BIDV and the chosen VA; authenticated delivery
   and real-transfer acceptance still need verification. Render has the confirmed
   VA and hmac mode with automatic payments kept disabled during rollout.
+
+### Authenticated connection and QR activation
+
+- Backend BIDV deploy `dep-db7d00bbc2fs73eo2hdg` and frontend
+  `dep-db7d112j9qps73bvrva0` went live at `f8e3c19`. Activation of the confirmed
+  VA and HMAC settings reports `automaticPaymentReady: true`; secrets were never
+  read into chat, screenshots or source. Only preview was enabled.
+- SePay Send test initially reached validation and returned 422 for its mock
+  payload. Official documentation identifies mock integer ID 0. The receiver
+  now ACKs that authenticated connection probe without accessing any account,
+  order or ledger. Real settlement still rejects nonpositive/invalid IDs; forged
+  probes fail HMAC. All 55 backend tests pass; the 36 frontend tests and build
+  remain valid (the probe change does not modify the frontend).
+- Backend probe deploy `dep-db7da55g1s2s73a3h5t0` is live at `0b781be`. SePay's
+  Send test reports HTTP 200, 512ms. This proves authenticated connectivity, not
+  a bank receipt. The saved webhook was reviewed: JSON/incoming, retry enabled,
+  bank 1410373736, only VA 96247BIOGENAI, skip transactions without a code.
+- One real owner manual purchase was prepared through the UI at 20,000 VND / 3
+  actions, still pending. Its QR contains the exact VA, price and random BGP memo.
+  Pre-transfer balances are exam 2 and manual 3. The owner was handed the QR to
+  perform the real transfer directly; no allowance was granted by the agent.
+- Local evidence: `tmp/bidv-live-payment-qr.png` and
+  `tmp/sepay-hmac-probe-success.png`. Real-transfer acceptance remains pending;
+  main and production are unchanged.
