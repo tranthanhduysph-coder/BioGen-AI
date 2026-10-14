@@ -192,9 +192,23 @@ class WebhookApiTests(unittest.TestCase):
         values=self.event(self.purchase()).model_dump();values['id']=0;values['description']='PRIVATE-PAYER-DETAIL'
         body=json.dumps(values).encode()
         result=self.client.post('/api/payments/sepay/webhook',content=body,headers=self.headers(body))
-        self.assertEqual(result.status_code,422)
+        self.assertEqual((result.status_code,result.json()),(200,{'success':True}))
         self.assertNotIn('PRIVATE-PAYER-DETAIL',result.text)
         self.assertEqual(self.service.me(USER)['balance'],2)
+        self.assertEqual(len(self.service.store.list(f'{self.service.namespace}_payment_events')),0)
+        self.assertEqual(self.service.purchases(USER['sub'])[0]['status'],'pending')
+
+    def test_connection_probe_requires_hmac_and_invalid_real_events_remain_rejected(self):
+        body=json.dumps({'id':0}).encode()
+        self.assertEqual(self.client.post('/api/payments/sepay/webhook',content=body,
+            headers={'Content-Type':'application/json'}).status_code,401)
+        self.assertEqual(self.client.post('/api/payments/sepay/webhook',content=body,
+            headers=self.headers(body)).status_code,200)
+        for value in (False,'0',-1,1):
+            invalid=json.dumps({'id':value,'description':'PRIVATE-PAYER-DETAIL'}).encode()
+            result=self.client.post('/api/payments/sepay/webhook',content=invalid,headers=self.headers(invalid))
+            self.assertEqual(result.status_code,422)
+            self.assertNotIn('PRIVATE-PAYER-DETAIL',result.text)
 
 
 if __name__=='__main__':

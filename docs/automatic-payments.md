@@ -69,8 +69,11 @@ Sources checked 14 October 2026:
 SePay Test mode uses the same payload format as real transfers, so it MUST NOT
 share the live signing secret or credit namespace. A signed simulated positive
 transaction cannot be distinguished from a live one solely from the payload.
-The provider form's example transaction ID 0 is rejected, but that is not a
-substitute for separating Test mode and Live credentials/data.
+The provider's signed Send test payload with integer ID 0 is acknowledged only
+as a connection probe, with no ledger/order/storage call. Forged probes are
+rejected. Actual settlement still requires a strictly positive transaction ID.
+This is not a substitute for separating Test mode and Live credentials/data;
+Test mode can use positive IDs.
 
 ## Receiver and ledger behavior
 

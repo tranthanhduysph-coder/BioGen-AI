@@ -150,7 +150,12 @@ def build_payment_router(get_credits):
                 raise HTTPException(413, detail='Notification too large')
         verify_notification(bytes(raw), request.headers)
         try:
-            payload = BankTransaction.model_validate(json.loads(raw))
+            decoded = json.loads(raw)
+            # SePay's authenticated "Send test" uses mock ID 0. Acknowledge
+            # connectivity only: never call the ledger or fulfill any order.
+            if isinstance(decoded, dict) and type(decoded.get('id')) is int and decoded['id'] == 0:
+                return {'success': True}
+            payload = BankTransaction.model_validate(decoded)
         except (ValueError, ValidationError, UnicodeDecodeError):
             # Do not echo bank details, request payloads or validation inputs.
             raise HTTPException(422, detail='Invalid bank notification')
