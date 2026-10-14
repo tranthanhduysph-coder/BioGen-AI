@@ -5,7 +5,8 @@
 - Giá gói, người nhận tiền, hai ví riêng, cấp dùng thử một lần: đã có.
 - Receiver SePay xác thực và cộng lượt đúng một lần: đã kiểm thử bằng dữ liệu giả.
 - Backend/QR nhận tiền thật: chưa bật, chờ kết nối ngân hàng.
-- Tài khoản SePay: chờ chủ tài khoản đăng nhập/đăng ký trực tiếp.
+- Chủ tài khoản đã đăng ký gói Free và tự liên kết BIDV qua OTP; đã xác minh
+  tài khoản 1410373736 và VA 96247BIOGENAI. Webhook/secret đang cấu hình.
 - Main và production: giữ nguyên; không merge hoặc triển khai từ checklist này.
 
 ## Cấu hình cần nhập trong dashboard
@@ -19,13 +20,13 @@ Ngày 13/10/2026, bảng giá công khai và lựa chọn thanh toán tháng hi�
   hiển thị mức quy đổi 96.000đ/tháng; đây không phải giá trả từng tháng.
 - Cho phép vượt số giao dịch và tính phí vượt. Chưa xác nhận đơn giá vượt cho
   tài khoản của chủ sản phẩm; không suy ra từ đơn giá bình quân của gói.
-- Danh sách 12 ngân hàng hỗ trợ của các gói trên không có Techcombank. Giá và
-  khả năng kết nối SMS cho tài khoản Techcombank hiện tại vẫn chờ xác nhận.
+- Trước đó Techcombank không có trong danh sách 12 ngân hàng hỗ trợ. Chủ sản
+  phẩm sau đó chọn BIDV và tự đăng ký Free; dashboard đã hiển thị gói Free.
 - Một lần mua gói 30 đề bằng một chuyển khoản là một giao dịch tiền vào, không
   phải 30 giao dịch. SePay định nghĩa tổng giao dịch tiền vào trong tháng; chưa
   xác nhận bộ lọc webhook có loại giao dịch không liên quan khỏi hạn mức hay không.
 
-Chưa đăng ký gói trả phí hoặc thay đổi tài khoản nhận tiền.
+Không đăng ký gói trả phí. Người nhận tiền đã được chủ sản phẩm đổi sang BIDV.
 
 ### Webhook preview
 
@@ -33,7 +34,8 @@ Chưa đăng ký gói trả phí hoặc thay đổi tài khoản nhận tiền.
 | --- | --- |
 | Tên webhook | BioGen AI preview — tiền vào |
 | Endpoint | https://biogenai-api-preview.onrender.com/api/payments/sepay/webhook |
-| Tài khoản | Techcombank 84907276901 · TRAN THANH DUY |
+| Tài khoản chính | BIDV 1410373736 · TRAN THANH DUY |
+| VA nhận tiền trên QR | 96247BIOGENAI, chỉ chọn VA này trong bộ lọc SePay |
 | Loại giao dịch | Chỉ tiền vào |
 | Định dạng | JSON |
 | Xác thực | HMAC-SHA256, secret riêng tối thiểu 32 ký tự |
@@ -41,14 +43,16 @@ Chưa đăng ký gói trả phí hoặc thay đổi tài khoản nhận tiền.
 | Khi lỗi | Bật gửi lại |
 | Chế độ | Live; Test mode dùng endpoint, secret và kho dữ liệu riêng |
 
-Render backend chỉ cần `SEPAY_WEBHOOK_AUTH=hmac`, `SEPAY_WEBHOOK_SECRET` và
+Render backend cần `SEPAY_WEBHOOK_AUTH=hmac`, `SEPAY_WEBHOOK_SECRET`,
+`SEPAY_BIDV_VA=96247BIOGENAI` và
 `AUTOMATIC_PAYMENTS_ENABLED=true` khi kết nối đã kiểm chứng. Không nhập secret
 vào chat, repo, frontend hoặc ảnh bằng chứng. Không cần SePay API key để nhận webhook.
 
-Chủ tài khoản tự xác nhận phí SePay, phí SMS ngân hàng và phương thức Techcombank
-thực tế. Nếu dùng SMS, chỉ thêm số SePay để nhận biến động số dư theo hướng dẫn
-nhà cung cấp; không chuyển số nhận OTP. Cần xác minh giao dịch 20.000đ được ghi
-nhận cùng đầy đủ nội dung thanh toán. Chưa xác nhận thì QR giữ trạng thái tắt.
+Chủ tài khoản đã liên kết API BIDV cá nhân; không dùng SMS hoặc đổi số nhận OTP.
+Tiền phải chuyển vào VA để SePay gửi thông báo; tiền vào số tài khoản chính
+không được đồng bộ theo phương thức này. Cần xác minh giao dịch 20.000đ vào VA
+được ghi nhận cùng đủ nội dung thanh toán, đúng số tiền và đúng trường subAccount.
+QR vẫn tắt trong lúc secret/webhook chưa được kiểm chứng.
 
 ## Nghiệm thu tiền thật — chưa thực hiện
 
@@ -89,6 +93,7 @@ phản hồi/xử lý và thông tin bán hàng trước khi mở production.
 
 - https://sepay.vn/bang-gia.html
 - https://docs.sepay.vn/them-tai-khoan-ngan-hang.html
+- https://docs.sepay.vn/ket-noi-bidv.html (đối chiếu thêm ngày 14/10/2026)
 - https://developer.sepay.vn/vi/sepay-webhooks/tao-webhook
 - https://developer.sepay.vn/vi/sepay-webhooks/xac-thuc
 - https://developer.sepay.vn/vi/sepay-webhooks/test-mode/so-sanh-voi-live

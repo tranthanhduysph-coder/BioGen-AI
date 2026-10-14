@@ -175,6 +175,6 @@ Official transaction/auth guidance:
 https://firebase.google.com/docs/firestore/manage-data/transactions
 https://firebase.google.com/docs/firestore/quickstart-server
 
-Automatic payment rollout and SePay/Techcombank prerequisites:
+Automatic payment rollout and SePay/BIDV VA prerequisites:
 see `automatic-payments.md`. Without readiness, checkout does not display a QR
 or accept new payment requests through its button; existing credits still work.

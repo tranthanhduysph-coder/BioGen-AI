@@ -14,7 +14,7 @@ export type PurchaseRequest = { id: string; uid: string; email: string; name: st
   paymentCode?: string; expectedAmount?: number; paymentIssue?: string; paymentReference?: string; bank?: PaymentConfig['bank'] };
 export type PaymentConfig = { automaticPaymentReady: boolean; currency: string;
   exam: { credits: number; priceVnd: number }[]; manual: { turns: number; priceVnd: number };
-  bank: { id: string; name: string; accountNumber: string; accountName: string } };
+  bank: { id: string; name: string; accountNumber: string; accountName: string; virtualAccountNumber?: string } };
 export type ManualRun = { id: string; status: 'reserved' | 'completed' | 'cancelled';
   batches: {prompt: string; expectedCount: number; lang: string; criteria?: any}[]; results: Record<string, any[]> };
 export type CloudExam = { id: string; blueprint: ExamBlueprint; slots: any[];

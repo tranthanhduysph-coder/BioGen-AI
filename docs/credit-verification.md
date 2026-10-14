@@ -115,3 +115,25 @@ still applies, and packages are granted manually after payment verification.
   local `tmp/payment-support-live.png`. No live purchase was submitted.
   SePay account/bank setup and real payment acceptance remain pending. No paid
   subscription, bank permission change or real transfer was performed.
+
+## BIDV VA migration — 14 October 2026
+
+- The owner chose SePay Free and changed the recipient to BIDV, correcting the
+  main account to 1410373736. The owner completed identity/OTP linking directly.
+  SePay's bank detail confirms that account and official VA 96247BIOGENAI.
+- Main account and VA are separate: VietQR uses the VA, and settlement requires
+  gateway BIDV, the exact main account and configured VA in subAccount. Missing
+  or wrong VA and transfers to the previous bank cannot grant allowance.
+- New purchases snapshot their recipient. The frontend suppresses old/mismatched
+  QR codes, and the backend refuses settlement against a changed recipient.
+  The QR helper also refuses to fall back to the main BIDV account.
+- 54 backend and 36 frontend/data tests pass; scoped TypeScript and production
+  frontend build pass. The real Firestore concurrency/restart acceptance passed
+  in synthetic namespace biogen_payment_test_1791938110, granting each of the
+  two synthetic packages once. No real bank payment or AI request was performed.
+- SePay retained its existing DH pattern and now has BGP + exactly 20 alphanumeric
+  characters enabled, verified after reload. The owner saved the dedicated HMAC
+  secret directly into SePay/Render and saved the webhook. The SePay list shows
+  one active HMAC webhook limited to BIDV and the chosen VA; authenticated delivery
+  and real-transfer acceptance still need verification. Render has the confirmed
+  VA and hmac mode with automatic payments kept disabled during rollout.

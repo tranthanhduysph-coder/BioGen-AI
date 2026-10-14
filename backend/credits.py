@@ -6,7 +6,7 @@ import re
 import time
 import uuid
 from fastapi import HTTPException
-from backend.payment_config import PACKAGES, MANUAL_PRICE, PLANS
+from backend.payment_config import PACKAGES, MANUAL_PRICE, payment_bank
 
 
 
@@ -398,7 +398,7 @@ class CreditService:
         if tx.get(code_path):
             fail('payment_code_busy', 'Vui lòng tạo lại mã thanh toán.')
         purchase.update(paymentCode=code, expectedAmount=MANUAL_PRICE if purchase['product'] == 'manual' else PACKAGES[purchase['package']],
-                        bank=PLANS['bank'].copy())
+                        bank=payment_bank())
         tx.set(code_path, {'uid': purchase['uid'], 'purchaseId': purchase['id'], 'updatedAt': self.clock()})
         return purchase
 

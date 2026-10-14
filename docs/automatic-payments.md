@@ -1,8 +1,10 @@
 # Automatic QR payments — preview setup
 
-The code is prepared for both products. This document does not mean SePay or the
-bank is connected. No bank login, SMS routing, provider subscription or real
-transfer has been performed by the agent.
+The code is prepared for both products. The owner registered SePay's Free plan
+and linked the BIDV account using identity/OTP directly. The verified bank and
+VA are below; authenticated webhook setup and real-transfer acceptance remain
+separate steps. No bank login, SMS routing, paid subscription or real transfer
+has been performed by the agent.
 
 ## Confirmed products and recipient
 
@@ -13,35 +15,38 @@ transfer has been performed by the agent.
 | Exam | 30 credits / 30 exams | 479,000 VND |
 | Manual questions | 3 generation actions | 20,000 VND |
 
-The existing QR recipient remains Techcombank / TCB, account 84907276901,
-TRAN THANH DUY. The same VietQR image service is retained; each order inserts its
-own exact amount and random memo. Prices/recipient live in `data/paymentPlans.json`.
+The owner changed the recipient to BIDV, account **1410373736**, TRAN THANH DUY.
+SePay's linked official VA is **96247BIOGENAI**. QR transfers MUST use that VA,
+not the main account, because BIDV personal API notifications cover VA receipts.
+The same VietQR image service is retained; each order inserts its exact amount,
+VA and random memo. Main bank details/prices live in `data/paymentPlans.json`;
+`SEPAY_BIDV_VA` supplies the confirmed VA from the backend environment.
 Trials remain two exam credits and three manual actions once per account.
 
 ## Bank/provider prerequisite
 
-SePay's published Free plan lists 50 transactions/month and API/webhook support,
-but its listed direct-API banks do not include Techcombank. The FAQ describes
-SMS Banking as a separate connection requiring SMS balance notifications to a
-SePay-provided number. Do not assume the Free plan can connect this Techcombank
-account, or assume all 20,000 VND transfers generate usable notifications.
-The owner must confirm current Techcombank connection support, any SePay/SMS
-fees and notification thresholds before enabling the QR. No recipient change
-is authorized as a workaround.
+SePay's Free plan lists 50 incoming transactions/month and webhook/API support;
+the owner's dashboard shows Free. Limits count bank receipts, not generated
+exams. Over-limit service charges and bank fees are separate from the 0 VND plan.
+The earlier Techcombank/SMS route was superseded by the owner's explicit BIDV
+choice. The BIDV dashboard confirms main account 1410373736 and VA 96247BIOGENAI.
+No actual incoming transfer has been confirmed yet.
 
 The owner handles bank/provider identity, consent, OTP and any paid subscription
 directly. The app needs only authenticated incoming transaction notifications;
 it does not need internet banking credentials or withdrawal authority.
 
-Sources checked 12 October 2026:
+Sources checked 14 October 2026:
 - https://sepay.vn/bang-gia.html
 - https://sepay.vn/faq.html
-- https://sepay.vn/blog/api-techcombank-api-ngan-hang-techcombank-moi-nhat/
+- https://docs.sepay.vn/ket-noi-bidv.html
 
 ## Configure only after the connection is confirmed
 
-1. Link the existing Techcombank account in SePay and verify incoming transaction
-   data contains the complete order memo and exact amount, including 20,000 VND.
+1. Use the verified BIDV account/VA in SePay and verify incoming transaction
+   data contains the main `accountNumber`, VA in `subAccount`, complete order
+   memo and exact amount, including 20,000 VND. Do not substitute a transfer
+   into the main account for a VA test.
 2. Configure one **incoming transfers / JSON** webhook for this account only:
    `https://biogenai-api-preview.onrender.com/api/payments/sepay/webhook`.
 3. Prefer HMAC-SHA256. Configure a dedicated strong secret in SePay and as
@@ -52,7 +57,10 @@ Sources checked 12 October 2026:
    suffix characters, for the preview. Orders use hexadecimal uppercase suffixes.
    `biogen_preview` uses BGP; other isolated namespaces use BGL. Production must
    use a separate namespace, secret, endpoint and provider filter configuration.
-5. Enable automatic retry on failures. Only after the bank is verified and the
+5. Set `SEPAY_BIDV_VA=96247BIOGENAI`. Without a valid 96247-prefixed VA, readiness
+   stays false even when the other flags and secret are set. Limit the webhook
+   to this account and this VA, JSON/incoming only, with retry enabled.
+   Only after the linked bank/VA and authenticated webhook are verified and the
    backend secret is ready, set `AUTOMATIC_PAYMENTS_ENABLED=true` on preview.
 6. The owner performs the real transfer acceptance test directly. Verify the
    authenticated UI receives the purchased allowance once in each module, and
@@ -68,11 +76,16 @@ substitute for separating Test mode and Live credentials/data.
 
 - Verify HMAC over original request bytes and the signing timestamp (five-minute
   window), or the explicitly configured API key. Missing setup rejects requests.
-- Accept only incoming Techcombank transfers into the existing recipient.
+- Accept only incoming BIDV transfers with both main account 1410373736 and
+  the exact configured VA in `subAccount`. A missing/different VA, old bank or
+  main-account-only transfer cannot grant allowance.
 - Match the random payment code to the stored UID, product, allowance and price;
   client-supplied amounts, UID or balances never control fulfillment.
 - Require exact amount and a transaction time no earlier than order creation
   (60-second tolerance for bank/server timestamp differences).
+- Snapshot both main account and VA in the stored purchase. An order issued
+  before the recipient change cannot be silently reused: checkout hides its
+  outdated QR and the backend refuses to settle it for the new recipient.
 - Record the transaction ID, bank reference, order status, grant and wallet in one
   Firestore transaction. Concurrent retries and manual admin grants cannot replay
   the same bank reference. AI/network calls are outside these transactions.

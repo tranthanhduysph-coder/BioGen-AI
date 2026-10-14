@@ -17,17 +17,21 @@ from backend.payments import BankTransaction, settle_notification, verify_notifi
 
 USER = {'sub':'payment-teacher', 'email':'teacher@example.invalid'}
 TEST_SECRET = 'synthetic-payment-test-secret-000000000000'
+TEST_VA = '96247BIOGENTEST'
 
 
 class PaymentTests(unittest.TestCase):
     def setUp(self):
         self.service = CreditService(MemoryStore(), admins=['admin'])
+        va_env = patch.dict(os.environ, {'SEPAY_BIDV_VA': TEST_VA})
+        va_env.start()
+        self.addCleanup(va_env.stop)
 
     def purchase(self, product='exam', package=10, request_id='payment-order-01'):
         return self.service.request_purchase(USER, request_id, product, package)
 
     def event(self, order, **changes):
-        values = {'id':10001, 'gateway':'Techcombank', 'accountNumber':PLANS['bank']['accountNumber'],
+        values = {'id':10001, 'gateway':'BIDV', 'accountNumber':PLANS['bank']['accountNumber'], 'subAccount':TEST_VA,
             'transactionDate':datetime.now(timezone(timedelta(hours=7))).strftime('%Y-%m-%d %H:%M:%S'),
             'code':order['paymentCode'], 'content':order['paymentCode']+' chuyen tien',
             'transferType':'in', 'transferAmount':order['expectedAmount'], 'referenceCode':'BANK-TEST-10001'}
@@ -58,11 +62,28 @@ class PaymentTests(unittest.TestCase):
     def test_wrong_direction_recipient_unknown_or_ambiguous_code_never_grant(self):
         order = self.purchase()
         for changes in [dict(transferType='out'), dict(accountNumber='OTHER'), dict(gateway='OtherBank'),
+                        dict(gateway='Techcombank'), dict(subAccount=''), dict(subAccount=None), dict(subAccount='96247OTHER'),
                         dict(code=None,content='No code'), dict(code='BGP'+'F'*20,content='Unknown code'),
                         dict(content=order['paymentCode']+' BGP'+'F'*20)]:
             with self.subTest(changes=changes):
                 settle_notification(self.service, self.event(order, **changes))
                 self.assertEqual(self.service.me(USER)['balance'], 2)
+
+    def test_bidv_order_snapshots_va_and_cannot_settle_for_a_changed_recipient(self):
+        order = self.purchase()
+        self.assertEqual(order['bank']['id'], 'BIDV')
+        self.assertEqual(order['bank']['accountNumber'], '1410373736')
+        self.assertEqual(order['bank']['virtualAccountNumber'], TEST_VA)
+        with patch.dict(os.environ, {'SEPAY_BIDV_VA': '96247NEWVA'}):
+            status = settle_notification(self.service, self.event(order, subAccount='96247NEWVA'))
+        self.assertEqual(status, 'recipient_mismatch')
+        self.assertEqual(self.service.me(USER)['balance'], 2)
+
+    def test_unconfigured_va_never_accepts_a_transfer_into_the_main_account(self):
+        order = self.purchase()
+        with patch.dict(os.environ, {'SEPAY_BIDV_VA': ''}):
+            self.assertEqual(settle_notification(self.service, self.event(order)), 'ignored')
+        self.assertEqual(self.service.me(USER)['balance'], 2)
 
     def test_wrong_amount_and_old_transfer_are_audited_without_grant(self):
         order = self.purchase()
@@ -134,6 +155,16 @@ class WebhookApiTests(unittest.TestCase):
         self.assertEqual((result.status_code,result.json()),(200,{'success':True}))
         self.assertEqual(self.client.get('/api/credits/me').json()['balance'],12)
         self.assertEqual(self.client.get('/api/credits/admin/payment-events').status_code,403)
+
+    def test_bidv_qr_remains_disabled_until_a_valid_va_is_configured(self):
+        for value in ('', '96247', 'BIOGENAI', '96247INVALID!'):
+            with self.subTest(va=value), patch.dict(os.environ, {'SEPAY_BIDV_VA': value}):
+                config = self.client.get('/api/payment-plans').json()
+                self.assertFalse(config['automaticPaymentReady'])
+                self.assertEqual(config['bank']['virtualAccountNumber'], '')
+        config = self.client.get('/api/payment-plans').json()
+        self.assertTrue(config['automaticPaymentReady'])
+        self.assertEqual(config['bank']['virtualAccountNumber'], TEST_VA)
 
     def test_forged_stale_tampered_and_disabled_notifications_fail_closed(self):
         order=self.purchase()

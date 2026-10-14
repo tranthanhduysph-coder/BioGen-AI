@@ -3,6 +3,7 @@ import { creditRequest, getCreditAccount, getPaymentConfig, type PaymentConfig, 
 import { auth } from '../firebaseConfig';
 import plans from '../data/paymentPlans.json';
 import { PaymentHelp } from './PaymentHelp';
+import { paymentRecipientMatches, paymentQrUrl } from '../services/paymentQr';
 
 const button = 'rounded-lg border px-3 py-2 text-sm font-semibold disabled:opacity-40';
 export const money = (amount: number) => `${amount.toLocaleString('vi-VN')}đ`;
@@ -40,6 +41,9 @@ export const CreditPurchase: React.FC<{ initialProduct?: 'exam' | 'manual' }> = 
   };
   useEffect(() => { void load(); }, []);
   const pending = orders.find(p => p.status === 'pending');
+  const recipientMatches = paymentRecipientMatches(pending, config);
+  const qrUrl = paymentQrUrl(pending, config);
+  const transferAccount = pending?.bank?.virtualAccountNumber || pending?.bank?.accountNumber;
   useEffect(() => {
     if (!pending || !config?.automaticPaymentReady) return;
     const timer = setInterval(() => { if (!document.hidden) void load(); }, 5000);
@@ -77,11 +81,13 @@ export const CreditPurchase: React.FC<{ initialProduct?: 'exam' | 'manual' }> = 
       <p className="mt-1">{config?.automaticPaymentReady ? 'Thầy/cô quét QR, chuyển đúng số tiền và giữ nguyên nội dung. Khi nhận được xác nhận tiền vào, hệ thống tự cộng lượt vào tài khoản đang đăng nhập; không cần chờ duyệt.' : 'Gói đã được lưu. QR sẽ hiển thị khi kết nối thanh toán tự động sẵn sàng.'}</p>
       <p className="mt-1 break-all">Mã yêu cầu: {pending.id}</p>
       {pending.paymentIssue && <p role="alert" className="mt-2 font-semibold text-amber-800">Giao dịch chưa khớp gói đã chọn nên chưa cộng lượt. Thầy/cô vui lòng giữ biên nhận và <a className="underline" href="mailto:ttduy@sgu.edu.vn">liên hệ hỗ trợ</a> để đối soát; không chuyển thêm tiền cho mã này.</p>}
-      {config?.automaticPaymentReady && !pending.paymentIssue && pending.paymentCode && pending.bank && <>
-        <p className="mt-2 font-semibold">{money(pending.expectedAmount!)} · {pending.bank.name} · {pending.bank.accountNumber} · {pending.bank.accountName}</p>
+      {config?.automaticPaymentReady && pending.paymentCode && !recipientMatches && <p role="alert" className="mt-2 font-semibold text-amber-800">Đơn này dùng thông tin nhận tiền cũ nên QR đã được ẩn. Thầy/cô vui lòng <a className="underline" href="mailto:ttduy@sgu.edu.vn">liên hệ hỗ trợ</a> để đóng hoặc đối soát đơn trước khi chọn gói mới; không chuyển tiền theo QR cũ.</p>}
+      {qrUrl && pending.bank && <>
+        <p className="mt-2 font-semibold">{money(pending.expectedAmount!)} · {pending.bank.name} · {transferAccount} · {pending.bank.accountName}</p>
+        {pending.bank.virtualAccountNumber && <p>Đây là tài khoản nhận tiền định danh (VA) của BioGen AI. Vui lòng chuyển vào số VA trên QR để hệ thống tự cộng lượt.</p>}
         <p>Nội dung: <b>{pending.paymentCode}</b></p>
         <img className="mx-auto mt-2 w-56 rounded-lg" alt={`QR thanh toán ${productName(pending)}`}
-          src={`https://img.vietqr.io/image/${pending.bank.id}-${pending.bank.accountNumber}-compact2.png?amount=${pending.expectedAmount}&addInfo=${encodeURIComponent(pending.paymentCode)}&accountName=${encodeURIComponent(pending.bank.accountName)}`} />
+          src={qrUrl} />
         <p className="mt-2 text-center">Đang chờ xác nhận tiền vào… Trang tự cập nhật trạng thái.</p>
       </>}
       {config?.automaticPaymentReady && !pending.paymentCode && <button className={button} disabled={busy} onClick={async () => {

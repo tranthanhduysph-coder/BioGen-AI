@@ -10,7 +10,7 @@ from fastapi import APIRouter, HTTPException, Request
 from starlette.concurrency import run_in_threadpool
 from pydantic import BaseModel, Field, StrictInt, ValidationError
 from backend.credits import fail, fingerprint
-from backend.payment_config import PLANS, payment_ready, public_payment_config
+from backend.payment_config import payment_bank, payment_ready, public_payment_config
 
 CODE_PATTERN = r'(?:BGP|BGL)[A-F0-9]{20}'
 
@@ -20,6 +20,7 @@ class BankTransaction(BaseModel):
     gateway: str = Field(min_length=1, max_length=40)
     transactionDate: str = Field(min_length=19, max_length=30)
     accountNumber: str = Field(min_length=1, max_length=50)
+    subAccount: str | None = Field(default='', max_length=50)
     code: str | None = Field(default=None, max_length=80)
     content: str = Field(default='', max_length=8000)
     transferType: str = Field(min_length=2, max_length=3)
@@ -46,9 +47,12 @@ def verify_notification(raw, headers, now=None):
 
 
 def settle_notification(credits, payload):
-    bank = PLANS['bank']
+    bank = payment_bank()
     if (payload.transferType != 'in' or payload.accountNumber != bank['accountNumber']
-            or payload.gateway.lower() not in ('techcombank', 'tcb')):
+            or payload.gateway.strip().casefold() not in (bank['id'].casefold(), bank['name'].casefold())):
+        return 'ignored'
+    va = (payload.subAccount or '').strip().upper()
+    if bank['id'] == 'BIDV' and (not bank.get('virtualAccountNumber') or va != bank['virtualAccountNumber']):
         return 'ignored'
     candidates = set(re.findall(CODE_PATTERN, payload.content.upper()))
     if payload.code and re.fullmatch(CODE_PATTERN, payload.code.upper()):
@@ -62,7 +66,8 @@ def settle_notification(credits, payload):
         fail('invalid_payment_date', 'Thời điểm giao dịch không hợp lệ.', 422)
     reference = payload.referenceCode.strip().upper() or f'SEPAY:{payload.id}'
     intent = {'transactionId': payload.id, 'paymentCode': code, 'amount': payload.transferAmount,
-              'reference': reference, 'occurredAt': occurred, 'accountNumber': payload.accountNumber}
+              'reference': reference, 'occurredAt': occurred, 'accountNumber': payload.accountNumber,
+              'subAccount': va}
     event_path = f'{credits.namespace}_payment_events/{fingerprint("sepay:"+str(payload.id))}'
     receipt_path = f'{credits.namespace}_receipts/{fingerprint(reference)}'
     def settle(tx):
@@ -90,6 +95,10 @@ def settle_notification(credits, payload):
         elif occurred < purchase['createdAt'] - 60:
             status = 'transaction_before_order'
         elif purchase.get('bank', {}).get('accountNumber') != payload.accountNumber:
+            status = 'recipient_mismatch'
+        elif purchase.get('bank', {}).get('id') != bank['id']:
+            status = 'recipient_mismatch'
+        elif bank['id'] == 'BIDV' and purchase.get('bank', {}).get('virtualAccountNumber') != va:
             status = 'recipient_mismatch'
         elif purchase['product'] not in ('exam', 'manual'):
             fail('payment_mapping_error', 'Gói thanh toán không hợp lệ.', 503)
