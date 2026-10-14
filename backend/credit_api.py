@@ -50,6 +50,16 @@ class AdminChange(BaseModel):
     purchaseId: str | None = Field(default=None, min_length=8, max_length=80)
 
 
+class AdminAdjustment(BaseModel):
+    model_config = {'extra': 'forbid'}
+    uid: str = Field(min_length=1, max_length=128)
+    requestId: str = Field(min_length=8, max_length=80)
+    product: Literal['exam', 'manual']
+    action: Literal['add', 'remove']
+    amount: int = Field(strict=True, ge=1, le=10000)
+    note: str = Field(min_length=1, max_length=500)
+
+
 class Purchase(BaseModel):
     requestId: str = Field(min_length=8, max_length=80)
     product: Literal['exam', 'manual']
@@ -196,6 +206,11 @@ def build_router(require_user, parse_slot, generate):
         return service().admin_change(uid(user), payload.uid, payload.requestId,
                                       payload.status, payload.package, payload.trial, payload.note,
                                       payload.paymentReference, payload.manualPackage, payload.purchaseId)
+
+    @router.post('/admin/adjust')
+    def adjust(payload: AdminAdjustment, user=Depends(admin)):
+        return service().admin_adjust(uid(user), payload.uid, payload.requestId,
+                                      payload.product, payload.action, payload.amount, payload.note)
 
     @router.get('/admin/accounts/{account_uid}/history')
     def account_history(account_uid: str, user=Depends(admin)):

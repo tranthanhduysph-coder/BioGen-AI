@@ -149,6 +149,18 @@ and live rules verified before `CREDITS_ENABLED=true`.
 
 ## Deployment and validation
 
+Administrators can gift or remove any whole number of available exam/manual
+actions (1–10,000 per operation) through `/api/credits/admin/adjust`. Each module
+has its own amount input and Add/Remove buttons; there is no package or bank
+reference requirement for gifts. These changes record `gift`/`revoke` ledger
+events with the acting administrator, reason and zero payment value. They do not
+settle pending orders, reset trial eligibility, change account approval/blocking,
+or touch held actions. Removing more than the available balance fails atomically.
+Repeated requests with the same operation ID apply once, including across restarts.
+The redundant manual trial button has been removed; the one-time automatic
+2-exam/3-manual trial remains in effect. Manual bank reconciliation is shown only
+for a selected purchase and still requires a verified bank reference.
+
 1. Build/typecheck frontend and run unit/route tests below.
 2. Provision the server credential, owner UID and safe client rules. Verify
    reserve/complete/grant/refund against an isolated preview database or emulator.

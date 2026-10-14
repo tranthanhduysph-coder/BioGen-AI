@@ -9,7 +9,7 @@ const button = 'rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibo
 const input = 'rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:bg-slate-900 dark:text-white';
 const statusText = { pending: 'Chờ duyệt', approved: 'Đã duyệt', blocked: 'Đã khóa' };
 const eventText: Record<string, string> = { reserve: 'Giữ credit cho đề', consume: 'Hoàn tất đề',
-  refund: 'Hoàn credit', grant: 'Cộng lượt', status: 'Thay đổi quyền sử dụng',
+  refund: 'Hoàn credit', grant: 'Cộng lượt', gift: 'Tặng lượt', revoke: 'Xóa lượt', status: 'Thay đổi quyền sử dụng',
   manual_reserve: 'Giữ lượt câu lẻ', manual_consume: 'Hoàn tất câu lẻ', manual_refund: 'Hoàn lượt câu lẻ' };
 
 export const CreditPanel: React.FC<{ onAccount: (account: CreditAccount | null) => void;
@@ -22,16 +22,18 @@ export const CreditPanel: React.FC<{ onAccount: (account: CreditAccount | null) 
   const [selectedUid, setSelectedUid] = useState('');
   const [note, setNote] = useState('');
   const [paymentReference, setPaymentReference] = useState('');
+  const [examAmount, setExamAmount] = useState('1');
+  const [manualAmount, setManualAmount] = useState('1');
   const [error, setError] = useState('');
   const [working, setWorking] = useState(false);
   const [adminEvents, setAdminEvents] = useState<CreditEvent[]>([]);
   const [adminExams, setAdminExams] = useState<ExamSummary[]>([]);
   const [operation, setOperation] = useState<{ key: string; id: string } | null>(null);
-  const [confirmation, setConfirmation] = useState<{ text: string; run: () => void } | null>(null);
+  const [confirmation, setConfirmation] = useState<{ text: string; run: () => void; admin?: boolean } | null>(null);
   const [purchases, setPurchases] = useState<PurchaseRequest[]>([]);
   const [selectedPurchase, setSelectedPurchase] = useState<PurchaseRequest | null>(null);
   const [paymentEvents, setPaymentEvents] = useState<any[]>([]);
-  useEffect(() => { setConfirmation(null); }, [selectedUid, note, paymentReference]);
+  useEffect(() => { setConfirmation(null); }, [selectedUid, note, paymentReference, examAmount, manualAmount, selectedPurchase?.id]);
 
   const refresh = async () => {
     if (!auth?.currentUser) { setAccount(null); onAccount(null); return; }
@@ -68,11 +70,14 @@ export const CreditPanel: React.FC<{ onAccount: (account: CreditAccount | null) 
     catch (e: any) { setError(e.message); }
     finally { setWorking(false); }
   };
-  const change = (fields: { status?: string; package?: number; trial?: boolean; manualPackage?: number }) => {
+  const change = (fields: { status?: string; package?: number; manualPackage?: number }
+    | { product: 'exam' | 'manual'; action: 'add' | 'remove'; amount: number }) => {
+    const adjusting = 'product' in fields;
     const body = { uid: selectedUid, note: note.trim(), ...fields,
-      ...(fields.package || fields.manualPackage ? { paymentReference: paymentReference.trim(),
+      ...(!adjusting && (fields.package || fields.manualPackage) ? { paymentReference: paymentReference.trim(),
         ...(selectedPurchase ? { purchaseId: selectedPurchase.id } : {}) } : {}) };
-    const key = JSON.stringify(body);
+    const path = adjusting ? '/admin/adjust' : '/admin/change';
+    const key = JSON.stringify({ path, body });
     const cacheKey = `biogen_credit_admin_pending_${account?.uid}`;
     let pending = operation;
     try { pending = JSON.parse(localStorage.getItem(cacheKey) || 'null') || pending; } catch { /* old cache */ }
@@ -80,7 +85,8 @@ export const CreditPanel: React.FC<{ onAccount: (account: CreditAccount | null) 
     localStorage.setItem(cacheKey, JSON.stringify({ key, id: requestId }));
     setOperation({ key, id: requestId });
     void action(async () => {
-      await creditRequest('/admin/change', { ...body, requestId });
+      await creditRequest(path, { ...body, requestId });
+      setAdminEvents(await creditRequest(`/admin/accounts/${encodeURIComponent(selectedUid)}/history`));
       localStorage.removeItem(cacheKey); setOperation(null); setNote(''); setPaymentReference(''); setSelectedPurchase(null);
     });
   };
@@ -97,6 +103,16 @@ export const CreditPanel: React.FC<{ onAccount: (account: CreditAccount | null) 
   if (!account) return error ? <p role="status" className="text-sm text-amber-700">{error}</p> : null;
   const disabled = busy || working;
   const selected = accounts.find(a => a.uid === selectedUid);
+  const adjust = (product: 'exam' | 'manual', kind: 'add' | 'remove', amount: number) => {
+    setConfirmation({ admin: true, text: `${kind === 'add' ? 'Tặng thêm' : 'Xóa'} ${amount} lượt ${product === 'exam' ? 'làm đề' : 'tạo câu hỏi lẻ'} cho ${selected?.email || selectedUid}. ${kind === 'add' ? 'Không ghi nhận thanh toán.' : 'Chỉ trừ lượt khả dụng; giữ nguyên công việc đang dở.'} Lý do: ${note.trim()}`,
+      run: () => change({ product, action: kind, amount }) });
+  };
+  const validAmount = (value: string) => Number.isSafeInteger(Number(value)) && Number(value) >= 1 && Number(value) <= 10000;
+  const confirmationBox = confirmation && <div role="alert" className="mt-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-slate-900">
+    <p>{confirmation.text}</p><div className="mt-2 flex gap-2">
+      <button className={button} disabled={disabled} onClick={() => { const run = confirmation.run; setConfirmation(null); run(); }}>Xác nhận thao tác</button>
+      <button className={button} onClick={() => setConfirmation(null)}>Bỏ qua</button>
+    </div></div>;
   return <section aria-label="Credit tạo đề" className="rounded-xl border border-sky-200 bg-white p-4 text-slate-800 dark:border-sky-800 dark:bg-slate-900 dark:text-slate-100">
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div><h3 className="font-bold">Credit tạo đề</h3>
@@ -110,11 +126,7 @@ export const CreditPanel: React.FC<{ onAccount: (account: CreditAccount | null) 
     {account.status !== 'approved' && <p className="mt-2 text-sm text-amber-700">Tài khoản cần được quản trị duyệt để sử dụng AI.</p>}
     {account.balance === 0 && <p className="mt-2 text-sm">Các gói: 10, 20, 30 credit. Liên hệ quản trị để thanh toán và cộng credit.</p>}
     {error && <p role="alert" className="mt-2 text-sm text-red-600">{error}</p>}
-    {confirmation && <div role="alert" className="mt-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-slate-900">
-      <p>{confirmation.text}</p><div className="mt-2 flex gap-2">
-        <button className={button} disabled={disabled} onClick={() => { const run = confirmation.run; setConfirmation(null); run(); }}>Xác nhận thao tác</button>
-        <button className={button} onClick={() => setConfirmation(null)}>Bỏ qua</button>
-      </div></div>}
+    {!confirmation?.admin && confirmationBox}
     <details className="mt-3"><summary className="cursor-pointer font-semibold">Đề đã lưu trên tài khoản ({exams.length})</summary>
       <div className="mt-2 max-h-64 space-y-2 overflow-auto">{exams.map(e => <div key={e.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-slate-50 p-2 dark:bg-slate-800">
         <div className="text-sm"><b>{e.title}</b> · {e.status === 'completed' ? 'Hoàn tất' : e.status === 'cancelled' ? 'Đã hủy' : 'Đang tạo'}<div className="text-xs text-slate-500">{e.units} câu/ý · {e.completed} câu đã tạo</div></div>
@@ -128,7 +140,7 @@ export const CreditPanel: React.FC<{ onAccount: (account: CreditAccount | null) 
     <details className="mt-3"><summary className="cursor-pointer font-semibold">Lịch sử credit</summary>{historyTable(events)}</details>
     {account.isAdmin && <details className="mt-4 rounded-lg border border-slate-200 p-3">
       <summary className="cursor-pointer font-bold">Quản trị tài khoản và credit</summary>
-      <p className="mt-2 text-xs text-slate-500">Thanh toán QR hợp lệ được cộng lượt tự động khi kết nối ngân hàng hoạt động. Các nút cộng thủ công bên dưới dành cho đối soát ngoại lệ; chỉ dùng sau khi xác nhận tiền vào.</p>
+      <p className="mt-2 text-xs text-slate-500">Chọn tài khoản, nhập số lượt và lý do để tặng thêm hoặc xóa lượt khả dụng. Thanh toán QR hợp lệ vẫn tự cộng lượt; xử lý đơn mua được ghi riêng.</p>
       <button className={`${button} mt-3`} disabled={disabled} onClick={() => void action(async () => setPaymentEvents(await creditRequest<any[]>('/admin/payment-events')))}>Xem giao dịch tự động và ngoại lệ</button>
       {!!paymentEvents.length && <div className="mt-2 max-h-60 overflow-auto text-xs">{paymentEvents.map(e => <p key={e.id} className="mt-2 rounded border p-2">
         {new Date(e.updatedAt * 1000).toLocaleString('vi-VN')} · {e.status === 'fulfilled' ? 'Đã cộng lượt tự động' : `Cần đối soát: ${e.status}`} · {Number(e.intent.amount).toLocaleString('vi-VN')}đ
@@ -144,33 +156,45 @@ export const CreditPanel: React.FC<{ onAccount: (account: CreditAccount | null) 
       {!purchases.some(p => p.status === 'pending') && <p className="mt-2 text-sm">Chưa có yêu cầu mua đang chờ.</p>}
       {selectedPurchase && <div className="mt-3 rounded-lg bg-sky-50 p-2 text-sm text-slate-900">
         <p>Đang xử lý: {selectedPurchase.email} · {selectedPurchase.product === 'manual' ? '3 lượt câu hỏi lẻ' : `${selectedPurchase.package} credit đề`}</p>
-        <button className={button} disabled={disabled || !note.trim()} onClick={() => setConfirmation({ text: 'Đóng yêu cầu mua này mà không cộng lượt?', run: () => void action(async () => {
+        <button className={button} disabled={disabled || !note.trim()} onClick={() => setConfirmation({ admin: true, text: 'Đóng yêu cầu mua này mà không cộng lượt?', run: () => void action(async () => {
           await creditRequest(`/admin/accounts/${selectedPurchase.uid}/purchases/${selectedPurchase.id}/reject`, { note }); setSelectedPurchase(null);
         }) })}>Đóng yêu cầu mua</button>
       </div>}
       <select aria-label="Chọn tài khoản quản trị" className={`${input} mt-2 w-full`} value={selectedUid} onChange={e => { setSelectedUid(e.target.value); setAdminEvents([]); setSelectedPurchase(null); }}>
-        <option value="">Chọn tài khoản (100 tài khoản hoạt động gần nhất)</option>{accounts.map(a => <option key={a.uid} value={a.uid}>{a.email || a.uid} · {statusText[a.status]} · {a.balance} credit</option>)}
+        <option value="">Chọn tài khoản (100 tài khoản hoạt động gần nhất)</option>{accounts.map(a => <option key={a.uid} value={a.uid}>{a.email || a.uid} · {statusText[a.status]} · {a.balance} lượt đề · {a.manualBalance ?? 3} lượt câu lẻ</option>)}
       </select>
       <input aria-label="UID tài khoản" className={`${input} mt-2 w-full`} value={selectedUid} onChange={e => { setSelectedUid(e.target.value); setSelectedPurchase(null); }} placeholder="Hoặc nhập Firebase UID" />
-      <input aria-label="Lý do giao dịch credit" className={`${input} mt-2 w-full`} value={note} onChange={e => setNote(e.target.value)} placeholder="Mã thanh toán hoặc lý do thay đổi" />
-      <input aria-label="Mã thanh toán credit" className={`${input} mt-2 w-full`} value={paymentReference} onChange={e => setPaymentReference(e.target.value)} placeholder="Mã giao dịch thanh toán duy nhất (bắt buộc khi cộng gói)" />
+      <input aria-label="Lý do giao dịch credit" className={`${input} mt-2 w-full`} maxLength={500} value={note} onChange={e => setNote(e.target.value)} placeholder="Lý do tặng, xóa lượt hoặc xử lý tài khoản" />
+      {selected && <p className="mt-2 text-sm">Khả dụng: <b>{selected.balance} lượt làm đề</b> · <b>{selected.manualBalance ?? 3} lượt câu hỏi lẻ</b>. Đang giữ: {selected.held} lượt đề · {selected.manualHeld || 0} lượt câu lẻ.</p>}
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">{([
+        { product: 'exam', label: 'Lượt làm đề', amount: examAmount, setAmount: setExamAmount, available: selected?.balance },
+        { product: 'manual', label: 'Lượt tạo câu hỏi lẻ', amount: manualAmount, setAmount: setManualAmount, available: selected?.manualBalance ?? (selected ? 3 : undefined) },
+      ] as const).map(item => <div key={item.product} className="rounded-lg border border-slate-200 p-3">
+        <label className="block text-sm font-semibold">{item.label}
+          <input aria-label={`Số ${item.label.toLowerCase()}`} type="number" min={1} max={10000} step={1} className={`${input} mt-2 w-full`} value={item.amount} onChange={e => item.setAmount(e.target.value)} />
+        </label>
+        <div className="mt-2 flex gap-2">
+          <button className={button} disabled={disabled || !selectedUid || !note.trim() || !validAmount(item.amount)} onClick={() => adjust(item.product, 'add', Number(item.amount))}>Thêm {item.label.toLowerCase()}</button>
+          <button className={button} disabled={disabled || !selectedUid || !note.trim() || !validAmount(item.amount) || item.available !== undefined && Number(item.amount) > item.available} onClick={() => adjust(item.product, 'remove', Number(item.amount))}>Xóa {item.label.toLowerCase()}</button>
+        </div>
+      </div>)}</div>
+      {selectedPurchase && <div className="mt-3 rounded-lg border border-amber-200 p-3">
+        <input aria-label="Mã thanh toán credit" className={`${input} w-full`} maxLength={120} value={paymentReference} onChange={e => setPaymentReference(e.target.value)} placeholder="Mã giao dịch ngân hàng đã đối soát" />
+        <button className={`${button} mt-2`} disabled={disabled || !selectedUid || !note.trim() || paymentReference.trim().length < 3} onClick={() => setConfirmation({
+          admin: true, text: `Xác nhận đã nhận thanh toán cho đơn ${selectedPurchase.id} của ${selectedPurchase.email || selectedUid}? Cộng ${selectedPurchase.package} ${selectedPurchase.product === 'exam' ? 'credit đề' : 'lượt câu hỏi lẻ'}. Mã ngân hàng: ${paymentReference}.`,
+          run: () => change(selectedPurchase.product === 'exam' ? { package: selectedPurchase.package } : { manualPackage: 3 }),
+        })}>Xác nhận thanh toán đơn đã chọn</button>
+      </div>}
       <div className="mt-2 flex flex-wrap gap-2">{(['approved', 'blocked'] as const).map(status => <button key={status} className={button} disabled={disabled || !selectedUid || !note.trim()} onClick={() => change({ status })}>{status === 'approved' ? 'Duyệt tài khoản' : 'Khóa tài khoản'}</button>)}
-        <button className={button} disabled={disabled || !selectedUid || !note.trim() || !!selected?.trialGranted} onClick={() => change({ trial: true })}>Cấp đủ 2 credit dùng thử</button>
-        <button className={button} disabled={disabled || !selectedUid || !note.trim() || paymentReference.trim().length < 3 || !!selectedPurchase && selectedPurchase.product !== 'manual'} onClick={() => setConfirmation({ text: `Cộng 3 lượt câu hỏi lẻ cho ${selected?.email || selectedUid}. Xác nhận đã nhận 20.000đ; mã thanh toán ${paymentReference}.`, run: () => change({ manualPackage: 3 }) })}>Cộng 3 lượt câu lẻ · 20.000đ</button>
-        {[10, 20, 30].map(n => <button key={n} className={button} disabled={disabled || !selectedUid || !note.trim() || paymentReference.trim().length < 3 || !!selectedPurchase && (selectedPurchase.product !== 'exam' || selectedPurchase.package !== n)} onClick={() => {
-          const targetUid = selectedUid, targetNote = note;
-          setConfirmation({ text: `Cộng ${n} credit cho ${selected?.email || selectedUid}. Chỉ xác nhận sau khi nhận thanh toán. Mã: ${paymentReference}. Ghi chú: ${note}`,
-            run: () => { if (targetUid !== selectedUid || targetNote !== note) return; change({ package: n }); } });
-        }}>Cộng gói {n}</button>)}
         <button className={button} disabled={disabled || !selectedUid} onClick={() => void action(async () => setAdminEvents(await creditRequest(`/admin/accounts/${encodeURIComponent(selectedUid)}/history`)))}>Xem giao dịch tài khoản</button>
         <button className={button} disabled={disabled || !selectedUid} onClick={() => void action(async () => setAdminExams(await creditRequest(`/admin/accounts/${encodeURIComponent(selectedUid)}/exams`)))}>Xem đề và token AI</button>
         {selected?.activeExamId && <button className={button} disabled={disabled || !note.trim()} onClick={() => {
           const path = `/admin/accounts/${encodeURIComponent(selectedUid)}/exams/${selected.activeExamId}/refund`;
           const reason = note;
-          setConfirmation({ text: `Hoàn 1 credit và hủy đề đang dở của ${selected.email || selectedUid}? Lý do: ${note}`,
+          setConfirmation({ admin: true, text: `Hoàn 1 credit và hủy đề đang dở của ${selected.email || selectedUid}? Lý do: ${note}`,
             run: () => void action(() => creditRequest(path, { note: reason })) });
         }}>Xét hoàn đề lỗi</button>}
-      </div>{historyTable(adminEvents)}
+      </div>{confirmation?.admin && confirmationBox}{historyTable(adminEvents)}
       {!!adminExams.length && <div className="mt-3 max-h-56 overflow-auto text-xs"><p>Token trả lời và token suy luận được ghi riêng; cần cộng cả hai khi tính phí API.</p>
         {adminExams.map(e => <p className="mt-2 rounded bg-slate-50 p-2 dark:bg-slate-800" key={e.id}>{e.title} · {e.status} · {e.units} câu/ý · {e.usage?.calls || 0} lượt AI · đầu vào {e.usage?.inputTokens || 0} · trả lời {e.usage?.outputTokens || 0} · suy luận {e.usage?.thinkingTokens || 0}</p>)}
       </div>}

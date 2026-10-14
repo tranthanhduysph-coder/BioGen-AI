@@ -357,6 +357,46 @@ class CreditService:
             return account
         return self.store.run(change)
 
+    def admin_adjust(self, admin_uid, uid, operation, product, action, amount, note):
+        """Gift or revoke available allowance without recording a bank payment."""
+        if admin_uid not in self.admins:
+            fail('admin_required', 'Chỉ quản trị được thay đổi lượt.', 403)
+        request_id(operation)
+        if product not in ('exam', 'manual') or action not in ('add', 'remove'):
+            fail('invalid_adjustment', 'Thao tác thay đổi lượt không hợp lệ.', 422)
+        if type(amount) is not int or not 1 <= amount <= 10000:
+            fail('invalid_amount', 'Số lượt phải là số nguyên từ 1 đến 10.000.', 422)
+        reason = note.strip()
+        if not reason or len(reason) > 500:
+            fail('adjustment_reason_required', 'Cần ghi lý do thay đổi lượt.', 422)
+        intent = {'uid': uid, 'product': product, 'action': action, 'amount': amount, 'note': reason}
+        def adjust(tx):
+            path = self.account_path(uid)
+            account = tx.get(path)
+            if not account:
+                fail('account_not_found', 'Người dùng cần đăng nhập trước để đăng ký tài khoản.', 404)
+            op_path = f'{path}/ledger/{fingerprint("admin:" + admin_uid + ":" + operation)}'
+            old = tx.get(op_path)
+            if old:
+                if old.get('intent') != intent:
+                    fail('request_conflict', 'Mã thao tác đã được dùng cho thay đổi khác.')
+                return account
+            field = 'balance' if product == 'exam' else 'manualBalance'
+            available = account.get(field, 0 if product == 'exam' else 3)
+            delta = amount if action == 'add' else -amount
+            if available + delta < 0:
+                fail('insufficient_available_allowance', 'Không thể xóa nhiều hơn số lượt còn khả dụng.')
+            account[field] = available + delta
+            account['updatedAt'] = self.clock()
+            tx.set(path, account)
+            tx.set(op_path, {'id': fingerprint(operation), 'kind': 'gift' if action == 'add' else 'revoke',
+                'uid': uid, 'actorUid': admin_uid, 'intent': intent, 'note': reason,
+                'balanceDelta': delta if product == 'exam' else 0, 'heldDelta': 0,
+                'manualDelta': delta if product == 'manual' else 0, 'manualHeldDelta': 0,
+                'priceVnd': 0, 'source': 'admin_adjustment', 'updatedAt': self.clock()})
+            return account
+        return self.store.run(adjust)
+
     def request_purchase(self, user, operation, product, package, note=''):
         request_id(operation)
         if (product == 'exam' and package not in PACKAGES) or (product == 'manual' and package != 3) or product not in ('exam', 'manual'):
