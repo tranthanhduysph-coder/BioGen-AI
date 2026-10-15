@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import type { GeneratedQuestion } from '../types';
 import { QuestionType } from '../types';
+import { QuestionContent } from './QuestionContent';
+import { contentPlainText, stripQuestionOptionLabel } from '../services/questionContent';
 
 interface QuestionDisplayProps {
   question: GeneratedQuestion;
@@ -13,17 +15,17 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({ question, inde
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    let text = `Câu ${index}: ${question.question}\n`;
+    let text = `Câu ${index}: ${contentPlainText(question.question)}\n`;
     
     if (question.options && question.options.length > 0) {
          question.options.forEach((opt) => {
-             text += `${opt}\n`;
+             text += `${contentPlainText(opt)}\n`;
          });
     }
     
-    text += `\nĐáp án: ${question.answer}\n`;
+    text += `\nĐáp án: ${contentPlainText(question.answer)}\n`;
     if (question.explanation) {
-        text += `Giải thích: ${question.explanation}`;
+        text += `Giải thích: ${contentPlainText(question.explanation)}`;
     }
 
     try {
@@ -68,7 +70,7 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({ question, inde
               <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs rounded shadow-sm mr-3 border border-slate-200 dark:border-slate-600">
                   {String.fromCharCode(97 + i)}
               </span>
-              <p className="text-slate-700 dark:text-slate-300 text-sm md:text-base leading-relaxed">{option}</p>
+              <QuestionContent className="text-slate-700 dark:text-slate-300 text-sm md:text-base leading-relaxed" value={stripQuestionOptionLabel(option, String.fromCharCode(97 + i))} />
             </div>
           ))}
         </div>
@@ -81,7 +83,7 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({ question, inde
           {question.options.map((option, i) => (
             <div key={i} className="group flex items-start p-3.5 bg-slate-50 dark:bg-slate-800/50 hover:bg-sky-50 dark:hover:bg-sky-900/20 border border-transparent hover:border-sky-200 dark:hover:border-sky-800 rounded-xl cursor-pointer transition-all">
                <div className="flex-1">
-                 <p className="text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white text-sm md:text-base font-medium">{option}</p>
+                 <QuestionContent className="text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white text-sm md:text-base font-medium" value={option} />
                </div>
             </div>
           ))}
@@ -116,9 +118,7 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({ question, inde
          </button>
       </div>
 
-      <p className="font-medium text-lg text-slate-800 dark:text-slate-100 leading-relaxed">
-         {question.question}
-      </p>
+      <QuestionContent className="font-medium text-lg text-slate-800 dark:text-slate-100 leading-relaxed" value={question.question} />
       
       {renderOptions()}
 
@@ -145,12 +145,12 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({ question, inde
             <div className="flex flex-col gap-3">
                 <div>
                     <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Đáp án đúng</span>
-                    <p className="text-emerald-800 dark:text-emerald-200 font-bold text-lg mt-1">{question.answer}</p>
+                    <QuestionContent className="text-emerald-800 dark:text-emerald-200 font-bold text-lg mt-1" value={question.answer} />
                 </div>
                 {question.explanation && (
                   <div>
                     <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Giải thích chi tiết</span>
-                    <p className="text-slate-700 dark:text-slate-300 mt-1 leading-relaxed text-sm md:text-base">{question.explanation}</p>
+                    <QuestionContent className="text-slate-700 dark:text-slate-300 mt-1 leading-relaxed text-sm md:text-base" value={question.explanation} />
                   </div>
                 )}
             </div>

@@ -15,6 +15,10 @@ import {
   parseMcqCorrectLetter,
 } from './examMixerFormatService';
 
+import { richTextBlocks, richTextRuns } from './questionContentDocx';
+import { hasStructuredContent, stripQuestionOptionLabel } from './questionContent';
+import type { ParagraphChild, Table } from 'docx';
+
 const A4 = { width: 11906, height: 16838 };
 const CM = 567;
 
@@ -31,7 +35,7 @@ const baseRun = (
   });
 
 const paragraph = (
-  children: TextRun[],
+  children: ParagraphChild[],
   options: {
     before?: number;
     after?: number;
@@ -54,8 +58,7 @@ const paragraph = (
     },
   });
 
-const stripOptionLabel = (value: string, fallback: string) =>
-  value.replace(new RegExp(`^\\s*${fallback}[\\.\\)]\\s*`, 'i'), '').trim();
+const stripOptionLabel = stripQuestionOptionLabel;
 
 const optionRuns = (
   letter: string,
@@ -66,7 +69,7 @@ const optionRuns = (
   baseRun(prefix, { bold: true }),
   baseRun(letter, { bold: true, underline: correct }),
   baseRun('. ', { bold: true }),
-  baseRun(text),
+  ...richTextRuns(text),
 ];
 
 const TAB_4 = [283, 2906, 5528, 8150];
@@ -84,8 +87,12 @@ const mcqOptionParagraphs = (item: GeneratedExamItem) => {
   const longest = Math.max(...options.map((option) => option.text.length), 0);
 
   // Leave room for the option label and spacing within each A4 column.
+  if (options.some(option => hasStructuredContent(option.text))) {
+    return options.flatMap(option => richTextBlocks(option.text, { spacing: { after: 40 } },
+      [baseRun(option.label, { bold: true, underline: correct === option.label }), baseRun('. ', { bold: true })]));
+  }
   if (longest <= 18) {
-    const runs: TextRun[] = [];
+    const runs: ParagraphChild[] = [];
     options.forEach((option, index) => {
       runs.push(...optionRuns(option.label, option.text, correct === option.label, index === 0 ? '' : '\t'));
     });
@@ -114,7 +121,7 @@ const mcqOptionParagraphs = (item: GeneratedExamItem) => {
 };
 
 const buildMixReadyExamChildren = (items: GeneratedExamItem[]) => {
-  const children: Paragraph[] = [];
+  const children: Array<Paragraph | Table> = [];
   const part1 = items.filter((item) => item.part === 'mcq').sort((a, b) => a.order - b.order);
   const part2 = items.filter((item) => item.part === 'tf').sort((a, b) => a.order - b.order);
   const part3 = items.filter((item) => item.part === 'short').sort((a, b) => a.order - b.order);
@@ -129,10 +136,7 @@ const buildMixReadyExamChildren = (items: GeneratedExamItem[]) => {
 
     part1.forEach((item) => {
       children.push(
-        paragraph([
-          baseRun(`Câu ${item.order}. `, { bold: true }),
-          baseRun(item.question.question),
-        ]),
+        ...richTextBlocks(item.question.question, {}, [baseRun(`Câu ${item.order}. `, { bold: true })]),
       );
       children.push(...mcqOptionParagraphs(item));
     });
@@ -150,23 +154,14 @@ const buildMixReadyExamChildren = (items: GeneratedExamItem[]) => {
       const trueLetters = getTrueStatementLetters(item.question.answer);
 
       children.push(
-        paragraph([
-          baseRun(`Câu ${item.order}. `, { bold: true }),
-          baseRun(item.question.question),
-        ]),
+        ...richTextBlocks(item.question.question, {}, [baseRun(`Câu ${item.order}. `, { bold: true })]),
       );
 
       ['a', 'b', 'c', 'd'].forEach((letter, index) => {
-        const text = (item.question.options[index] || '')
-          .replace(new RegExp(`^\\s*${letter}[\\)\\.]\\s*`, 'i'), '')
-          .trim();
+        const text = stripQuestionOptionLabel(item.question.options[index] || '', letter);
 
         children.push(
-          paragraph([
-            baseRun(letter, { bold: true, underline: trueLetters.has(letter) }),
-            baseRun(') ', { bold: true }),
-            baseRun(text),
-          ], { tabStops: TAB_1 }),
+          ...richTextBlocks(text, {}, [baseRun(letter, { bold: true, underline: trueLetters.has(letter) }), baseRun(') ', { bold: true })]),
         );
       });
     });
@@ -187,10 +182,7 @@ const buildMixReadyExamChildren = (items: GeneratedExamItem[]) => {
       }
 
       children.push(
-        paragraph([
-          baseRun(`Câu ${item.order}. `, { bold: true }),
-          baseRun(item.question.question),
-        ]),
+        ...richTextBlocks(item.question.question, {}, [baseRun(`Câu ${item.order}. `, { bold: true })]),
       );
 
       children.push(
@@ -205,7 +197,7 @@ const buildMixReadyExamChildren = (items: GeneratedExamItem[]) => {
   return children;
 };
 
-export const exportMixReadyExamDocx = async (
+export const createMixReadyExamDocument = (
   blueprint: ExamBlueprint,
   items: GeneratedExamItem[],
 ) => {
@@ -248,6 +240,10 @@ export const exportMixReadyExamDocx = async (
     ],
   });
 
-  const blob = await Packer.toBlob(doc);
+  return doc;
+};
+
+export const exportMixReadyExamDocx = async (blueprint: ExamBlueprint, items: GeneratedExamItem[]) => {
+  const blob = await Packer.toBlob(createMixReadyExamDocument(blueprint, items));
   saveAs(blob, `De_tron_Sinh_${blueprint.grade}_BioGen.docx`);
 };

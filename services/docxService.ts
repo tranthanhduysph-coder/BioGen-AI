@@ -3,6 +3,8 @@ import { Document, Packer, Paragraph, TextRun, AlignmentType, HeadingLevel, Tabl
 import saveAs from "file-saver";
 import { GeneratedQuestion, QuestionType } from "../types";
 
+import { richTextBlocks } from './questionContentDocx';
+
 // Helper to create table borders
 const tableBorders = {
     top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
@@ -74,7 +76,7 @@ const createAnswerGrid = () => {
 };
 
 
-export const exportToDocx = async (questions: GeneratedQuestion[]) => {
+export const createManualExamDocument = (questions: GeneratedQuestion[]) => {
     const children: (Paragraph | Table)[] = [];
 
     // --- HEADER ---
@@ -85,9 +87,7 @@ export const exportToDocx = async (questions: GeneratedQuestion[]) => {
             children: [new TextRun({ text: "\nĐỀ THAM KHẢO - KỲ THI TỐT NGHIỆP THPT TỪ NĂM 2025", bold: true, size: 28 })]
         }),
         new Paragraph({
-            text: "MÔN: SINH HỌC",
-            bold: true,
-            size: 26,
+            children: [new TextRun({ text: "MÔN: SINH HỌC", bold: true, size: 26 })],
             alignment: AlignmentType.CENTER,
             spacing: { after: 200 }
         })
@@ -116,16 +116,11 @@ export const exportToDocx = async (questions: GeneratedQuestion[]) => {
 
         part1.forEach((q, index) => {
             children.push(
-                new Paragraph({
-                    children: [
-                        new TextRun({ text: `Câu ${index + 1}: `, bold: true }),
-                        new TextRun({ text: q.question })
-                    ],
-                    spacing: { before: 120 }
-                })
+                ...richTextBlocks(q.question, { spacing: { before: 120 } },
+                    [new TextRun({ text: `Câu ${index + 1}: `, bold: true })])
             );
             q.options.forEach(opt => {
-                children.push(new Paragraph({ text: opt, indent: { left: 360 } }));
+                children.push(...richTextBlocks(opt, { indent: { left: 360 } }));
             });
         });
     }
@@ -143,16 +138,11 @@ export const exportToDocx = async (questions: GeneratedQuestion[]) => {
 
         part2.forEach((q, index) => {
             children.push(
-                new Paragraph({
-                    children: [
-                        new TextRun({ text: `Câu ${index + 1}: `, bold: true }),
-                        new TextRun({ text: q.question })
-                    ],
-                    spacing: { before: 120 }
-                })
+                ...richTextBlocks(q.question, { spacing: { before: 120 } },
+                    [new TextRun({ text: `Câu ${index + 1}: `, bold: true })])
             );
             q.options.forEach(opt => {
-                children.push(new Paragraph({ text: opt, indent: { left: 360 } }));
+                children.push(...richTextBlocks(opt, { indent: { left: 360 } }));
             });
         });
     }
@@ -170,13 +160,8 @@ export const exportToDocx = async (questions: GeneratedQuestion[]) => {
 
         part3.forEach((q, index) => {
             children.push(
-                new Paragraph({
-                    children: [
-                        new TextRun({ text: `Câu ${index + 1}: `, bold: true }),
-                        new TextRun({ text: q.question })
-                    ],
-                    spacing: { before: 120 }
-                })
+                ...richTextBlocks(q.question, { spacing: { before: 120 } },
+                    [new TextRun({ text: `Câu ${index + 1}: `, bold: true })])
             );
             children.push(new Paragraph({ text: "Đáp án: .....................", indent: { left: 360 } }));
         });
@@ -191,14 +176,10 @@ export const exportToDocx = async (questions: GeneratedQuestion[]) => {
         if (qs.length === 0) return;
         children.push(new Paragraph({ text: title, heading: HeadingLevel.HEADING_2, spacing: { before: 200 } }));
         qs.forEach((q, i) => {
-            children.push(new Paragraph({
-                children: [
-                    new TextRun({ text: `Câu ${startIndex + i}: `, bold: true }),
-                    new TextRun({ text: q.answer, color: "008000", bold: true }), // Green color
-                    new TextRun({ text: `\nGiải thích: ${q.explanation}`, italics: true, size: 20 })
-                ],
-                spacing: { after: 100 }
-            }));
+            children.push(...richTextBlocks(q.answer, { spacing: { after: 40 } },
+                [new TextRun({ text: `Câu ${startIndex + i}: `, bold: true })], { color: "008000", bold: true }));
+            if (q.explanation) children.push(...richTextBlocks(q.explanation, { spacing: { after: 100 } },
+                [new TextRun({ text: 'Giải thích: ', italics: true, size: 20 })], { italics: true, size: 20 }));
         });
     };
 
@@ -218,7 +199,10 @@ export const exportToDocx = async (questions: GeneratedQuestion[]) => {
         }],
     });
 
-    // Generate and Save
-    const blob = await Packer.toBlob(doc);
+    return doc;
+};
+
+export const exportToDocx = async (questions: GeneratedQuestion[]) => {
+    const blob = await Packer.toBlob(createManualExamDocument(questions));
     saveAs(blob, "De_Minh_Hoa_2025_BioGen.docx");
 };

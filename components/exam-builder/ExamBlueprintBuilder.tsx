@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { QuestionContent } from '../QuestionContent';
 import { createDefaultBlueprint as defaultBlueprint, createBlueprintFromPreset, getBlueprintPresetsForGrade } from '../../data/examBlueprintPresets';
 import { getSpecificationSourceLabel, getSpecificationSourceUrl } from '../../data/biologySpecification/catalog';
 import { SpecificationCatalog } from './SpecificationCatalog';
@@ -1829,29 +1830,27 @@ export const ExamBlueprintBuilder: React.FC = () => {
                                   </div>
                                 ) : (
                                   <>
-                                    <p className="text-sm font-semibold leading-relaxed text-slate-800 dark:text-slate-100">
-                                      {item.question.question}
-                                    </p>
+                                    <QuestionContent className="text-sm font-semibold leading-relaxed text-slate-800 dark:text-slate-100" value={item.question.question} />
 
                                     {item.question.options.length > 0 && (
                                       <div className="mt-3 space-y-1.5">
                                         {item.question.options.map((option, optionIndex) => (
                                           <div key={optionIndex} className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                                            {option}
+                                            <QuestionContent value={option} />
                                           </div>
                                         ))}
                                       </div>
                                     )}
 
                                     <div className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-200">
-                                      <b>{isEnglish ? 'Answer:' : 'Đáp án:'}</b> {item.question.answer}
+                                      <b>{isEnglish ? 'Answer:' : 'Đáp án:'}</b> <QuestionContent value={item.question.answer} />
                                     </div>
 
                                     <details className="mt-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300">
                                       <summary className="cursor-pointer font-bold">
                                         {isEnglish ? 'Explanation' : 'Giải thích'}
                                       </summary>
-                                      <p className="mt-2 leading-relaxed">{item.question.explanation}</p>
+                                      <QuestionContent className="mt-2 leading-relaxed" value={item.question.explanation} />
                                     </details>
                                   </>
                                 )}

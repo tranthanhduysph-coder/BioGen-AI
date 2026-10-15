@@ -4,6 +4,7 @@ import { QuestionType } from '../types';
 import { saveExamResult } from '../services/historyService';
 import type { User } from 'firebase/auth';
 import { useTranslation } from 'react-i18next';
+import { QuestionContent } from './QuestionContent';
 
 interface QuizModeProps {
   questions: GeneratedQuestion[];
@@ -287,14 +288,14 @@ export const QuizMode: React.FC<QuizModeProps> = ({ questions, onExit, user, ini
                     </div>
                     
                     <div className="mb-6 text-base md:text-lg font-medium text-slate-800 dark:text-slate-100 leading-relaxed print:text-black print:text-sm">
-                        {q.question}
+                        <QuestionContent value={q.question} />
                     </div>
 
                     <div className="space-y-3">
                         {q.type === QuestionType.MultipleChoice && q.options.map((opt, oIdx) => (
                             <label key={oIdx} className={`flex items-start p-3 rounded-lg border cursor-pointer transition-all print:border-none ${userAnswers[idx] === opt ? 'bg-indigo-50 border-indigo-500 ring-1 ring-indigo-500 print:font-bold' : 'border-slate-200 hover:bg-slate-50'}`}>
                                 <input type="radio" name={`q-${idx}`} checked={userAnswers[idx] === opt} onChange={() => handleOptionSelect(idx, opt)} disabled={isSubmitted} className="mt-1 mr-3 print:text-black" />
-                                <span className="text-sm md:text-base print:text-black">{opt}</span>
+                                <QuestionContent className="text-sm md:text-base print:text-black" value={opt} />
                             </label>
                         ))}
 
@@ -302,7 +303,7 @@ export const QuizMode: React.FC<QuizModeProps> = ({ questions, onExit, user, ini
                             <div className="grid gap-3">
                                 {q.options.map((opt, oIdx) => (
                                     <div key={oIdx} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/30 rounded-lg border border-slate-200 dark:border-slate-600 print:bg-transparent print:border-none">
-                                        <span className="mb-2 sm:mb-0 text-sm md:text-base font-medium flex-1 mr-4 print:text-black">{opt}</span>
+                                        <QuestionContent className="mb-2 sm:mb-0 text-sm md:text-base font-medium flex-1 mr-4 print:text-black" value={opt} />
                                         <div className="flex gap-2 shrink-0">
                                             {['Đúng', 'Sai'].map(val => (
                                                 <label key={val} className={`cursor-pointer px-3 py-1 rounded border text-sm font-bold transition-all print:border-black ${userAnswers[idx]?.[oIdx] === val ? (val === 'Đúng' ? 'bg-green-100 text-green-700 border-green-500' : 'bg-red-100 text-red-700 border-red-500') : 'bg-white border-slate-300 text-slate-500'}`}>
@@ -326,8 +327,8 @@ export const QuizMode: React.FC<QuizModeProps> = ({ questions, onExit, user, ini
                     {isSubmitted && (
                         <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-700 animate-fade-in print:mt-2 print:pt-2 print:border-gray-300">
                             <div className="p-3 bg-slate-50 dark:bg-slate-700/30 rounded-lg text-sm print:bg-white print:border">
-                                <p className="font-bold text-emerald-600 mb-1 print:text-black">Đáp án đúng: {q.answer}</p>
-                                <p className="text-slate-600 dark:text-slate-300 italic print:text-black">{q.explanation}</p>
+                                <div className="font-bold text-emerald-600 mb-1 print:text-black">Đáp án đúng: <QuestionContent value={q.answer} /></div>
+                                <QuestionContent className="text-slate-600 dark:text-slate-300 italic print:text-black" value={q.explanation} />
                             </div>
                         </div>
                     )}
