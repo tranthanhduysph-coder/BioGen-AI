@@ -1,5 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { QuestionContent } from '../QuestionContent';
+import { BlueprintProgress } from './BlueprintProgress';
+import { getBlueprintProgress } from '../../services/examBlueprintProgress';
+import './blueprint-workspace.css';
 import { createDefaultBlueprint as defaultBlueprint, createBlueprintFromPreset, getBlueprintPresetsForGrade } from '../../data/examBlueprintPresets';
 import { getSpecificationSourceLabel, getSpecificationSourceUrl } from '../../data/biologySpecification/catalog';
 import { SpecificationCatalog } from './SpecificationCatalog';
@@ -83,9 +86,13 @@ const NumericInput: React.FC<{
   step?: number;
   min?: number;
   className?: string;
-}> = ({ value, onChange, step = 1, min = 0, className = '' }) => (
+  id?: string;
+  label?: string;
+}> = ({ value, onChange, step = 1, min = 0, className = '', id, label }) => (
   <input
     type="number"
+    id={id}
+    aria-label={label}
     min={min}
     step={step}
     value={value}
@@ -124,6 +131,15 @@ export const ExamBlueprintBuilder: React.FC = () => {
     }
   });
 
+  const [workspaceStep, setWorkspaceStep] = useState<'setup' | 'matrix' | 'review'>(() => blueprint.rows.length ? 'matrix' : 'setup');
+  const [headerHeight, setHeaderHeight] = useState(80);
+  useEffect(() => {
+    const header = document.querySelector('header');
+    if (!header) return;
+    const observer = new ResizeObserver(() => setHeaderHeight(Math.ceil(header.getBoundingClientRect().height)));
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
   const initialBlueprintEffect = useRef(true);
   const restoringCloudExam = useRef<CloudExam | null>(null);
   const [creditAccount, setCreditAccount] = useState<CreditAccount | null>(null);
@@ -158,6 +174,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
       restoringCloudExam.current = null;
       setCreditExamId(cloud.id);
       setLockedSlots(cloudSlots(cloud));
+      setWorkspaceStep('review');
       setGeneratedItems(Object.values(cloud.items).map(item =>
         cloud.review.generatedItems?.find(i => i.slotId === item.slotId) || item));
       setApprovedSlotIds(cloud.review.approvedSlotIds || []);
@@ -173,6 +190,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
     }
 
     clearExamReviewDraft();
+    setWorkspaceStep(current => current === 'review' ? 'matrix' : current);
     setCreditExamId(null);
     setRecoverableDraft(null);
     setLockedSlots(null);
@@ -447,6 +465,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
   }, [blueprint, partTotals, allocationReady, tfScaleOrdered, tfScaleWithinPercent, isEnglish]);
 
   const canLockBlueprint = lockIssues.length === 0;
+  const allocationProgress = getBlueprintProgress(blueprint);
 
   const selectedOutcome = (row: BlueprintRow) => getOutcomeById(row.outcomeId);
 
@@ -461,6 +480,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
   const resetBlueprint = () => {
     if (window.confirm(isEnglish ? 'Reset the exam blueprint?' : 'Đặt lại toàn bộ bảng thiết kế đề?')) {
       setBlueprint(defaultBlueprint());
+      setWorkspaceStep('setup');
     }
   };
 
@@ -480,6 +500,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
     setGenerationFailures([]);
     if (validation.valid) {
       setLockedSlots(slots);
+      setWorkspaceStep('review');
     } else {
       setLockedSlots(null);
     }
@@ -721,6 +742,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
     }
 
     setLockedSlots(slots);
+    setWorkspaceStep('review');
     setGeneratedItems(recoverableDraft.generatedItems);
     setApprovedSlotIds(recoverableDraft.approvedSlotIds);
     setLockedQuestionIds(recoverableDraft.lockedQuestionIds);
@@ -809,11 +831,24 @@ export const ExamBlueprintBuilder: React.FC = () => {
     return isEnglish ? 'Part III · Short response' : 'PHẦN III · Trả lời ngắn';
   };
 
+  const inspectAllocation = (part?: ExamPartKey, rowId?: string) => {
+    setWorkspaceStep('matrix');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const row = rowId || blueprint.rows[0]?.id;
+      const element = document.getElementById(part && row ? `allocation-${row}-${part}-know` : 'blueprint-lock-status');
+      element?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      if (element instanceof HTMLInputElement) element.focus({ preventScroll: true });
+    }));
+  };
+
   return (
-    <div className="space-y-5 animate-fade-in">
+    <div className="blueprint-workspace space-y-5 animate-fade-in" style={{ '--blueprint-header-height': `${headerHeight}px` } as React.CSSProperties}>
+      <details className="rounded-xl border border-slate-200 px-4 py-3 dark:border-slate-700">
+      <summary className="cursor-pointer text-sm font-semibold">{isEnglish ? 'Account, credits & saved exams' : 'Tài khoản, credit và đề đã lưu'}{creditAccount?.enabled && ` · ${creditAccount.balance} ${isEnglish ? 'credits available' : 'credit khả dụng'}`}</summary>
       <CreditPanel onAccount={setCreditAccount} refreshToken={creditRefresh}
         busy={isGeneratingExam || !!regeneratingSlotId}
         onRestore={exam => { restoringCloudExam.current = exam; setBlueprint({ ...exam.blueprint }); }} />
+      </details>
       {creditExamId && <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 text-sm dark:bg-slate-900">
         <span>Đề trên tài khoản · {creditExamInfo?.status === 'completed' ? 'Đã dùng 1 credit' : 'Đang giữ 1 credit'}
           {creditExamInfo && ` · Đã thay ${creditExamInfo.replacedUnits}/${creditExamInfo.replacementLimit} câu/ý`}</span>
@@ -823,7 +858,36 @@ export const ExamBlueprintBuilder: React.FC = () => {
           onClick={async () => { try { const exam = await getCloudExam(creditExamId); if (exam.status !== 'completed') throw new Error('Hãy hoàn tất hoặc hủy đề đang dở trước.'); if (window.confirm('Tạo đề mới từ ma trận này sẽ dùng thêm 1 credit. Tiếp tục?')) { forgetCreditCreation(); clearExamReviewDraft(); setCreditExamId(null); setGeneratedItems([]); setApprovedSlotIds([]); setLockedQuestionIds([]); setGenerationSource(null); } } catch (e: any) { setCloudSaveMessage(e.message); } }}>Bắt đầu đề mới từ ma trận này</button>
         {cloudSaveMessage && <span role="status">{cloudSaveMessage}</span>}
       </div>}
+      <div className="blueprint-toolbar" aria-label={isEnglish ? 'Blueprint workspace' : 'Vùng làm việc ma trận'}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <nav className="flex flex-wrap gap-1" aria-label={isEnglish ? 'Exam design steps' : 'Các bước thiết kế đề'}>
+            {(['setup', 'matrix', 'review'] as const).map((step, index) => <button key={step} type="button"
+              aria-current={workspaceStep === step ? 'step' : undefined} aria-controls={`blueprint-${step}-panel`}
+              disabled={isGeneratingExam || !!regeneratingSlotId || (step === 'review' && !lockedSlots && !recoverableDraft)}
+              onClick={() => setWorkspaceStep(step)}
+              className={`rounded-lg px-3 py-2 text-sm font-bold transition disabled:opacity-40 ${workspaceStep === step ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-sky-50 dark:bg-slate-800 dark:text-slate-300'}`}>
+              {index + 1}. {isEnglish ? ['Setup', 'Matrix', 'Generate & review'][index] : ['Thiết lập', 'Phân bổ ma trận', 'Tạo và duyệt đề'][index]}
+            </button>)}
+          </nav>
+          <div className="flex flex-wrap items-center gap-3">
+            <span role="status" className={`text-sm font-bold ${canLockBlueprint ? 'text-emerald-700 dark:text-emerald-300' : 'text-amber-700 dark:text-amber-300'}`}>
+              {lockedSlots ? (isEnglish ? '✓ Blueprint locked' : '✓ Ma trận đã khóa') : canLockBlueprint ? (isEnglish ? '✓ Ready to lock' : '✓ Sẵn sàng khóa ma trận') : (isEnglish ? 'Allocation needs attention' : 'Ma trận còn cần chỉnh')}
+            </span>
+            {recoverableDraft && !lockedSlots && <button type="button" disabled={isGeneratingExam || !!regeneratingSlotId}
+              onClick={restoreReviewDraft} className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-bold text-white">
+              {isEnglish ? 'Restore review draft' : 'Khôi phục bản nháp'}
+            </button>}
+            {!lockedSlots && !recoverableDraft && <button type="button" disabled={!canLockBlueprint || isGeneratingExam || !!regeneratingSlotId}
+              onClick={lockBlueprint} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700">
+              {isEnglish ? 'Lock blueprint' : 'Khóa ma trận'}
+            </button>}
+            {!canLockBlueprint && <button type="button" onClick={() => inspectAllocation()} className="text-xs font-bold text-sky-700 underline dark:text-sky-300">{isEnglish ? 'See issues' : 'Xem phần cần chỉnh'}</button>}
+          </div>
+        </div>
+        <BlueprintProgress blueprint={blueprint} isEnglish={isEnglish} disabled={isGeneratingExam || !!regeneratingSlotId} onInspect={part => inspectAllocation(part)} />
+      </div>
       <fieldset disabled={isGeneratingExam || !!regeneratingSlotId} className="space-y-5 min-w-0">
+      <div id="blueprint-setup-panel" hidden={workspaceStep !== 'setup'} className="space-y-5">
       <section className="rounded-xl border border-sky-100 bg-sky-50/70 p-4 dark:border-sky-900/60 dark:bg-sky-950/20">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -898,12 +962,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
         <p className="mt-2 text-xs text-slate-500">{isEnglish ? 'Presets load source outcomes with zero allocations. Set counts and points for your exam. Current score settings are retained.' : 'Preset nạp YCCĐ với phân bổ bằng 0. Hãy chọn số câu và điểm cho đề. Thiết lập điểm hiện tại được giữ lại.'}</p>
       </section>
 
-      <SpecificationCatalog grade={blueprint.grade} isEnglish={isEnglish} onAdd={record => {
-        setBlueprint(current => ({ ...current, rows: [...current.rows, {
-          id: `row-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, contentId: record.contentId,
-          competencyCode: record.competencyCode ?? '', outcomeId: record.id, allocations: emptyBlueprintAllocations(),
-        }] }));
-      }} />
+
 
       <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
         <h4 className="mb-3 text-sm font-bold text-slate-800 dark:text-white">
@@ -1031,6 +1090,16 @@ export const ExamBlueprintBuilder: React.FC = () => {
         </div>
       </section>
 
+      <div className="flex justify-end"><button type="button" onClick={() => setWorkspaceStep('matrix')}
+        className="rounded-xl bg-sky-600 px-5 py-3 font-bold text-white">{isEnglish ? 'Continue to matrix →' : 'Tiếp tục phân bổ ma trận →'}</button></div>
+      </div>
+      <div id="blueprint-matrix-panel" hidden={workspaceStep !== 'matrix'} className="space-y-5">
+      <SpecificationCatalog grade={blueprint.grade} isEnglish={isEnglish} onAdd={record => {
+        setBlueprint(current => ({ ...current, rows: [...current.rows, {
+          id: `row-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, contentId: record.contentId,
+          competencyCode: record.competencyCode ?? '', outcomeId: record.id, allocations: emptyBlueprintAllocations(),
+        }] }));
+      }} />
       <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -1066,13 +1135,13 @@ export const ExamBlueprintBuilder: React.FC = () => {
             + {isEnglish ? 'Add the first specification row' : 'Thêm dòng đặc tả đầu tiên'}
           </button>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
-            <table className="w-full min-w-[1650px] text-xs">
+          <div className="blueprint-table-scroll" role="region" aria-label={isEnglish ? "Matrix allocation table" : "Bảng phân bổ ma trận"} tabIndex={0}>
+            <table className="blueprint-table w-full text-xs">
               <thead className="bg-slate-50 dark:bg-slate-800/80">
                 <tr className="border-b border-slate-200 dark:border-slate-700">
-                  <th rowSpan={2} className="w-44 px-2 py-2 text-left">Nội dung</th>
-                  <th rowSpan={2} className="w-[340px] px-2 py-2 text-left">Năng lực</th>
-                  <th rowSpan={2} className="w-[360px] px-2 py-2 text-left">Yêu cầu cần đạt</th>
+                  <th rowSpan={2} className="blueprint-content-cell w-[180px] px-2 py-2 text-left">Nội dung</th>
+                  <th rowSpan={2} className="w-[170px] px-2 py-2 text-left">Năng lực</th>
+                  <th rowSpan={2} className="w-[300px] px-2 py-2 text-left">Yêu cầu cần đạt</th>
                   {PARTS.map((part) => (
                     <th key={part.key} colSpan={3} className="border-l border-slate-200 px-2 py-2 text-center dark:border-slate-700">
                       {isEnglish ? part.en : part.vi}
@@ -1109,8 +1178,8 @@ export const ExamBlueprintBuilder: React.FC = () => {
                   if (outcome && !outcomes.some(item => item.id === row.outcomeId)) outcomes.push(outcome);
 
                   return (
-                    <tr key={row.id} className="border-b border-slate-100 align-top last:border-0 dark:border-slate-800">
-                      <td className="p-2">
+                    <tr key={row.id} id={`blueprint-row-${row.id}`} data-tf-incomplete={allocationProgress.incompleteGroups.some(group => group.contentId === row.contentId)} className="border-b border-slate-100 align-top last:border-0 dark:border-slate-800">
+                      <td className="blueprint-content-cell p-2">
                         <select
                           value={row.contentId}
                           onChange={(event) => updateRowSelection(row, 'contentId', event.target.value)}
@@ -1126,7 +1195,7 @@ export const ExamBlueprintBuilder: React.FC = () => {
                       </td>
 
                       <td className="p-2">
-                        <CompetencySelect label={isEnglish ? `Competency, row ${blueprint.rows.indexOf(row) + 1}` : `Năng lực, dòng ${blueprint.rows.indexOf(row) + 1}`}
+                        <CompetencySelect compact label={isEnglish ? `Competency, row ${blueprint.rows.indexOf(row) + 1}` : `Năng lực, dòng ${blueprint.rows.indexOf(row) + 1}`}
                           value={row.competencyCode} options={competencies.map(item => item.code)}
                           outcomeCounts={Object.fromEntries(competencies.map(item => [item.code, getOutcomesForSelection(blueprint.grade, row.contentId, item.code).length]))}
                           onChange={value => updateRowSelection(row, 'competencyCode', value)} isEnglish={isEnglish} />
@@ -1163,6 +1232,8 @@ export const ExamBlueprintBuilder: React.FC = () => {
                         LEVELS.map((level) => (
                           <td key={`${row.id}-${part.key}-${level.key}`} className="w-16 border-l border-slate-100 p-1.5 dark:border-slate-800">
                             <NumericInput
+                              id={`allocation-${row.id}-${part.key}-${level.key}`}
+                              label={`${isEnglish ? part.en : part.vi}, ${level.vi}, ${isEnglish ? "row" : "dòng"} ${blueprint.rows.indexOf(row) + 1}`}
                               value={row.allocations[part.key][level.key]}
                               onChange={(value) => updateAllocation(row, part.key, level.key, value)}
                             />
@@ -1220,47 +1291,6 @@ export const ExamBlueprintBuilder: React.FC = () => {
           {isEnglish ? '3. Live totals' : '3. Tổng hợp trực tiếp'}
         </h4>
 
-        <div className="grid gap-3 md:grid-cols-3">
-          {PARTS.map((part) => {
-            const current = partTotals[part.key];
-            const target = targets[part.key];
-            const isMatch = current === target;
-            return (
-              <div
-                key={part.key}
-                className={`rounded-xl border p-3 ${isMatch
-                  ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-900/50 dark:bg-emerald-950/20'
-                  : 'border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-950/20'}`}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <strong className="text-sm text-slate-800 dark:text-slate-100">
-                    {isEnglish ? part.en : part.vi}
-                  </strong>
-                  <span className={`text-xs font-extrabold ${isMatch ? 'text-emerald-700' : 'text-amber-700'}`}>
-                    {current}/{target}
-                    {part.key === 'tf' ? (isEnglish ? ' statements' : ' ý') : (isEnglish ? ' questions' : ' câu')}
-                  </span>
-                </div>
-                {part.key === 'tf' && (
-                  <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
-                    {isEnglish
-                      ? `${blueprint.scores.tf.questionCount} questions × 4 statements = ${target} statements required`
-                      : `${blueprint.scores.tf.questionCount} câu × 4 ý = ${target} ý cần phân bổ`}
-                  </p>
-                )}
-                <div className="mt-2 flex justify-between text-xs text-slate-500">
-                  <span>B {totals[part.key].know}</span>
-                  <span>H {totals[part.key].understand}</span>
-                  <span>VD {totals[part.key].apply}</span>
-                </div>
-                <div className="mt-2 text-right text-sm font-bold text-slate-700 dark:text-slate-200">
-                  {blueprint.scores[part.key].totalScore} {isEnglish ? 'pts' : 'điểm'}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
         <div className="mt-3 grid gap-3 sm:grid-cols-4">
           <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800">
             <span className="block text-[10px] font-bold uppercase text-slate-400">Biết</span>
@@ -1291,6 +1321,13 @@ export const ExamBlueprintBuilder: React.FC = () => {
             : (isEnglish
                 ? 'Cannot lock the blueprint yet:'
                 : 'Chưa thể khóa ma trận:')}
+          {allocationProgress.incompleteGroups.length > 0 && <div className="mt-2 flex flex-wrap gap-2">
+            {allocationProgress.incompleteGroups.map(group => <button type="button" key={group.contentId}
+              className="rounded-lg border border-amber-300 bg-white px-3 py-2 text-left text-xs font-bold text-amber-900 underline dark:bg-slate-900 dark:text-amber-200"
+              onClick={() => inspectAllocation('tf', group.rowId)}>
+              {getContentsForGrade(blueprint.grade).find(content => content.id === group.contentId)?.label || group.contentId}: {group.count} {isEnglish ? 'statements; must be divisible by 4' : 'ý; cần chia hết cho 4'} →
+            </button>)}
+          </div>}
           {lockIssues.length > 0 && (
             <ul className="mt-2 list-disc space-y-1 pl-5">
               {lockIssues.map((issue, index) => <li key={index}>{issue}</li>)}
@@ -1330,6 +1367,9 @@ export const ExamBlueprintBuilder: React.FC = () => {
           </div>
         )}
 
+      </section>
+      </div>
+      <section id="blueprint-review-panel" hidden={workspaceStep !== 'review'} className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
         {recoverableDraft && !lockedSlots && (
           <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/60 dark:bg-amber-950/20">
             <div className="flex flex-wrap items-center justify-between gap-3">
