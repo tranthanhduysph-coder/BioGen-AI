@@ -1528,10 +1528,10 @@ export const ExamBlueprintBuilder: React.FC = () => {
                   ? (isEnglish
                       ? (generationProgress.waitingSeconds
                         ? `Waiting ${generationProgress.waitingSeconds}s for Gemini...`
-                        : `Generating ${generationProgress.completed}/${generationProgress.total}...`)
+                        : `AI is composing ${generationProgress.total} questions in one request…`)
                       : (generationProgress.waitingSeconds
                         ? `Chờ ${generationProgress.waitingSeconds} giây để tiếp tục tạo bằng AI...`
-                        : `Đang tạo ${generationProgress.completed}/${generationProgress.total} câu...`))
+                        : `AI đang soạn ${generationProgress.total} câu trong một lần gọi…`))
                   : (isEnglish ? 'Generate exam with AI' : 'Tạo đề bằng AI')}
               </button>
 
@@ -1571,11 +1571,13 @@ export const ExamBlueprintBuilder: React.FC = () => {
             )}
 
             {isGeneratingExam && generationProgress.total > 0 && (
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-purple-100 dark:bg-purple-950">
-                <div
-                  className="h-full bg-purple-600 transition-all"
-                  style={{ width: `${Math.round((generationProgress.completed / generationProgress.total) * 100)}%` }}
-                />
+              <div className="mt-2" role="status" aria-busy="true">
+                <div className="h-2 overflow-hidden rounded-full bg-purple-100 dark:bg-purple-950">
+                  <div className="h-full w-1/3 animate-pulse rounded-full bg-purple-600" />
+                </div>
+                <p className="mt-1 text-center text-xs text-purple-700 dark:text-purple-300">
+                  {isEnglish ? 'Waiting for the complete response. Valid questions will be saved together.' : 'Đang chờ AI trả về bộ câu hỏi. Các câu hợp lệ sẽ được lưu cùng lúc.'}
+                </p>
               </div>
             )}
 

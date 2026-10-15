@@ -51,3 +51,17 @@ test('cancelled creation cannot silently reactivate an old reservation', async (
   await assert.rejects(api.createCreditExam({}, slots), /đã được hủy/);
   assert.equal(cache.size, 0);
 });
+
+test('a lost whole-exam response reuses its request ID, a missing subset gets a new one', async () => {
+  cache.clear(); const requests = [];
+  globalThis.fetch = async (url, init) => {
+    assert.match(url, /exams\/exam-00001\/generate$/);
+    requests.push(JSON.parse(init.body)); throw new Error('lost');
+  };
+  await assert.rejects(api.requestCreditExamBatch('exam-00001', ['a', 'b'], 'vi'));
+  globalThis.fetch = async (_, init) => { requests.push(JSON.parse(init.body)); return ok({ items: [], failures: [] }); };
+  await api.requestCreditExamBatch('exam-00001', ['b', 'a'], 'vi');
+  assert.equal(requests[0].requestId, requests[1].requestId);
+  await api.requestCreditExamBatch('exam-00001', ['b'], 'vi');
+  assert.notEqual(requests[1].requestId, requests[2].requestId);
+});

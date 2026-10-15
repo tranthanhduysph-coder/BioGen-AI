@@ -2,7 +2,7 @@ import { auth } from '../firebaseConfig';
 import { requestAiJson } from './aiRequestService';
 import type { ExamBlueprint } from '../types/examBlueprint';
 import type { ExamSlotPackage } from '../types/examSlots';
-import type { GeneratedExamItem } from '../types/generatedExam';
+import type { GeneratedExamItem, GenerationBatchResult } from '../types/generatedExam';
 
 export type CreditAccount = { enabled: boolean; uid: string; email: string; name: string;
   status: 'pending' | 'approved' | 'blocked'; balance: number; held: number;
@@ -88,4 +88,28 @@ export const requestCreditItem = async (examId: string, slotId: string, lang: st
     localStorage.removeItem(key);
     return item;
   } catch (error) { throw error; } // Retain the same operation ID on any failure.
+};
+
+export const requestCreditExamBatch = async (examId: string, slotIds: string[], lang: string,
+  onWait?: (seconds: number) => void): Promise<GenerationBatchResult> => {
+  const user = auth?.currentUser;
+  if (!user) throw new Error('Hãy đăng nhập Google.');
+  const key = `biogen_credit_batch_${user.uid}_${examId}`;
+  const signature = JSON.stringify([...slotIds].sort());
+  let pending: { signature: string; requestId: string } | null = null;
+  try { pending = JSON.parse(localStorage.getItem(key) || 'null'); } catch { /* old cache */ }
+  if (!pending || pending.signature !== signature) {
+    pending = { signature, requestId: crypto.randomUUID() };
+    localStorage.setItem(key, JSON.stringify(pending));
+  }
+  const base = String((import.meta as any).env?.VITE_API_BASE_URL || '').replace(/\/$/, '');
+  const result = await requestAiJson<GenerationBatchResult>(`${base}/api/credits/exams/${encodeURIComponent(examId)}/generate`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await user.getIdToken()}` },
+    body: JSON.stringify({ slotIds, requestId: pending.requestId, lang: lang === 'en' ? 'en' : 'vi' }),
+  }, lang, onWait);
+  if (!result || !Array.isArray(result.items) || !Array.isArray(result.failures)) {
+    throw new Error('Backend trả về bộ đề không hợp lệ. Giữ nguyên đề và thử lại sau.');
+  }
+  localStorage.removeItem(key);
+  return result;
 };
