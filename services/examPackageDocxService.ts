@@ -18,6 +18,10 @@ import type { GeneratedExamItem } from '../types/generatedExam';
 import { getOutcomeById } from '../data/biologySpecification';
 import { getTrueFalseMaxScorePerQuestion, getTrueFalseScoreRows } from './examScoringService';
 
+import { richTextBlocks, richTextRuns } from './questionContentDocx';
+import { hasStructuredContent } from './questionContent';
+import type { ParagraphChild } from 'docx';
+
 const A4 = { width: 11906, height: 16838 };
 const CM = 567;
 
@@ -50,7 +54,7 @@ const run = (text: string, options: { bold?: boolean; size?: number; italics?: b
   });
 
 const p = (
-  children: TextRun[],
+  children: ParagraphChild[],
   options: {
     alignment?: (typeof AlignmentType)[keyof typeof AlignmentType];
     before?: number;
@@ -258,7 +262,7 @@ const createBlueprintTable = (blueprint: ExamBlueprint) => {
 const optionTable = (options: string[]) => {
   const normalized = options.slice(0, 4);
   const max = Math.max(...normalized.map((item) => item.length), 0);
-  const perRow = max <= 34 ? 4 : max <= 70 ? 2 : 1;
+  const perRow = normalized.some(hasStructuredContent) ? 1 : max <= 34 ? 4 : max <= 70 ? 2 : 1;
   const rows: TableRow[] = [];
 
   for (let i = 0; i < normalized.length; i += perRow) {
@@ -270,7 +274,7 @@ const optionTable = (options: string[]) => {
           new TableCell({
             verticalAlign: VerticalAlign.CENTER,
             margins: { top: 30, bottom: 30, left: 40, right: 40 },
-            children: [p([run(text, { size: 22 })], { line: 220 })],
+            children: richTextBlocks(text, { spacing: { line: 240 } }, [], { size: 22 }),
           }),
         ),
       }),
@@ -308,10 +312,8 @@ const buildExamChildren = (items: GeneratedExamItem[]) => {
 
     part1.forEach((item) => {
       children.push(
-        p([
-          run(`Câu ${item.order}: `, { bold: true }),
-          run(item.question.question),
-        ], { before: 70, after: 30 }),
+        ...richTextBlocks(item.question.question, { spacing: { before: 70, after: 30 } },
+          [run(`Câu ${item.order}: `, { bold: true })]),
       );
       children.push(optionTable(item.question.options));
     });
@@ -328,13 +330,11 @@ const buildExamChildren = (items: GeneratedExamItem[]) => {
 
     part2.forEach((item) => {
       children.push(
-        p([
-          run(`Câu ${item.order}: `, { bold: true }),
-          run(item.question.question),
-        ], { before: 70, after: 30 }),
+        ...richTextBlocks(item.question.question, { spacing: { before: 70, after: 30 } },
+          [run(`Câu ${item.order}: `, { bold: true })]),
       );
       item.question.options.forEach((option) => {
-        children.push(p([run(option)], { after: 20, line: 220 }));
+        children.push(...richTextBlocks(option, { spacing: { after: 20, line: 240 } }));
       });
     });
   }
@@ -350,10 +350,8 @@ const buildExamChildren = (items: GeneratedExamItem[]) => {
 
     part3.forEach((item) => {
       children.push(
-        p([
-          run(`Câu ${item.order}: `, { bold: true }),
-          run(item.question.question),
-        ], { before: 70, after: 20 }),
+        ...richTextBlocks(item.question.question, { spacing: { before: 70, after: 20 } },
+          [run(`Câu ${item.order}: `, { bold: true })]),
       );
       children.push(p([run('Trả lời: ............................................................')], { after: 30 }));
     });
@@ -381,11 +379,11 @@ const buildAnswerChildren = (blueprint: ExamBlueprint, items: GeneratedExamItem[
       children.push(
         p([
           run(`Câu ${item.order}: `, { bold: true }),
-          run(item.question.answer, { bold: true, underline: true }),
+          ...richTextRuns(item.question.answer, { bold: true, underline: {} }),
         ], { after: 20 }),
       );
       if (item.question.explanation) {
-        children.push(p([run(`Giải thích: ${item.question.explanation}`, { italics: true, size: 20 })], { after: 50 }));
+        children.push(...richTextBlocks(item.question.explanation, { spacing: { after: 50 } }, [run('Giải thích: ', { italics: true, size: 20 })], { italics: true, size: 20 }));
       }
     });
   });
@@ -396,7 +394,7 @@ const buildAnswerChildren = (blueprint: ExamBlueprint, items: GeneratedExamItem[
   return children;
 };
 
-export const exportExamPackageDocx = async (
+export const createExamPackageDocument = (
   blueprint: ExamBlueprint,
   items: GeneratedExamItem[] = [],
 ) => {
@@ -492,7 +490,11 @@ export const exportExamPackageDocx = async (
     sections,
   });
 
-  const blob = await Packer.toBlob(doc);
+  return doc;
+};
+
+export const exportExamPackageDocx = async (blueprint: ExamBlueprint, items: GeneratedExamItem[] = []) => {
+  const blob = await Packer.toBlob(createExamPackageDocument(blueprint, items));
   const suffix = items.length > 0 ? 'Bo_de' : 'Ma_tran_Dac_ta';
   saveAs(blob, `${suffix}_Sinh_${blueprint.grade}_BioGen.docx`);
 };

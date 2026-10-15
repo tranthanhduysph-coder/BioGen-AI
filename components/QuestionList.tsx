@@ -23,7 +23,7 @@ export const QuestionList: React.FC<QuestionListProps> = ({ questions, isQuizMod
   const handleExport = async () => {
       setIsExporting(true);
       try { await exportToDocx(questions); } 
-      catch (e) { alert(t('results.error_export')); }
+      catch (e) { alert(`${t('results.error_export')}${e instanceof Error ? `\n${e.message}` : ''}`); }
       finally { setIsExporting(false); }
   };
 
