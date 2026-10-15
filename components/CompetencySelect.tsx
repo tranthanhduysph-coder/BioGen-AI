@@ -8,7 +8,8 @@ export const CompetencySelect: React.FC<{
   outcomeCounts?: Record<string, number>;
   onChange: (value: string) => void;
   isEnglish?: boolean;
-}> = ({ label, value, options, outcomeCounts, onChange, isEnglish = false }) => {
+  compact?: boolean;
+}> = ({ label, value, options, outcomeCounts, onChange, isEnglish = false, compact = false }) => {
   const id = useId();
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
@@ -57,7 +58,7 @@ export const CompetencySelect: React.FC<{
       onClick={() => { setOpen(current => !current); setActive(selectedIndex); }}
       className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-left text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
       <span className="mb-1 block text-[10px] font-bold text-slate-400">{isEnglish ? 'Change competency' : 'Chọn năng lực'} {open ? '▴' : '▾'}</span>
-      {content(value)}
+      {compact ? <><strong>{value.toUpperCase()}</strong><span className="mt-1 block text-[11px]">{getCompetencyGroupLabel(value, isEnglish)}{outcomeCounts?.[value] !== undefined && ` · ${outcomeCounts[value]} YCCĐ`}</span></> : content(value)}
     </button>
     {open && <div id={`${id}-list`} role="listbox" aria-label={label}
       className="mt-1 max-h-[420px] overflow-y-auto rounded-lg border border-sky-300 bg-white p-1 shadow-sm dark:bg-slate-900">

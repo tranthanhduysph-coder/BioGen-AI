@@ -8,6 +8,8 @@ import { getCompetencyDescription } from '../data/biologySpecification/competenc
 import { ManualAccessPanel } from './CreditPurchase';
 
 interface CriteriaSelectorProps {
+  activeTab: 'auto' | 'manual';
+  onTabChange: (tab: 'auto' | 'manual') => void;
   onGenerate: (criteriaList: Criteria[]) => void;
   isLoading: boolean;
   manualRefreshToken: number;
@@ -62,9 +64,8 @@ const QueueItem: React.FC<{ criteria: Criteria, index: number, onRemove: () => v
     </div>
 )
 
-export const CriteriaSelector: React.FC<CriteriaSelectorProps> = ({ onGenerate, isLoading, manualRefreshToken, onResumeManual, onBuyManual }) => {
+export const CriteriaSelector: React.FC<CriteriaSelectorProps> = ({ activeTab, onTabChange, onGenerate, isLoading, manualRefreshToken, onResumeManual, onBuyManual }) => {
   const { t, i18n } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'auto' | 'manual'>('auto');
   
   const defaultCriteria: Criteria = {
     chapter: CHAPTERS_KEYS[0],
@@ -97,7 +98,7 @@ export const CriteriaSelector: React.FC<CriteriaSelectorProps> = ({ onGenerate, 
   const totalQuestions = batchQueue.reduce((sum, item) => sum + item.questionCount, 0) + (batchQueue.length === 0 ? currentCriteria.questionCount : 0);
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col h-full overflow-hidden">
+    <div className={`bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col h-full min-w-0 ${activeTab === 'manual' ? 'overflow-hidden' : ''}`}>
       
       <div className="flex-none border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
         <div className="p-4 pb-0">
@@ -107,13 +108,13 @@ export const CriteriaSelector: React.FC<CriteriaSelectorProps> = ({ onGenerate, 
             </h2>
             <div className="flex gap-1">
                 <button 
-                    onClick={() => setActiveTab('auto')}
+                    onClick={() => onTabChange('auto')}
                     className={`flex-1 py-2 text-xs font-bold uppercase tracking-wide border-b-2 transition-colors ${activeTab === 'auto' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
                 >
                     {t('criteria.tab_auto')}
                 </button>
                 <button 
-                    onClick={() => setActiveTab('manual')}
+                    onClick={() => onTabChange('manual')}
                     className={`flex-1 py-2 text-xs font-bold uppercase tracking-wide border-b-2 transition-colors ${activeTab === 'manual' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
                 >
                     {t('criteria.tab_manual')}
@@ -122,7 +123,7 @@ export const CriteriaSelector: React.FC<CriteriaSelectorProps> = ({ onGenerate, 
         </div>
       </div>
       
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
+      <div className={`flex-1 p-3 md:p-4 space-y-6 min-w-0 ${activeTab === 'manual' ? 'overflow-y-auto custom-scrollbar' : ''}`}>
         
         {/* TAB 1: EXAM BLUEPRINT BUILDER */}
         {activeTab === 'auto' && (

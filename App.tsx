@@ -45,6 +45,7 @@ const App: React.FC = () => {
   const [isLimitReached, setIsLimitReached] = useState<boolean>(false);
   
   const [isQuizMode, setIsQuizMode] = useState<boolean>(false);
+  const [workspaceMode, setWorkspaceMode] = useState<'auto' | 'manual'>('auto');
   const [manualRefresh, setManualRefresh] = useState(0);
   const [lastManualAction, setLastManualAction] = useState<{ criteria: Criteria[]; resume: boolean } | null>(null);
 
@@ -134,17 +135,19 @@ const App: React.FC = () => {
       
       {!isQuizMode && (
          <div className="container mx-auto px-4 pt-4">
-             <BannerAd />
+             <BannerAd compact={workspaceMode === 'auto'} />
          </div>
       )}
 
-      <main className="container mx-auto p-4 md:p-6 flex-grow">
+      <main className={`${workspaceMode === 'auto' && !isQuizMode ? 'w-full max-w-[1920px]' : 'container'} mx-auto p-4 md:p-6 flex-grow min-w-0`}>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
             
             {/* SIDEBAR (Left - 4 cols) */}
             {!isQuizMode && (
-                <div className="lg:col-span-4 h-full">
+                <div className={`${workspaceMode === 'auto' ? 'lg:col-span-12' : 'lg:col-span-4'} h-full min-w-0`}>
                     <CriteriaSelector 
+                        activeTab={workspaceMode}
+                        onTabChange={setWorkspaceMode}
                         manualRefreshToken={manualRefresh}
                         onResumeManual={() => void handleGenerate([], true)}
                         onBuyManual={() => setShowDonate(true)}
@@ -155,7 +158,7 @@ const App: React.FC = () => {
             )}
             
             {/* MAIN CONTENT (Right - 8 cols or Full) */}
-            <div className={`${isQuizMode ? 'lg:col-span-12' : 'lg:col-span-8'} h-full`}>
+            {(workspaceMode === 'manual' || isQuizMode) && <div className={`${isQuizMode ? 'lg:col-span-12' : 'lg:col-span-8'} h-full min-w-0`}>
                 <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 p-1 md:p-6 min-h-[70vh] flex flex-col relative">
                      {isLoading ? (
                         <LoadingSpinner />
@@ -172,7 +175,7 @@ const App: React.FC = () => {
                         <WelcomeScreen />
                     )}
                 </div>
-            </div>
+            </div>}
         </div>
       </main>
 
