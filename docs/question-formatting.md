@@ -9,6 +9,7 @@ Question stems, options, answers and explanations share one parsed content tree 
 - Inline equations use `$...$` or `\(...\)`; display equations use `$$...$$` or `\[...\]`. JSON responses must escape backslashes normally.
 - Presentation MathML and Quill `ql-formula` spans are supported. LaTeX is parsed by KaTeX, including mhchem `\ce{...}`.
 - Web equations use sanitized MathML. Word equations use native OMML with Cambria Math, including fractions, roots, scripts, matrices, accents and limits. They remain editable Equation objects.
+- `docx` is pinned to the Word-verified 8.5.0 runtime, including when the hosting build resolves dependencies with Yarn.
 - External resources, scripts, event handlers and arbitrary CSS are never forwarded. Images and unsupported formulas produce an explicit error; export stops rather than silently replacing an equation with an image or raw LaTeX.
 
 This preserves supported content and equation structure across web and Word. Word retains its document layout, fonts and pagination; it is not a pixel copy of the browser. Arbitrary HTML/CSS, nested table layout and every possible TeX extension are not part of this contract.
