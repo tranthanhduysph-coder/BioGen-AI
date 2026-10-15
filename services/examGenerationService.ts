@@ -1,6 +1,6 @@
 import { auth } from '../firebaseConfig';
-import { AiRequestError, requestAiJson } from './aiRequestService';
-import { requestCreditItem } from './creditService';
+import { requestAiJson } from './aiRequestService';
+import { requestCreditItem, requestCreditExamBatch } from './creditService';
 import type {
   GeneratedExamItem,
   GenerationBatchResult,
@@ -98,36 +98,32 @@ export const generateExamItems = async (
   const idToken = await getFirebaseIdToken(lang);
   const items: GeneratedExamItem[] = [];
   const failures: GenerationFailure[] = [];
-  let completed = 0;
-  let stoppedError: Error | null = null;
-
-  // A quota applies to the project, so a fatal quota/network error stops new requests.
-  // Successful items are delivered immediately and remain available for draft recovery.
-  for (const slot of slots) {
-    try {
-      if (stoppedError) throw stoppedError;
-      const wait = (waitingSeconds: number) => {
-        onProgress?.({ completed, total: slots.length, waitingSeconds });
-      };
-      const item = creditExamId
-        ? await requestCreditItem(creditExamId, slot.id, lang, false, wait)
-        : await requestExamItem(slot, lang, idToken, wait);
-      items.push(item);
-      onItem?.(item);
-    } catch (error) {
-      if (error instanceof AiRequestError && error.stopBatch) stoppedError = error;
-      failures.push({
-        slotId: slot.id,
-        part: slot.part,
-        order: slot.order,
-        message: error instanceof Error ? error.message
-          : (lang === 'en' ? 'Question generation failed.' : 'Không thể tạo câu hỏi.'),
-      });
-    } finally {
-      completed += 1;
-      onProgress?.({ completed, total: slots.length });
+  onProgress?.({ completed: 0, total: slots.length });
+  try {
+    const wait = (waitingSeconds: number) => onProgress?.({ completed: 0, total: slots.length, waitingSeconds });
+    const result = creditExamId
+      ? await requestCreditExamBatch(creditExamId, slots.map(slot => slot.id), lang, wait)
+      : await requestAiJson<GenerationBatchResult>(`${apiBase()}/api/exam/generate`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+        body: JSON.stringify({ slots, lang: lang === 'en' ? 'en' : 'vi' }),
+      }, lang, wait);
+    if (!result || !Array.isArray(result.items) || !Array.isArray(result.failures)) throw new Error('Invalid exam response.');
+    for (const slot of slots) {
+      const matches = result.items.filter(item => item.slotId === slot.id);
+      if (matches.length === 1 && matches[0].part === slot.part && matches[0].order === slot.order && matches[0].question) {
+        items.push(matches[0]);
+      } else {
+        const failure = result.failures.find(item => item.slotId === slot.id);
+        failures.push({ slotId: slot.id, part: slot.part, order: slot.order,
+          message: failure?.message || (lang === 'en' ? 'Question missing or invalid in the exam response.' : 'Bộ đề trả về thiếu câu hoặc sai định dạng ở vị trí này.') });
+      }
     }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : (lang === 'en' ? 'Exam generation failed.' : 'Không thể tạo đề.');
+    for (const slot of slots) failures.push({ slotId: slot.id, part: slot.part, order: slot.order, message });
   }
+  for (const item of items) onItem?.(item);
+  onProgress?.({ completed: slots.length, total: slots.length });
 
   const partOrder = { mcq: 0, tf: 1, short: 2 } as const;
   items.sort((a, b) => {

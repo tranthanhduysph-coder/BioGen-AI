@@ -1,6 +1,6 @@
 import os
 from functools import lru_cache
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from backend.credits import CreditService, fail
@@ -35,6 +35,12 @@ class GenerateCreditItem(BaseModel):
     slotId: str = Field(min_length=1, max_length=150)
     requestId: str = Field(min_length=8, max_length=80)
     replace: bool = False
+    lang: Literal['vi', 'en'] = 'vi'
+
+
+class GenerateCreditBatch(BaseModel):
+    slotIds: list[Annotated[str, Field(min_length=1, max_length=150)]] = Field(min_length=1, max_length=40)
+    requestId: str = Field(min_length=8, max_length=80)
     lang: Literal['vi', 'en'] = 'vi'
 
 
@@ -96,7 +102,7 @@ class Refund(BaseModel):
     note: str = Field(min_length=1, max_length=500)
 
 
-def build_router(require_user, parse_slot, generate):
+def build_router(require_user, parse_slot, generate, generate_batch):
     router = APIRouter(prefix='/api/credits')
 
     def uid(user):
@@ -182,6 +188,20 @@ def build_router(require_user, parse_slot, generate):
             result = generate(parse_slot(claim['slot']), payload.lang, user,
                 lambda usage: credits.record_usage(user, exam_id, claim['nonce'], usage))
             return credits.finish(user, exam_id, claim['nonce'], result.model_dump())
+        except Exception:
+            credits.release(user, exam_id, claim['nonce'])
+            raise
+
+    @router.post('/exams/{exam_id}/generate')
+    def batch(exam_id: str, payload: GenerateCreditBatch, user=Depends(require_user)):
+        credits = service()
+        claim = credits.claim_batch(user, exam_id, payload.slotIds, payload.requestId)
+        if 'cached' in claim:
+            return claim['cached']
+        try:
+            result = generate_batch([parse_slot(s) for s in claim['slots']], payload.lang, user,
+                lambda usage: credits.record_usage(user, exam_id, claim['nonce'], usage))
+            return credits.finish_batch(user, exam_id, claim['nonce'], result)
         except Exception:
             credits.release(user, exam_id, claim['nonce'])
             raise

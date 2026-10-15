@@ -213,6 +213,80 @@ class CreditService:
             return item
         return self.store.run(finish)
 
+    def claim_batch(self, user, exam_id, slot_ids, operation):
+        request_id(operation)
+        if not slot_ids or len(slot_ids) != len(set(slot_ids)) or len(slot_ids) > 40:
+            fail('invalid_slot', 'Danh sách vị trí câu hỏi không hợp lệ.', 422)
+        intent = {'slotIdsHash': fingerprint(sorted(slot_ids)), 'batch': True}
+        nonce = uuid.uuid4().hex
+        def claim(tx):
+            account = self.account(tx, user)
+            self.approved(account)
+            path = self.exam_path(account['uid'], exam_id)
+            exam = tx.get(path)
+            if not exam or exam['status'] == 'cancelled':
+                fail('exam_not_found', 'Đề không còn khả dụng.', 404)
+            selected = [s for s in exam['slots'] if s['id'] in slot_ids]
+            if len(selected) != len(slot_ids):
+                fail('invalid_slot', 'Câu hỏi không thuộc ma trận đã khóa.', 422)
+            old = exam['operations'].get(operation)
+            if old and old['intent'] != intent:
+                fail('request_conflict', 'Mã yêu cầu đã dùng cho nội dung khác.')
+            cached = [exam['items'][s['id']] for s in selected if s['id'] in exam['items']]
+            missing = [s for s in selected if s['id'] not in exam['items']]
+            if old or not missing:
+                failures = [{'slotId': s['id'], 'part': s['part'], 'order': s['order'],
+                    'message': 'Vị trí này chưa có câu hợp lệ. Có thể tạo lại riêng phần còn thiếu.'} for s in missing]
+                return {'cached': {'items': cached, 'failures': failures}}
+            if len(exam['operations']) >= 100:
+                fail('generation_limit', 'Đã hết hạn mức yêu cầu của đề.', 403)
+            now = self.clock()
+            if exam['lease'] and exam['lease']['expiresAt'] > now:
+                fail('exam_busy', 'Đề đang được tạo; hãy đợi rồi tiếp tục.')
+            exam['lease'] = {'nonce': nonce, 'operation': operation, 'slotIds': [s['id'] for s in missing],
+                             'requestedSlotIds': slot_ids, 'intent': intent, 'replace': False, 'expiresAt': now + 300}
+            exam['updatedAt'] = now
+            tx.set(path, exam)
+            return {'slots': missing, 'cachedItems': cached, 'nonce': nonce}
+        return self.store.run(claim)
+
+    def finish_batch(self, user, exam_id, nonce, result):
+        def finish(tx):
+            account = self.account(tx, user)
+            path = self.exam_path(account['uid'], exam_id)
+            exam = tx.get(path)
+            lease = exam.get('lease') if exam else None
+            if not lease or lease['nonce'] != nonce or 'slotIds' not in lease or exam['status'] == 'cancelled':
+                fail('stale_generation', 'Yêu cầu đã được thay thế; hãy tải lại đề.')
+            expected = {s['id']: s for s in exam['slots'] if s['id'] in lease['slotIds']}
+            seen = set()
+            for item in result['items']:
+                slot = expected.get(item['slotId'])
+                if not slot or item['slotId'] in seen or item['part'] != slot['part'] or item['order'] != slot['order']:
+                    fail('invalid_slot', 'Kết quả không đúng vị trí câu.', 422)
+                if len(json.dumps(item, ensure_ascii=False).encode()) > 6000:
+                    fail('ai_invalid_question', 'Câu AI quá dài; cần tạo lại.', 422)
+                seen.add(item['slotId'])
+            failures = result['failures']
+            failure_ids = [f['slotId'] for f in failures]
+            if len(failure_ids) != len(set(failure_ids)) or (seen & set(failure_ids)) or (seen | set(failure_ids)) != set(expected):
+                fail('invalid_slot', 'Kết quả thiếu hoặc trùng vị trí câu.', 422)
+            exam['items'].update({item['slotId']: item for item in result['items']})
+            exam['operations'][lease['operation']] = {'intent': lease['intent']}
+            requested = set(lease['requestedSlotIds'])
+            exam['lease'] = None
+            exam['updatedAt'] = self.clock()
+            if len(exam['items']) == len(exam['slots']) and exam['status'] == 'reserved':
+                exam['status'] = 'completed'
+                account.update(held=account['held'] - 1, activeExamId=None, updatedAt=self.clock())
+                tx.set(self.account_path(account['uid']), account)
+                self.ledger(tx, account['uid'], 'consume:' + exam_id, 'consume',
+                            examId=exam_id, balanceDelta=0, heldDelta=-1)
+            tx.set(path, exam)
+            return {'items': [exam['items'][s['id']] for s in exam['slots'] if s['id'] in requested and s['id'] in exam['items']],
+                    'failures': failures}
+        return self.store.run(finish)
+
     def release(self, user, exam_id, nonce):
         def release(tx):
             account = self.account(tx, user)

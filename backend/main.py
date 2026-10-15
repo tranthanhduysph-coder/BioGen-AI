@@ -13,6 +13,7 @@ from google.oauth2 import id_token as google_id_token
 from pydantic import BaseModel, Field
 from backend.gemini_gateway import GeminiRateLimiter, generate_content, quota_error
 from backend import credit_api
+from backend.exam_batch import build_prompt as build_exam_prompt, normalize_response as normalize_exam_response
 
 try:
     from google import genai
@@ -135,6 +136,10 @@ class GenerateItemRequest(BaseModel):
     slot: dict[str, Any]
     lang: str = 'vi'
 
+class GenerateExamRequest(BaseModel):
+    slots: list[dict[str, Any]] = Field(min_length=1, max_length=40)
+    lang: Literal['vi', 'en'] = 'vi'
+
 class ManualGenerateRequest(BaseModel):
     prompt: str = Field(min_length=20, max_length=16000)
     expectedCount: int = Field(ge=1, le=40)
@@ -174,16 +179,17 @@ def health():
         'model': GEMINI_MODEL,
         'geminiRequestsPerMinute': GEMINI_REQUESTS_PER_MINUTE,
         'creditsEnabled': credit_api.enabled(),
+        'examGenerationMode': 'single_call',
     }
 
-def _client():
+def _client(timeout_ms=90000):
     if not GEMINI_API_KEY:
         raise HTTPException(status_code=503, detail='GEMINI_API_KEY is not configured on the BioGen backend.')
     if genai is None:
         raise HTTPException(status_code=500, detail='google-genai is unavailable.')
     # All retries must pass through our project limiter, including SDK retries.
     return genai.Client(api_key=GEMINI_API_KEY, http_options={
-        'timeout': 90000, 'retry_options': {'attempts': 1},
+        'timeout': timeout_ms, 'retry_options': {'attempts': 1},
     })
 
 def _mcq_prompt(slot: SimpleSlot, lang: str) -> str:
@@ -391,6 +397,37 @@ def _generate(slot, lang: str, on_admitted=None, usage_sink=None) -> GeneratedEx
         'message': f'AI question format validation failed: {last_error}',
     })
 
+def _generate_batch(slots, lang, user, usage_sink=None):
+    raw_slots = [s.model_dump() for s in slots]
+    prompt = build_exam_prompt(raw_slots, lang)
+    admitted = False
+    charge = _charge_once(user, len(slots))
+    def admit():
+        nonlocal admitted
+        charge()
+        admitted = True
+    try:
+        response = generate_content(_client(timeout_ms=180000), _gemini_limiter, on_admitted=admit,
+            model=GEMINI_MODEL, contents=prompt,
+            config={'response_mime_type': 'application/json', 'max_output_tokens': 32768})
+    except HTTPException as exc:
+        # A provider attempt is never automatically replayed for an exam batch.
+        # Only a local admission wait (no provider call) can be retried safely.
+        if admitted and isinstance(exc.detail, dict):
+            exc.detail = {**exc.detail, 'retryable': False}
+        raise
+    if usage_sink:
+        meta = getattr(response, 'usage_metadata', None)
+        usage_sink({'calls': 1, 'inputTokens': getattr(meta, 'prompt_token_count', 0) or 0,
+                    'outputTokens': getattr(meta, 'candidates_token_count', 0) or 0,
+                    'thinkingTokens': getattr(meta, 'thoughts_token_count', 0) or 0})
+    try:
+        return normalize_exam_response(raw_slots, response.text or '', _validate_and_normalize, lang)
+    except (ValueError, TypeError) as exc:
+        raise HTTPException(422, detail={'code': 'ai_invalid_question', 'retryable': False,
+            'message': 'AI trả về bộ đề không đọc được. Giữ nguyên đề và thử lại khi sẵn sàng.'}) from exc
+
+
 def _validate_manual_question(data: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(data, dict):
         raise ValueError('Manual question must be a JSON object.')
@@ -530,10 +567,22 @@ def _parse_credit_slot(raw):
         raise HTTPException(422, detail='Vị trí câu hỏi không hợp lệ.')
 
 
+@app.post('/api/exam/generate')
+def generate_exam(payload: GenerateExamRequest, user=Depends(require_firebase_user)):
+    if credit_api.enabled():
+        raise HTTPException(403, detail={'code': 'credit_exam_required', 'retryable': False,
+                            'message': 'Hãy tạo hoặc tiếp tục đề bằng credit trước khi gọi AI.'})
+    slots = [_parse_credit_slot(s) for s in payload.slots]
+    if len({s.id for s in slots}) != len(slots) or sum(4 if s.part == 'tf' else 1 for s in slots) > 40:
+        raise HTTPException(422, detail='Đề vượt giới hạn 40 câu/ý hoặc trùng vị trí.')
+    return _generate_batch(slots, payload.lang, user)
+
+
 app.include_router(credit_api.build_router(
     require_firebase_user, _parse_credit_slot,
     lambda slot, lang, user, usage_sink: _generate(slot, lang, on_admitted=_charge_once(user),
                                                 usage_sink=usage_sink),
+    _generate_batch,
 ))
 from backend.payments import build_payment_router
 app.include_router(build_payment_router(lambda: credit_api.service()))

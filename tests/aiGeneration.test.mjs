@@ -86,39 +86,51 @@ test('configuration and format failures have different messages and batch behavi
 });
 
 const slots = [1, 2, 3].map(order => ({ id: `mcq-q0${order}`, part: 'mcq', order }));
-test('batch is sequential and preserves successes when daily quota stops new requests', async () => {
+test('28 exam questions use one HTTP request and deliver all validated items', async () => {
   const original = globalThis.fetch;
-  let calls = 0, active = 0, maxActive = 0;
-  globalThis.fetch = async (_url, init) => {
-    maxActive = Math.max(maxActive, ++active);
-    await new Promise(resolve => setImmediate(resolve));
-    active--;
+  let calls = 0;
+  const wholeExam = Array.from({ length: 28 }, (_, i) => ({ ...slots[0], id: `mcq-${i}`, order: i + 1 }));
+  globalThis.fetch = async (url, init) => {
     calls++;
-    const { slot } = JSON.parse(init.body);
-    return calls === 1 ? ok({ slotId: slot.id, part: slot.part, order: slot.order, question: {} }) : response('gemini_daily_quota');
+    assert.equal(url, 'https://test.invalid/api/exam/generate');
+    assert.deepEqual(JSON.parse(init.body).slots, wholeExam);
+    return ok({ items: wholeExam.map(s => ({ slotId: s.id, part: s.part, order: s.order, question: {} })), failures: [] });
   };
   try {
     const delivered = [], progress = [];
-    const result = await api.generateExamItems(slots, 'vi', p => progress.push(p), item => delivered.push(item));
-    assert.equal(maxActive, 1);
-    assert.equal(calls, 2);
-    assert.equal(result.items.length, 1);
-    assert.equal(delivered.length, 1);
-    assert.deepEqual(result.failures.map(f => f.slotId), ['mcq-q02', 'mcq-q03']);
-    assert.deepEqual(progress.at(-1), { completed: 3, total: 3 });
+    const result = await api.generateExamItems(wholeExam, 'vi', p => progress.push(p), item => delivered.push(item));
+    assert.equal(calls, 1);
+    assert.equal(result.items.length, 28);
+    assert.equal(delivered.length, 28);
+    assert.equal(result.failures.length, 0);
+    assert.deepEqual(progress.at(-1), { completed: 28, total: 28 });
   } finally { globalThis.fetch = original; }
 });
 
 test('a malformed question does not discard later successes', async () => {
   const original = globalThis.fetch;
+  let calls = 0;
   globalThis.fetch = async (_url, init) => {
-    const { slot } = JSON.parse(init.body);
-    return slot.order === 2 ? response('ai_invalid_question', 422)
-      : ok({ slotId: slot.id, part: slot.part, order: slot.order, question: {} });
+    calls++;
+    return ok({ items: slots.filter(s => s.order !== 2).map(s => ({ slotId: s.id, part: s.part, order: s.order, question: {} })),
+      failures: [{ slotId: slots[1].id, message: 'Invalid question' }] });
   };
   try {
     const result = await api.generateExamItems(slots);
     assert.deepEqual(result.items.map(item => item.order), [1, 3]);
     assert.equal(result.failures.length, 1);
+    assert.equal(calls, 1);
+  } finally { globalThis.fetch = original; }
+});
+
+test('an exhausted provider never falls back to individual question requests', async () => {
+  const original = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = async () => { calls++; return response('gemini_daily_quota'); };
+  try {
+    const result = await api.generateExamItems(slots);
+    assert.equal(result.items.length, 0);
+    assert.equal(result.failures.length, 3);
+    assert.equal(calls, 1);
   } finally { globalThis.fetch = original; }
 });
